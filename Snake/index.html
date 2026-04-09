@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <h1>Snake Game</h1>
+
+    <section class="status-row">
+      <p class="score">Score: <span id="score">0</span></p>
+      <p class="best-score">Best: <span id="best-score">0</span></p>
+      <p id="game-state" class="game-state">Running</p>
+      <p id="game-over" class="game-over" aria-live="polite">Game Over</p>
+    </section>
+
+    <section class="controls-row">
+      <label for="difficulty">Difficulty:</label>
+      <select id="difficulty" name="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <label for="theme-select">Theme:</label>
+      <select id="theme-select" name="theme-select">
+        <option value="meadow" selected>Meadow</option>
+        <option value="midnight">Midnight</option>
+        <option value="sunset">Sunset</option>
+      </select>
+      <button id="sound-btn" type="button">Sound: On</button>
+      <button id="pause-btn" type="button">Pause</button>
+    </section>
+
+    <canvas id="game-canvas" width="400" height="400" aria-label="Snake game board"></canvas>
+
+    <p class="hint">Arrow/WASD move, P pause. Theme/sound settings and best score are persisted.</p>
+
+    <button id="restart-btn" type="button">Restart</button>
+  </main>
+
+  <script src="game.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="food sprite">
+  <defs>
+    <radialGradient id="appleGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ff8f7c"/>
+      <stop offset="100%" stop-color="#d93a2c"/>
+    </radialGradient>
+  </defs>
+  <path d="M34 14 C35 10 39 8 42 8" stroke="#6f4d2a" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M38 12 C46 10 49 15 50 20 C44 20 40 17 38 12 Z" fill="#4f9a47"/>
+  <circle cx="32" cy="37" r="21" fill="url(#appleGrad)"/>
+  <circle cx="24" cy="28" r="5" fill="rgba(255,255,255,0.35)"/>
+</svg>

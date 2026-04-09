@@ -1,0 +1,2645 @@
+{
+  "id": "grimweave",
+  "world": {
+    "id": "grimweave-borderland",
+    "title": "灰织边陲：腐月下的誓言",
+    "chapter_title": "第一章：泥沼村的钟声",
+    "tone": "中古战锤风格黑暗奇幻单机文字冒险",
+    "intro": "帝国北境，灰织边陲。瘟气、饥荒与流言比乌鸦更早落地。泥沼村连响七夜无主丧钟，邪教、鼠人和旧神遗迹的传闻同时复苏。",
+    "corruption_limit": 10,
+    "default_shillings": 2,
+    "start_node": "arrival",
+    "start_log": "你抵达泥沼村。腐月藏在云后，钟声却还在响。",
+    "doom_texts": [
+      {
+        "min": 5,
+        "text": "远处祷唱像鼠潮一样密集，仪式明显加速。"
+      },
+      {
+        "min": 3,
+        "text": "天色越来越低，时间在你背后逼近。"
+      },
+      {
+        "min": 0,
+        "text": "风里有潮湿铁锈味，村子还没彻底崩溃。"
+      }
+    ],
+    "corruption_penalties": [
+      {
+        "min": 8,
+        "value": -2,
+        "source": "腐化过深"
+      },
+      {
+        "min": 5,
+        "value": -1,
+        "source": "腐化侵蚀"
+      }
+    ],
+    "resolve_victory": {
+      "default": {
+        "ending": "sigil_victory",
+        "summary": "你终结了仪式。"
+      },
+      "rules": [
+        {
+          "if": {
+            "any": [
+              {
+                "ctx": "method",
+                "op": "==",
+                "value": "pyrrhic"
+              },
+              {
+                "path": "progress.doom",
+                "op": ">=",
+                "value": 5
+              },
+              {
+                "path": "progress.flags.abandoned_children",
+                "op": "==",
+                "value": true
+              },
+              {
+                "path": "player.corruption",
+                "op": ">=",
+                "value": 6
+              }
+            ]
+          },
+          "result": {
+            "ending": "pyrrhic_victory",
+            "summary": "你阻止了邪教，但代价惨重。"
+          }
+        },
+        {
+          "if": {
+            "all": [
+              {
+                "path": "progress.flags.rescued_children",
+                "op": "==",
+                "value": true
+              },
+              {
+                "path": "progress.doom",
+                "op": "<=",
+                "value": 4
+              },
+              {
+                "path": "player.hp",
+                "op": ">=",
+                "value": 4
+              },
+              {
+                "path": "player.corruption",
+                "op": "<=",
+                "value": 4
+              }
+            ]
+          },
+          "result": {
+            "ending": "sigil_victory",
+            "summary": "你救下了仍有机会活下去的人。"
+          }
+        },
+        {
+          "if": {
+            "all": [
+              {
+                "ctx": "method",
+                "op": "==",
+                "value": "fire"
+              },
+              {
+                "path": "player.hp",
+                "op": "<=",
+                "value": 2
+              }
+            ]
+          },
+          "result": {
+            "ending": "pyrrhic_victory",
+            "summary": "你在塌方和火焰中幸存，但几乎只剩一口气。"
+          }
+        }
+      ]
+    },
+    "default_ending_id": "death_in_mire",
+    "fatal_rules": {
+      "on_hp_zero": {
+        "ending": "death_in_mire",
+        "summary": "你的生命归零。"
+      },
+      "on_corruption_limit": {
+        "ending": "chaos_thrall",
+        "summary": "腐化吞没了你的意志。"
+      }
+    }
+  },
+  "stat_meta": {
+    "might": {
+      "label": "力量",
+      "description": "近战、强攻、压制"
+    },
+    "agility": {
+      "label": "敏捷",
+      "description": "潜行、闪避、机动"
+    },
+    "insight": {
+      "label": "洞察",
+      "description": "调查、识别、解谜"
+    },
+    "will": {
+      "label": "意志",
+      "description": "抗恐惧、抗腐化、祷文"
+    },
+    "fellowship": {
+      "label": "交涉",
+      "description": "说服、欺骗、威压"
+    }
+  },
+  "professions": [
+    {
+      "id": "roadwarden",
+      "name": "边境巡路骑手",
+      "summary": "旧军饷断了，但刀还在。",
+      "stats": {
+        "might": 4,
+        "agility": 2,
+        "insight": 2,
+        "will": 3,
+        "fellowship": 2
+      },
+      "max_hp": 14,
+      "starting_items": [
+        "service_blade",
+        "pistol_shot",
+        "bandage"
+      ],
+      "perks": [
+        "前线老兵：战斗检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：前线老兵",
+          "value": 1,
+          "tags_any": [
+            "combat"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grave_scribe",
+      "name": "墓园抄写员",
+      "summary": "抄碑文和禁祷文的灰袍文士。",
+      "stats": {
+        "might": 2,
+        "agility": 2,
+        "insight": 4,
+        "will": 4,
+        "fellowship": 2
+      },
+      "max_hp": 11,
+      "starting_items": [
+        "lantern_oil",
+        "witch_salt",
+        "ink_prayer"
+      ],
+      "perks": [
+        "古文识读：符文/仪式检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：古文识读",
+          "value": 1,
+          "tags_any": [
+            "rune",
+            "lore",
+            "ritual"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fen_poacher",
+      "name": "沼地盗猎者",
+      "summary": "和税吏、狼群都打过交道。",
+      "stats": {
+        "might": 2,
+        "agility": 4,
+        "insight": 3,
+        "will": 2,
+        "fellowship": 2
+      },
+      "max_hp": 12,
+      "starting_items": [
+        "snare_wire",
+        "short_bow",
+        "dried_meat"
+      ],
+      "perks": [
+        "林地潜行：追踪/潜行检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：林地潜行",
+          "value": 1,
+          "tags_any": [
+            "stealth",
+            "tracking",
+            "ranged"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fallen_templar",
+      "name": "失势圣殿侍从",
+      "summary": "披风破旧，誓词尚存。",
+      "stats": {
+        "might": 3,
+        "agility": 2,
+        "insight": 2,
+        "will": 4,
+        "fellowship": 3
+      },
+      "max_hp": 13,
+      "starting_items": [
+        "sigmar_seal",
+        "bandage",
+        "sermon_book"
+      ],
+      "perks": [
+        "残余圣恩：信仰/抗腐化检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：残余圣恩",
+          "value": 1,
+          "tags_any": [
+            "faith",
+            "corruption",
+            "ritual"
+          ]
+        }
+      ]
+    }
+  ],
+  "items": {
+    "service_blade": {
+      "id": "service_blade",
+      "name": "制式长剑",
+      "type": "gear",
+      "description": "战斗检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：制式长剑",
+          "value": 1,
+          "tags_any": [
+            "combat"
+          ]
+        }
+      ]
+    },
+    "pistol_shot": {
+      "id": "pistol_shot",
+      "name": "单发手铳",
+      "type": "consumable",
+      "description": "一次性：战斗检定 +3。"
+    },
+    "bandage": {
+      "id": "bandage",
+      "name": "粗麻绷带",
+      "type": "consumable",
+      "description": "一次性：恢复 3 生命。",
+      "use_effects": [
+        {
+          "op": "adjust",
+          "resource": "hp",
+          "amount": 3
+        }
+      ]
+    },
+    "lantern_oil": {
+      "id": "lantern_oil",
+      "name": "灯油瓶",
+      "type": "consumable",
+      "description": "一次性：黑暗场景检定 +2。"
+    },
+    "witch_salt": {
+      "id": "witch_salt",
+      "name": "驱巫盐",
+      "type": "consumable",
+      "description": "一次性：邪教/腐化检定 +2。"
+    },
+    "ink_prayer": {
+      "id": "ink_prayer",
+      "name": "墨祷札记",
+      "type": "gear",
+      "description": "符文/古文检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：墨祷札记",
+          "value": 1,
+          "tags_any": [
+            "rune",
+            "lore"
+          ]
+        }
+      ]
+    },
+    "snare_wire": {
+      "id": "snare_wire",
+      "name": "兽夹钢索",
+      "type": "consumable",
+      "description": "一次性：潜行检定 +2。"
+    },
+    "short_bow": {
+      "id": "short_bow",
+      "name": "短弓",
+      "type": "gear",
+      "description": "远程战斗检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：短弓",
+          "value": 1,
+          "tags_any": [
+            "ranged"
+          ]
+        }
+      ]
+    },
+    "dried_meat": {
+      "id": "dried_meat",
+      "name": "风干肉",
+      "type": "consumable",
+      "description": "一次性：恢复 2 生命并腐化 -1。",
+      "use_effects": [
+        {
+          "op": "adjust",
+          "resource": "hp",
+          "amount": 2
+        },
+        {
+          "op": "adjust",
+          "resource": "corruption",
+          "amount": -1
+        }
+      ]
+    },
+    "sigmar_seal": {
+      "id": "sigmar_seal",
+      "name": "破损圣印",
+      "type": "consumable",
+      "description": "一次性：抗腐化检定 +3。"
+    },
+    "sermon_book": {
+      "id": "sermon_book",
+      "name": "布道小册",
+      "type": "gear",
+      "description": "交涉检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：布道小册",
+          "value": 1,
+          "tags_any": [
+            "social"
+          ]
+        }
+      ]
+    },
+    "blackpowder_vial": {
+      "id": "blackpowder_vial",
+      "name": "黑火药瓶",
+      "type": "consumable",
+      "description": "一次性：可触发塌方结局路线。"
+    },
+    "plague_tonic": {
+      "id": "plague_tonic",
+      "name": "瘟疫苦酊",
+      "type": "consumable",
+      "description": "一次性：清除染疫并恢复 2 生命。",
+      "use_effects": [
+        {
+          "op": "remove_status",
+          "status": "infected"
+        },
+        {
+          "op": "adjust",
+          "resource": "hp",
+          "amount": 2
+        }
+      ]
+    },
+    "chapel_token": {
+      "id": "chapel_token",
+      "name": "教堂护符",
+      "type": "gear",
+      "description": "意志检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：教堂护符",
+          "value": 1,
+          "stat_in": [
+            "will"
+          ]
+        }
+      ]
+    }
+  },
+  "statuses": {
+    "wounded": {
+      "id": "wounded",
+      "name": "负伤",
+      "description": "力量和敏捷检定 -1。",
+      "check_bonus": [
+        {
+          "source": "状态：负伤",
+          "value": -1,
+          "stat_in": [
+            "might",
+            "agility"
+          ]
+        }
+      ]
+    },
+    "infected": {
+      "id": "infected",
+      "name": "染疫",
+      "description": "每回合推进后失去 1 生命。",
+      "per_turn_effects": [
+        {
+          "op": "adjust",
+          "resource": "hp",
+          "amount": -1
+        },
+        {
+          "op": "log",
+          "text": "染疫恶化：生命 -1"
+        }
+      ]
+    },
+    "blessed": {
+      "id": "blessed",
+      "name": "受祝",
+      "description": "下一次意志检定 +2，随后消失。",
+      "check_bonus": [
+        {
+          "source": "状态：受祝",
+          "value": 2,
+          "stat_in": [
+            "will"
+          ]
+        }
+      ],
+      "consume_on_check": {
+        "stat": "will"
+      }
+    },
+    "shaken": {
+      "id": "shaken",
+      "name": "惊惧",
+      "description": "洞察与交涉检定 -1。",
+      "check_bonus": [
+        {
+          "source": "状态：惊惧",
+          "value": -1,
+          "stat_in": [
+            "insight",
+            "fellowship"
+          ]
+        }
+      ]
+    },
+    "burdened": {
+      "id": "burdened",
+      "name": "背负难民",
+      "description": "敏捷检定 -1。",
+      "check_bonus": [
+        {
+          "source": "状态：背负难民",
+          "value": -1,
+          "stat_in": [
+            "agility"
+          ]
+        }
+      ]
+    }
+  },
+  "endings": {
+    "sigil_victory": {
+      "id": "sigil_victory",
+      "title": "灰烬中的黎明",
+      "text": "你在祭坑中逆转了符阵。村子没有被拯救，只是从灭顶之灾中暂缓一步。"
+    },
+    "pyrrhic_victory": {
+      "id": "pyrrhic_victory",
+      "title": "代价账本",
+      "text": "你切断了邪教仪式，但瘟疫、火与仇恨已经蔓延。你活着离开，却再也不是来时的人。"
+    },
+    "plague_rises": {
+      "id": "plague_rises",
+      "title": "第八夜的丧钟",
+      "text": "仪式完成，黑雨降临。泥沼村成了边陲地图上一块无人愿意靠近的斑点。"
+    },
+    "chaos_thrall": {
+      "id": "chaos_thrall",
+      "title": "腐月誓仆",
+      "text": "你接受了低语，意志沉入圣杯。你仍记得自己的名字，但只在给邪教点名时会用到它。"
+    },
+    "buried_alive": {
+      "id": "buried_alive",
+      "title": "墓穴闭合",
+      "text": "爆裂的石穹和黑烟一起吞没了你。你的故事停在无人知晓的一次坍塌中。"
+    },
+    "death_in_mire": {
+      "id": "death_in_mire",
+      "title": "泥中无人",
+      "text": "你倒在泥与血里。没人来确认你的死，只剩风在你耳边翻动旧祷词。"
+    }
+  },
+  "nodes": {
+    "arrival": {
+      "title": "泥沼村路口",
+      "text": "马车在泥里吱响。你踏进泥沼村时，天色像发霉的铁。\n\n钟楼无人，却在黄昏前敲了第七下。\n\n你是{{player.profession_name}}。若这次失败，边陲会多一座无名坟。",
+      "actions": [
+        {
+          "id": "arrive_tavern",
+          "label": "去歪灯酒馆打听",
+          "hint": "信息收集",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "tavern_common"
+            },
+            {
+              "op": "outcome",
+              "summary": "你推门进入歪灯酒馆。",
+              "detail": "廉价麦酒和湿木板的味道扑面而来，角落里的人立刻压低了说话声。"
+            }
+          ]
+        },
+        {
+          "id": "arrive_chapel",
+          "label": "先去教堂见神父",
+          "hint": "信仰与线索",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "chapel_hall"
+            },
+            {
+              "op": "outcome",
+              "summary": "你先去教堂。",
+              "detail": "你多绕了一段路，远处钟楼又响了一次。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "arrive_square",
+          "label": "直接去村中广场",
+          "hint": "快速推进",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "village_square"
+            },
+            {
+              "op": "outcome",
+              "summary": "你直接去了村中广场。",
+              "detail": "几名村民盯着你，像在判断你是救命绳还是新麻烦。"
+            }
+          ]
+        }
+      ]
+    },
+    "tavern_common": {
+      "title": "歪灯酒馆",
+      "text": "梁柱歪斜，窗缝封蜡。这里每个人都在谈“孩子”“瘟病”“别碰地窖”。",
+      "actions": [
+        {
+          "id": "tavern_innkeeper",
+          "label": "向老板娘玛塔打听",
+          "hint": "稳定线索",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "heard_rats",
+              "value": true
+            },
+            {
+              "op": "set_flag",
+              "flag": "heard_innkeeper",
+              "value": true
+            },
+            {
+              "op": "log",
+              "text": "你从玛塔那里听到地下鼠道传闻。"
+            },
+            {
+              "op": "outcome",
+              "summary": "老板娘玛塔压低了声音。",
+              "detail": "她说地下水道最近常有铁片摩擦声，孩子失踪就从那之后开始。",
+              "changes": [
+                "获得线索：鼠道异动"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tavern_dice",
+          "label": "加入掷骨子赌桌套话",
+          "hint": "交涉检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 12,
+            "label": "赌桌套话",
+            "tags": [
+              "social"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "shillings",
+                "amount": 2
+              },
+              {
+                "op": "set_flag",
+                "flag": "heard_rats",
+                "value": true
+              },
+              {
+                "op": "outcome",
+                "summary": "你赢了几把骰子，也赢来了松口的酒鬼。",
+                "detail": "对方提到排水渠尽头有封死砖墙，墙后经常传来刮擦声。",
+                "changes": [
+                  "先令 +2",
+                  "获得线索：排水渠暗门"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "shillings",
+                "amount": -1
+              },
+              {
+                "op": "add_status",
+                "status": "shaken"
+              },
+              {
+                "op": "outcome",
+                "summary": "你在赌桌上吃了瘪。",
+                "detail": "你丢了一枚先令，还被一群地痞哄笑。",
+                "changes": [
+                  "先令 -1",
+                  "获得状态：惊惧"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "tavern_cellar",
+          "label": "夜探酒馆地窖",
+          "hint": "敏捷检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "agility",
+            "dc": 13,
+            "label": "地窖潜行",
+            "tags": [
+              "stealth",
+              "dark"
+            ],
+            "spend_if_has": {
+              "item": "lantern_oil",
+              "bonus": 2,
+              "label": "灯油瓶"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "heard_rats",
+                "value": true
+              },
+              {
+                "op": "set_flag",
+                "flag": "know_hidden_entry",
+                "value": true
+              },
+              {
+                "op": "add_item",
+                "item": "blackpowder_vial",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "outcome",
+                "summary": "你在霉木箱后找到被灰浆封过的暗洞。",
+                "detail": "墙后有祷唱声，你还摸到一瓶黑火药。",
+                "changes": [
+                  "获得线索：隐蔽入口",
+                  "获得物品：黑火药瓶"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -2
+              },
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "infected"
+              },
+              {
+                "op": "outcome",
+                "summary": "鼠群从阴影里扑向你。",
+                "detail": "你逃出来了，但小腿被咬烂，伤口边缘发黑。",
+                "changes": [
+                  "生命 -2",
+                  "腐化 +1",
+                  "获得状态：染疫"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "tavern_rest",
+          "label": "花 1 先令短暂休整",
+          "hint": "恢复资源",
+          "kind": "story",
+          "requires": {
+            "path": "player.shillings",
+            "op": ">=",
+            "value": 1
+          },
+          "on_unavailable": {
+            "summary": "钱不够。",
+            "detail": "玛塔摇头，把你从楼梯口请开。"
+          },
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "shillings",
+              "amount": -1
+            },
+            {
+              "op": "adjust",
+              "resource": "hp",
+              "amount": 3
+            },
+            {
+              "op": "remove_status",
+              "status": "shaken"
+            },
+            {
+              "op": "outcome",
+              "summary": "你在酒馆楼上短暂休整。",
+              "detail": "烛火摇晃，但至少伤口暂时止住了血。",
+              "changes": [
+                "先令 -1",
+                "生命 +3",
+                "移除状态：惊惧"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tavern_to_square",
+          "label": "离开酒馆去广场",
+          "hint": "推进剧情",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "village_square"
+            },
+            {
+              "op": "outcome",
+              "summary": "你离开酒馆。",
+              "detail": "{{doom_text}}"
+            }
+          ]
+        }
+      ]
+    },
+    "chapel_hall": {
+      "title": "裂钟教堂",
+      "text": "圣像脸部剥落如干血。神父布伦的手在抖，却坚持说“钟还响，村子就没彻底死”。",
+      "actions": [
+        {
+          "id": "chapel_bless",
+          "label": "请求神父赐福",
+          "hint": "意志检定 DC11",
+          "kind": "check",
+          "check": {
+            "stat": "will",
+            "dc": 11,
+            "label": "接受赐福",
+            "tags": [
+              "faith",
+              "corruption"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "add_status",
+                "status": "blessed"
+              },
+              {
+                "op": "add_item",
+                "item": "chapel_token",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "outcome",
+                "summary": "神父把手按在你额头。",
+                "detail": "烛火短暂稳定下来，你的心跳也慢了一拍。",
+                "changes": [
+                  "获得状态：受祝",
+                  "获得物品：教堂护符"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "outcome",
+                "summary": "祷词像砂纸一样刮过耳膜。",
+                "detail": "你只听见祭坛下方传来细碎爬动声。",
+                "changes": [
+                  "腐化 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "chapel_ledger",
+          "label": "翻阅旧墓册与禁祷文",
+          "hint": "洞察检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 13,
+            "label": "解读墓册",
+            "tags": [
+              "lore",
+              "rune"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "know_litany",
+                "value": true
+              },
+              {
+                "op": "outcome",
+                "summary": "你找到了“圣维库斯封祷式”残页。",
+                "detail": "残页记载了墓穴侧门的符纹顺序。",
+                "changes": [
+                  "获得线索：封祷式"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "shaken"
+              },
+              {
+                "op": "outcome",
+                "summary": "墨迹在你眼里像活物一样扭动。",
+                "detail": "你急忙合上墓册，但那几行字已经扎进脑海。",
+                "changes": [
+                  "腐化 +1",
+                  "获得状态：惊惧"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "chapel_buy_tonic",
+          "label": "用 1 先令换瘟疫苦酊",
+          "hint": "资源交换",
+          "kind": "story",
+          "requires": {
+            "path": "player.shillings",
+            "op": ">=",
+            "value": 1
+          },
+          "on_unavailable": {
+            "summary": "你没有足够的钱。",
+            "detail": "神父说药草已经稀缺。"
+          },
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "shillings",
+              "amount": -1
+            },
+            {
+              "op": "add_item",
+              "item": "plague_tonic",
+              "qty": 1
+            },
+            {
+              "op": "outcome",
+              "summary": "你换到一瓶瘟疫苦酊。",
+              "detail": "瓶塞缠着赎罪祷词，药液黑得像墨。",
+              "changes": [
+                "先令 -1",
+                "获得物品：瘟疫苦酊"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "chapel_to_square",
+          "label": "离开教堂去广场",
+          "hint": "推进剧情",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "village_square"
+            },
+            {
+              "op": "outcome",
+              "summary": "你离开教堂。",
+              "detail": "风更冷了，街角有人在灰烬里画符。"
+            }
+          ]
+        }
+      ]
+    },
+    "village_square": {
+      "title": "泥沼村广场",
+      "text": "石井边盖着三具尸布。{{doom_text}}",
+      "actions": [
+        {
+          "id": "square_widow",
+          "label": "询问草药寡妇阿蕾娜",
+          "hint": "交涉检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 12,
+            "label": "说服草药寡妇",
+            "tags": [
+              "social"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "add_item",
+                "item": "plague_tonic",
+                "qty": 1
+              },
+              {
+                "op": "set_flag",
+                "flag": "heard_children",
+                "value": true
+              },
+              {
+                "op": "outcome",
+                "summary": "阿蕾娜终于开口。",
+                "detail": "她说失踪孩子最后一次出现在北林石龛附近。",
+                "changes": [
+                  "获得物品：瘟疫苦酊",
+                  "获得线索：北林石龛"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "outcome",
+                "summary": "她拒绝你。",
+                "detail": "门闩在你面前重重合上，只留下一句“外乡人都一样”。",
+                "changes": [
+                  "腐化 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "square_to_forest",
+          "label": "前往北林边缘",
+          "hint": "探索主线",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "forest_edge"
+            },
+            {
+              "op": "outcome",
+              "summary": "你前往北林。",
+              "detail": "泥地越来越软，像要把犹豫的人吞进去。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "square_to_culvert",
+          "label": "钻入旧排水渠",
+          "hint": "潜入路线",
+          "kind": "move",
+          "requires": {
+            "any": [
+              {
+                "path": "progress.flags.heard_rats",
+                "op": "==",
+                "value": true
+              },
+              {
+                "path": "player.profession_id",
+                "op": "==",
+                "value": "fen_poacher"
+              }
+            ]
+          },
+          "on_unavailable": {
+            "summary": "你还没掌握排水渠入口。",
+            "detail": "贸然乱找只会在夜里迷路。"
+          },
+          "effects": [
+            {
+              "op": "goto",
+              "node": "rat_culvert"
+            },
+            {
+              "op": "outcome",
+              "summary": "你撬开锈死铁栅滑入污水渠。",
+              "detail": "下方混着粪水和血腥味。"
+            }
+          ]
+        },
+        {
+          "id": "square_to_barrow",
+          "label": "直接前往旧墓穴",
+          "hint": "赶时间",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "barrow_gate"
+            },
+            {
+              "op": "outcome",
+              "summary": "你直奔旧墓穴。",
+              "detail": "你省下时间，也放弃了部分准备。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "square_back_tavern",
+          "label": "回酒馆补充情报",
+          "hint": "补充资源",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "tavern_common"
+            },
+            {
+              "op": "outcome",
+              "summary": "你回到歪灯酒馆。",
+              "detail": "夜色让每个人都更像嫌犯。"
+            }
+          ]
+        },
+        {
+          "id": "square_back_chapel",
+          "label": "回教堂寻求支持",
+          "hint": "补充线索",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "chapel_hall"
+            },
+            {
+              "op": "outcome",
+              "summary": "你折返教堂。",
+              "detail": "你希望那里还剩一点秩序。"
+            }
+          ]
+        }
+      ]
+    },
+    "forest_edge": {
+      "title": "北林边缘",
+      "text": "树墙向道路压来，乌鸦蹲在裸露树根上不肯飞。地上有拖行痕迹，也有新鲜血点。",
+      "actions": [
+        {
+          "id": "forest_track",
+          "label": "追踪地面拖痕",
+          "hint": "洞察检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 12,
+            "label": "林地追踪",
+            "tags": [
+              "tracking"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "goto",
+                "node": "abandoned_shrine"
+              },
+              {
+                "op": "outcome",
+                "summary": "你追到了混杂的人脚印和爪痕。",
+                "detail": "痕迹指向一座被荆棘吞没的石龛。",
+                "changes": [
+                  "进入场景：废弃石龛"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -2
+              },
+              {
+                "op": "add_status",
+                "status": "wounded"
+              },
+              {
+                "op": "goto",
+                "node": "barrow_gate"
+              },
+              {
+                "op": "outcome",
+                "summary": "你踩进陷坑，腿被木刺划开。",
+                "detail": "等你爬出来时已经抵达墓穴坡下。",
+                "changes": [
+                  "生命 -2",
+                  "获得状态：负伤",
+                  "被迫抵达旧墓穴"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "forest_old_road",
+          "label": "沿旧军道直奔墓穴",
+          "hint": "快速推进（末日 +1）",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "barrow_gate"
+            },
+            {
+              "op": "outcome",
+              "summary": "你沿旧军道快进。",
+              "detail": "鼓点变得更急。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "forest_child",
+          "label": "调查林中求救声",
+          "hint": "道德抉择",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "child_dilemma"
+            },
+            {
+              "op": "outcome",
+              "summary": "你循声拨开荆棘。",
+              "detail": "临时木笼里锁着三个高热孩子。"
+            }
+          ]
+        },
+        {
+          "id": "forest_back_square",
+          "label": "返回村中广场",
+          "hint": "补给",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "village_square"
+            },
+            {
+              "op": "outcome",
+              "summary": "你暂时离开林线。",
+              "detail": "背后树影里似乎一直有人跟着你。"
+            }
+          ]
+        }
+      ]
+    },
+    "rat_culvert": {
+      "title": "旧排水渠",
+      "text": "砖缝里塞着蜡和骨屑，明显有人长期在此仪式活动。更深处有金属敲击声。",
+      "actions": [
+        {
+          "id": "culvert_sneak",
+          "label": "潜过污水渠深段",
+          "hint": "敏捷检定 DC14",
+          "kind": "check",
+          "check": {
+            "stat": "agility",
+            "dc": 14,
+            "label": "污水渠潜行",
+            "tags": [
+              "stealth",
+              "dark"
+            ],
+            "spend_if_has": {
+              "item": "snare_wire",
+              "bonus": 2,
+              "label": "兽夹钢索"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "know_hidden_entry",
+                "value": true
+              },
+              {
+                "op": "add_item",
+                "item": "blackpowder_vial",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "goto",
+                "node": "barrow_gate"
+              },
+              {
+                "op": "outcome",
+                "summary": "你摸到了墓穴背面的竖井。",
+                "detail": "你确认了暗道位置，还顺手搜到一瓶黑火药。",
+                "changes": [
+                  "获得线索：隐蔽入口",
+                  "获得物品：黑火药瓶"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -2
+              },
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "infected"
+              },
+              {
+                "op": "goto",
+                "node": "barrow_gate"
+              },
+              {
+                "op": "outcome",
+                "summary": "鼠群把你逼进污水里。",
+                "detail": "你爬出来时满身烂泥，伤口发热发胀。",
+                "changes": [
+                  "生命 -2",
+                  "腐化 +1",
+                  "获得状态：染疫"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "culvert_burn",
+          "label": "点燃巢穴强行开路",
+          "hint": "消耗灯油或黑火药",
+          "kind": "story",
+          "requires": {
+            "any": [
+              {
+                "item": "lantern_oil",
+                "op": ">=",
+                "value": 1
+              },
+              {
+                "item": "blackpowder_vial",
+                "op": ">=",
+                "value": 1
+              }
+            ]
+          },
+          "on_unavailable": {
+            "summary": "你缺少可燃物。",
+            "detail": "徒手清巢基本等于送命。"
+          },
+          "effects": [
+            {
+              "op": "remove_first_item",
+              "items": [
+                "lantern_oil",
+                "blackpowder_vial"
+              ]
+            },
+            {
+              "op": "set_flag",
+              "flag": "know_hidden_entry",
+              "value": true
+            },
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "barrow_gate"
+            },
+            {
+              "op": "outcome",
+              "summary": "火焰沿污油爬满管壁，你趁乱冲过。",
+              "detail": "浓烟呛得你眼泪直流，但路被彻底打通。",
+              "changes": [
+                "获得线索：隐蔽入口",
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "culvert_back_square",
+          "label": "撤回村中广场",
+          "hint": "保守选择",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "village_square"
+            },
+            {
+              "op": "outcome",
+              "summary": "你爬回地面。",
+              "detail": "至少你还活着。"
+            }
+          ]
+        }
+      ]
+    },
+    "abandoned_shrine": {
+      "title": "废弃石龛",
+      "text": "石龛半埋泥中，祭台堆着鸟骨和蜡滴。这里像是邪教去墓穴前的中转祭点。",
+      "actions": [
+        {
+          "id": "shrine_cleanse",
+          "label": "净化石龛残坛",
+          "hint": "意志检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "will",
+            "dc": 12,
+            "label": "净化仪式",
+            "tags": [
+              "faith",
+              "corruption"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": -1
+              },
+              {
+                "op": "add_status",
+                "status": "blessed"
+              },
+              {
+                "op": "outcome",
+                "summary": "你完成了简短净化。",
+                "detail": "石龛的低语声暂时散去。",
+                "changes": [
+                  "腐化 -1",
+                  "获得状态：受祝"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "shaken"
+              },
+              {
+                "op": "outcome",
+                "summary": "你念错了最后一段祷词。",
+                "detail": "你听见有人倒着念你的名字。",
+                "changes": [
+                  "腐化 +1",
+                  "获得状态：惊惧"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "shrine_search",
+          "label": "翻找石龛下骨灰盒",
+          "hint": "洞察检定 DC13",
+          "kind": "check",
+          "requires": {
+            "path": "progress.flags.shrine_looted",
+            "op": "!=",
+            "value": true
+          },
+          "on_unavailable": {
+            "summary": "石龛已被搜空。",
+            "detail": "只剩碎骨和灰烬。"
+          },
+          "check": {
+            "stat": "insight",
+            "dc": 13,
+            "label": "石龛搜查",
+            "tags": [
+              "lore"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "shrine_looted",
+                "value": true
+              },
+              {
+                "op": "set_flag",
+                "flag": "know_litany",
+                "value": true
+              },
+              {
+                "op": "add_item",
+                "item": "witch_salt",
+                "qty": 1
+              },
+              {
+                "op": "outcome",
+                "summary": "你找到一只没潮解的护骨匣。",
+                "detail": "里面有驱巫盐和旧祷式铅片。",
+                "changes": [
+                  "获得物品：驱巫盐",
+                  "获得线索：封祷式"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -1
+              },
+              {
+                "op": "add_status",
+                "status": "shaken"
+              },
+              {
+                "op": "outcome",
+                "summary": "骨灰盒在你手里碎开。",
+                "detail": "灰尘呛进肺里，眼角刺痛。",
+                "changes": [
+                  "生命 -1",
+                  "获得状态：惊惧"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "shrine_to_gate",
+          "label": "前往旧墓穴",
+          "hint": "推进最终阶段",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "barrow_gate"
+            },
+            {
+              "op": "outcome",
+              "summary": "你穿过荆棘坡。",
+              "detail": "旧墓穴石门就在前方。"
+            }
+          ]
+        }
+      ]
+    },
+    "child_dilemma": {
+      "title": "荆笼中的孩子",
+      "text": "三个高热孩子被铁链锁在木笼里，反复说“别把我们送去钟楼下面”。",
+      "actions": [
+        {
+          "id": "child_rescue",
+          "label": "解开锁链带孩子离开",
+          "hint": "仁慈但拖慢行动",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "rescued_children",
+              "value": true
+            },
+            {
+              "op": "remove_status",
+              "status": "shaken"
+            },
+            {
+              "op": "add_status",
+              "status": "burdened"
+            },
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "barrow_gate"
+            },
+            {
+              "op": "outcome",
+              "summary": "你救下了孩子。",
+              "detail": "你把他们交给林边躲藏的村妇，这拖慢了你的进度。",
+              "changes": [
+                "获得状态：背负难民",
+                "末日进度 +1",
+                "关键选择：救下孩子"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "child_mercy",
+          "label": "给予安息避免扩散",
+          "hint": "残酷抉择",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "mercy_kill",
+              "value": true
+            },
+            {
+              "op": "adjust",
+              "resource": "corruption",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "barrow_gate"
+            },
+            {
+              "op": "outcome",
+              "summary": "你做了最冷的决定。",
+              "detail": "林里安静得像空墓。你告诉自己这是为了更多人。",
+              "changes": [
+                "腐化 +1",
+                "关键选择：安息处决"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "child_abandon",
+          "label": "无视求救继续追查",
+          "hint": "效率优先",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "abandoned_children",
+              "value": true
+            },
+            {
+              "op": "adjust",
+              "resource": "corruption",
+              "amount": 2
+            },
+            {
+              "op": "goto",
+              "node": "barrow_gate"
+            },
+            {
+              "op": "outcome",
+              "summary": "你没有回头。",
+              "detail": "木笼敲击声一直追到你走远。",
+              "changes": [
+                "腐化 +2",
+                "关键选择：抛弃孩子"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "barrow_gate": {
+      "title": "圣维库斯旧墓穴",
+      "text": "半埋地下的石门布满铁钉与蜡封。邪教徒在火盆旁祷唱，节拍与钟楼同频。",
+      "actions": [
+        {
+          "id": "gate_front",
+          "label": "正门强攻哨兵",
+          "hint": "力量检定 DC14",
+          "kind": "check",
+          "check": {
+            "stat": "might",
+            "dc": 14,
+            "label": "正门强攻",
+            "tags": [
+              "combat"
+            ],
+            "spend_if_has": {
+              "item": "pistol_shot",
+              "bonus": 3,
+              "label": "单发手铳"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -1
+              },
+              {
+                "op": "goto",
+                "node": "crypt_cells"
+              },
+              {
+                "op": "outcome",
+                "summary": "你砍翻哨兵冲入墓道。",
+                "detail": "你抢到了先机，但肩膀也被划开。",
+                "changes": [
+                  "生命 -1",
+                  "进入场景：囚牢墓道"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -3
+              },
+              {
+                "op": "add_status",
+                "status": "wounded"
+              },
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "goto",
+                "node": "crypt_cells"
+              },
+              {
+                "op": "outcome",
+                "summary": "你破门而入，但代价沉重。",
+                "detail": "号角声惊动了更深处的仪式。",
+                "changes": [
+                  "生命 -3",
+                  "获得状态：负伤",
+                  "末日进度 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "gate_hidden",
+          "label": "走隐蔽入口潜入",
+          "hint": "敏捷检定 DC12",
+          "kind": "check",
+          "requires": {
+            "any": [
+              {
+                "path": "progress.flags.know_hidden_entry",
+                "op": "==",
+                "value": true
+              },
+              {
+                "path": "player.profession_id",
+                "op": "==",
+                "value": "fen_poacher"
+              }
+            ]
+          },
+          "on_unavailable": {
+            "summary": "你还没掌握暗道位置。",
+            "detail": "贸然乱摸会被巡哨先发现。"
+          },
+          "check": {
+            "stat": "agility",
+            "dc": 12,
+            "label": "暗道潜入",
+            "tags": [
+              "stealth"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "surprise_finale",
+                "value": true
+              },
+              {
+                "op": "goto",
+                "node": "ritual_antechamber"
+              },
+              {
+                "op": "outcome",
+                "summary": "你从通风井滑入墓穴内环。",
+                "detail": "敌人暂时还没发现你。",
+                "changes": [
+                  "获得优势：突袭"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -1
+              },
+              {
+                "op": "goto",
+                "node": "crypt_cells"
+              },
+              {
+                "op": "outcome",
+                "summary": "你在狭道里滑坠出声。",
+                "detail": "你仍进了墓穴，但突袭机会没了。",
+                "changes": [
+                  "生命 -1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "gate_litany",
+          "label": "诵念封祷式开启侧门",
+          "hint": "意志检定 DC13",
+          "kind": "check",
+          "requires": {
+            "any": [
+              {
+                "path": "progress.flags.know_litany",
+                "op": "==",
+                "value": true
+              },
+              {
+                "path": "player.profession_id",
+                "op": "==",
+                "value": "grave_scribe"
+              }
+            ]
+          },
+          "on_unavailable": {
+            "summary": "你不知道正确祷文。",
+            "detail": "石门纹路冷得像嘲笑。"
+          },
+          "check": {
+            "stat": "will",
+            "dc": 13,
+            "label": "诵念封祷",
+            "tags": [
+              "rune",
+              "ritual",
+              "faith"
+            ],
+            "spend_if_has": {
+              "item": "witch_salt",
+              "bonus": 2,
+              "label": "驱巫盐"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "add_status",
+                "status": "blessed"
+              },
+              {
+                "op": "goto",
+                "node": "ritual_antechamber"
+              },
+              {
+                "op": "outcome",
+                "summary": "符纹依次熄灭，侧门打开。",
+                "detail": "你离祭坑只剩一段石梯。",
+                "changes": [
+                  "获得状态：受祝"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "goto",
+                "node": "crypt_cells"
+              },
+              {
+                "op": "outcome",
+                "summary": "祷式反噬，耳中灌入尖啸。",
+                "detail": "你被迫从主墓道绕行。",
+                "changes": [
+                  "腐化 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "gate_retreat",
+          "label": "暂时撤回村中整备",
+          "hint": "安全但拖时间",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "village_square"
+            },
+            {
+              "op": "outcome",
+              "summary": "你暂时撤退。",
+              "detail": "鼓点并未停下。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "crypt_cells": {
+      "title": "囚牢墓道",
+      "text": "石墙上钉着村民名牌，多数被刮花。铁笼里的人有的祈祷，有的啃指甲。你必须决定他们的命运。",
+      "actions": [
+        {
+          "id": "cells_rescue_captain",
+          "label": "撬笼救出巡夜队长",
+          "hint": "力量检定 DC12",
+          "kind": "check",
+          "requires": {
+            "path": "progress.flags.captain_rescued",
+            "op": "!=",
+            "value": true
+          },
+          "on_unavailable": {
+            "summary": "你已经救出霍斯特。",
+            "detail": "他在后方替你警戒。"
+          },
+          "check": {
+            "stat": "might",
+            "dc": 12,
+            "label": "撬笼救援",
+            "tags": [
+              "combat"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "captain_rescued",
+                "value": true
+              },
+              {
+                "op": "add_item",
+                "item": "pistol_shot",
+                "qty": 1
+              },
+              {
+                "op": "outcome",
+                "summary": "你掰弯门闩，救出巡夜队长。",
+                "detail": "他把最后一发铅弹塞给你，转身去制造骚乱。",
+                "changes": [
+                  "获得盟友：霍斯特",
+                  "获得物品：单发手铳"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -1
+              },
+              {
+                "op": "outcome",
+                "summary": "铁笼反弹砸到你的手腕。",
+                "detail": "脚步声逼近，你只能先退开。",
+                "changes": [
+                  "生命 -1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "cells_release",
+          "label": "放走感染者拖住邪教",
+          "hint": "道德抉择",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "released_infected",
+              "value": true
+            },
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": -1
+            },
+            {
+              "op": "adjust",
+              "resource": "corruption",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "ritual_antechamber"
+            },
+            {
+              "op": "outcome",
+              "summary": "你放走了感染者。",
+              "detail": "墓道瞬间混乱。这给你制造了机会，也留下了恶果。",
+              "changes": [
+                "末日进度 -1",
+                "腐化 +1",
+                "关键选择：放走感染者"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cells_seal",
+          "label": "封死牢门阻止外溢",
+          "hint": "冷酷稳妥",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "sealed_cells",
+              "value": true
+            },
+            {
+              "op": "adjust",
+              "resource": "corruption",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "ritual_antechamber"
+            },
+            {
+              "op": "outcome",
+              "summary": "你封死了牢门。",
+              "detail": "门内拍击声越来越轻。",
+              "changes": [
+                "腐化 +1",
+                "关键选择：封死囚牢"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "cells_purge",
+          "label": "执行净化处决",
+          "hint": "意志检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "will",
+            "dc": 12,
+            "label": "净化处决",
+            "tags": [
+              "faith",
+              "corruption"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "purged_cells",
+                "value": true
+              },
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "goto",
+                "node": "ritual_antechamber"
+              },
+              {
+                "op": "outcome",
+                "summary": "你执行了“净化”。",
+                "detail": "手更稳了，但心里空了一个洞。",
+                "changes": [
+                  "腐化 +1",
+                  "关键选择：净化处决"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "purged_cells",
+                "value": true
+              },
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 2
+              },
+              {
+                "op": "add_status",
+                "status": "shaken"
+              },
+              {
+                "op": "goto",
+                "node": "ritual_antechamber"
+              },
+              {
+                "op": "outcome",
+                "summary": "你下手时迟疑，场面失控。",
+                "detail": "尖叫声会在之后很长时间追着你。",
+                "changes": [
+                  "腐化 +2",
+                  "获得状态：惊惧",
+                  "关键选择：失败的净化"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ritual_antechamber": {
+      "title": "祭坑前厅",
+      "text": "骨柱在红光中脉动，地砖热得不自然。你已经到了最后关头。",
+      "actions": [
+        {
+          "id": "ante_sabotage",
+          "label": "破坏引导祭阵的骨柱",
+          "hint": "洞察检定 DC14",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 14,
+            "label": "破坏骨柱",
+            "tags": [
+              "ritual",
+              "rune"
+            ],
+            "extra_bonus_if_flags": [
+              {
+                "flag": "captain_rescued",
+                "bonus": 1
+              }
+            ],
+            "spend_if_has": {
+              "item": "witch_salt",
+              "bonus": 2,
+              "label": "驱巫盐"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "ritual_weakened",
+                "value": true
+              },
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": -1
+              },
+              {
+                "op": "outcome",
+                "summary": "骨柱崩裂，祭阵亮度下降。",
+                "detail": "下方祭司怒吼，说明你打乱了节奏。",
+                "changes": [
+                  "末日进度 -1",
+                  "获得优势：祭阵削弱"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "outcome",
+                "summary": "你触发了警戒符。",
+                "detail": "血纹沿地板窜向祭坑，敌人已知道你来了。",
+                "changes": [
+                  "腐化 +1",
+                  "末日进度 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ante_prayer",
+          "label": "在断碑前短祷",
+          "hint": "意志检定 DC11",
+          "kind": "check",
+          "check": {
+            "stat": "will",
+            "dc": 11,
+            "label": "断碑短祷",
+            "tags": [
+              "faith"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "add_status",
+                "status": "blessed"
+              },
+              {
+                "op": "outcome",
+                "summary": "你稳住了心跳。",
+                "detail": "至少下一次直面黑暗时，你不会马上崩溃。",
+                "changes": [
+                  "获得状态：受祝"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "add_status",
+                "status": "shaken"
+              },
+              {
+                "op": "outcome",
+                "summary": "祷词中断。",
+                "detail": "祭坑里传来回应，像在嘲笑你的虔诚。",
+                "changes": [
+                  "获得状态：惊惧"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "ante_descend",
+          "label": "下到祭坑终结仪式",
+          "hint": "最终冲突",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "ritual_pit"
+            },
+            {
+              "op": "outcome",
+              "summary": "你走下石阶。",
+              "detail": "祭坑中央的陨铁圣杯正在呼吸般起伏。"
+            }
+          ]
+        }
+      ]
+    },
+    "ritual_pit": {
+      "title": "血祭深坑",
+      "text": "邪教祭司站在陨铁圣杯前。每一次钟声都让杯中黑液抬高一寸。你的下一步将决定村子的命运。",
+      "actions": [
+        {
+          "id": "final_duel",
+          "label": "冲锋斩首邪教祭司",
+          "hint": "力量检定（受末日进度影响）",
+          "kind": "check",
+          "check": {
+            "stat": "might",
+            "dc": 15,
+            "label": "斩首冲锋",
+            "tags": [
+              "combat"
+            ],
+            "dc_adjust_by_doom": [
+              {
+                "min": 5,
+                "delta": 2
+              },
+              {
+                "min": 3,
+                "delta": 1
+              }
+            ],
+            "extra_bonus_if_flags": [
+              {
+                "flag": "surprise_finale",
+                "bonus": 2
+              }
+            ],
+            "spend_if_has": {
+              "item": "pistol_shot",
+              "bonus": 3,
+              "label": "单发手铳"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "resolve_victory",
+                "method": "steel"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -4
+              },
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "outcome",
+                "summary": "你被祭司与畸变卫士逼退。",
+                "detail": "你还活着，但局面接近失控。",
+                "changes": [
+                  "生命 -4",
+                  "腐化 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "final_disrupt",
+          "label": "破解符阵逆转祭仪",
+          "hint": "洞察检定（受末日进度影响）",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 15,
+            "label": "逆转祭仪",
+            "tags": [
+              "ritual",
+              "rune",
+              "corruption"
+            ],
+            "dc_adjust_by_doom": [
+              {
+                "min": 5,
+                "delta": 2
+              },
+              {
+                "min": 3,
+                "delta": 1
+              }
+            ],
+            "dc_adjust_if_flags": [
+              {
+                "flag": "ritual_weakened",
+                "delta": -1
+              }
+            ],
+            "spend_if_has": {
+              "item": "sigmar_seal",
+              "bonus": 3,
+              "label": "破损圣印"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "resolve_victory",
+                "method": "sigil"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 2
+              },
+              {
+                "op": "finish_if",
+                "if": {
+                  "path": "player.corruption",
+                  "op": ">=",
+                  "value": 8
+                },
+                "ending": "chaos_thrall",
+                "summary": "你在符阵前失去了自我。"
+              },
+              {
+                "op": "finish",
+                "ending": "plague_rises",
+                "summary": "你没能打断仪式。"
+              }
+            ]
+          }
+        },
+        {
+          "id": "final_deceive",
+          "label": "伪装投诚近身夺杯",
+          "hint": "交涉检定（受末日进度影响）",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 14,
+            "label": "伪装投诚",
+            "tags": [
+              "social",
+              "corruption"
+            ],
+            "dc_adjust_by_doom": [
+              {
+                "min": 5,
+                "delta": 2
+              },
+              {
+                "min": 3,
+                "delta": 1
+              }
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "finish_if",
+                "if": {
+                  "path": "player.corruption",
+                  "op": ">=",
+                  "value": 6
+                },
+                "ending": "chaos_thrall",
+                "summary": "你赢了祭司，却输给了自己。"
+              },
+              {
+                "op": "resolve_victory",
+                "method": "pyrrhic"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 3
+              },
+              {
+                "op": "finish_if",
+                "if": {
+                  "path": "player.corruption",
+                  "op": ">=",
+                  "value": 7
+                },
+                "ending": "chaos_thrall",
+                "summary": "你的谎言最终成了真。"
+              },
+              {
+                "op": "finish",
+                "ending": "plague_rises",
+                "summary": "你被拖延的几秒，足够仪式完成。"
+              }
+            ]
+          }
+        },
+        {
+          "id": "final_blackpowder",
+          "label": "引爆黑火药埋葬祭坑",
+          "hint": "敏捷检定 DC12",
+          "kind": "check",
+          "requires": {
+            "item": "blackpowder_vial",
+            "op": ">=",
+            "value": 1
+          },
+          "on_unavailable": {
+            "summary": "你没有黑火药。",
+            "detail": "这个计划无法执行。"
+          },
+          "check": {
+            "stat": "agility",
+            "dc": 12,
+            "label": "火药塌方",
+            "tags": [
+              "combat",
+              "stealth"
+            ],
+            "spend_if_has": {
+              "item": "blackpowder_vial",
+              "bonus": 0,
+              "label": "黑火药瓶"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "resolve_victory",
+                "method": "fire"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "finish",
+                "ending": "buried_alive",
+                "summary": "你没能在塌方前冲出祭坑。"
+              }
+            ]
+          }
+        },
+        {
+          "id": "final_accept",
+          "label": "触碰圣杯接受低语",
+          "hint": "主动堕落",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "corruption",
+              "amount": 5
+            },
+            {
+              "op": "finish",
+              "ending": "chaos_thrall",
+              "summary": "你主动向黑暗伸出了手。"
+            }
+          ]
+        },
+        {
+          "id": "final_flee",
+          "label": "撤离墓穴放弃阻止仪式",
+          "hint": "放弃主线",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "finish",
+              "ending": "plague_rises",
+              "summary": "你选择活着离开，却把村庄留给了黑雨。"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

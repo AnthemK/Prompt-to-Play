@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <!-- Static shell for the generic story-engine frontend. -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>轻量级跑团模拟器</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Top toolbar: title, save-slot selector, and run controls. -->
+      <header class="topbar">
+        <div>
+          <h1 id="game-title">轻量级跑团模拟器</h1>
+          <p class="subtitle" id="chapter-title">等待载入故事包</p>
+        </div>
+        <div class="toolbar-wrap">
+          <div class="slot-row">
+            <label for="slot-select">存档槽位</label>
+            <select id="slot-select"></select>
+            <span id="slot-status" class="slot-status">尚未选择</span>
+          </div>
+          <div class="toolbar">
+            <button id="save-btn" class="ghost">存到槽位</button>
+            <button id="load-btn" class="ghost">读取槽位</button>
+            <button id="export-btn" class="ghost">导出</button>
+            <button id="import-btn" class="ghost">导入</button>
+            <button id="restart-btn" class="danger">重新开始</button>
+          </div>
+          <input id="import-input" type="file" accept=".json,application/json" hidden />
+        </div>
+      </header>
+
+      <main class="layout">
+        <!-- Main story panel: scene text, recent outcome, encounter, actions. -->
+        <section class="story-panel card">
+          <div class="panel-head">
+            <h2 id="scene-title">等待开始</h2>
+            <span id="scene-meta" class="meta-pill">未开始</span>
+          </div>
+          <article id="scene-text" class="scene-text"></article>
+
+          <section class="outcome-box" id="outcome-box">
+            <h3>最近结果</h3>
+            <div id="outcome-content" class="outcome-content">尚无事件。</div>
+          </section>
+
+          <section class="outcome-box encounter-box" id="encounter-box" hidden>
+            <h3>当前遭遇</h3>
+            <div id="encounter-content" class="outcome-content">暂无遭遇。</div>
+          </section>
+
+          <section>
+            <h3>可选行动</h3>
+            <div id="actions" class="actions"></div>
+          </section>
+        </section>
+
+        <!-- Side panel: player state, resources, inventory, and log. -->
+        <aside class="side-panel">
+          <section class="card">
+            <h3>角色面板</h3>
+            <div id="player-summary" class="player-summary"></div>
+            <div id="stats-grid" class="stats-grid"></div>
+          </section>
+
+          <section class="card">
+            <h3>状态与资源</h3>
+            <div id="resource-grid" class="resource-grid"></div>
+            <div id="status-list" class="chips"></div>
+          </section>
+
+          <section class="card">
+            <h3>物品</h3>
+            <ul id="inventory-list" class="plain-list"></ul>
+          </section>
+
+          <section class="card">
+            <h3>近期日志</h3>
+            <ul id="log-list" class="plain-list log-list"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <!-- Setup overlay doubles as the main menu for story and profession choice. -->
+    <div id="setup-overlay" class="overlay show">
+      <div class="setup card">
+        <h2>开始新冒险</h2>
+        <p id="world-intro" class="setup-intro"></p>
+
+        <label class="field">
+          <span>选择故事包</span>
+          <select id="story-select"></select>
+        </label>
+
+        <label class="field">
+          <span>角色名称</span>
+          <input id="name-input" type="text" maxlength="24" placeholder="例如：奥托·黑松" />
+        </label>
+
+        <label class="field">
+          <span>选择职业</span>
+          <select id="profession-select"></select>
+        </label>
+
+        <div id="profession-preview" class="profession-preview"></div>
+
+        <div class="setup-actions">
+          <button id="new-game-btn" class="primary">开始冒险</button>
+          <button id="continue-btn" class="ghost">继续最近进度</button>
+        </div>
+
+        <p id="setup-status" class="setup-status"></p>
+      </div>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

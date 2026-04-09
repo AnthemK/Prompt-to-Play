@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="snake head sprite">
+  <defs>
+    <linearGradient id="headGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3ca760"/>
+      <stop offset="100%" stop-color="#1f6a3d"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#headGrad)"/>
+  <circle cx="23" cy="26" r="5" fill="#ffffff"/>
+  <circle cx="41" cy="26" r="5" fill="#ffffff"/>
+  <circle cx="23" cy="26" r="2" fill="#1d1d1d"/>
+  <circle cx="41" cy="26" r="2" fill="#1d1d1d"/>
+  <path d="M24 43 Q32 48 40 43" stroke="#d8ffd8" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

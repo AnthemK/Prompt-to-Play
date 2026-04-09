@@ -1,0 +1,2283 @@
+{
+  "id": "teyvat_tide_lantern",
+  "world": {
+    "id": "teyvat-liyue-tide-lantern",
+    "title": "提瓦特：潮汐下的无名星灯",
+    "chapter_title": "第一章：璃月港失踪潮声",
+    "tone": "提瓦特冒险悬疑 / 璃月港潮汐危机单章",
+    "intro": "璃月港外海潮汐异常，夜间失踪案连发。夜兰请你低调调查，而钟离在往生堂给出一个更古老的警告：这不是普通走私，而是深渊化能量的泄漏前兆。",
+    "corruption_limit": 10,
+    "default_shillings": 3,
+    "start_node": "arrival",
+    "start_log": "你抵达璃月港北码头，派蒙正盯着海雾里忽明忽暗的蓝光。",
+    "doom_texts": [
+      {
+        "min": 5,
+        "text": "潮汐震荡越来越频繁，港区封锁线已被迫后撤。"
+      },
+      {
+        "min": 3,
+        "text": "海雾中偶尔出现断续低语，失踪名单还在增长。"
+      },
+      {
+        "min": 0,
+        "text": "港务司仍在维持秩序，但每个人都在压低声音。"
+      }
+    ],
+    "corruption_penalties": [
+      {
+        "min": 8,
+        "value": -2,
+        "source": "深渊侵蚀"
+      },
+      {
+        "min": 5,
+        "value": -1,
+        "source": "低语干扰"
+      }
+    ],
+    "default_ending_id": "tide_drowned",
+    "fatal_rules": {
+      "on_hp_zero": {
+        "ending": "hero_falls",
+        "summary": "你倒在失控的潮汐机关前。"
+      },
+      "on_corruption_limit": {
+        "ending": "whisper_bearer",
+        "summary": "深渊低语彻底接管了你的意志。"
+      }
+    },
+    "resolve_victory": {
+      "default": {
+        "ending": "sealed_but_shadows",
+        "summary": "你暂时封住了灾源，但代价尚未结清。"
+      },
+      "rules": [
+        {
+          "if": {
+            "all": [
+              {
+                "ctx": "method",
+                "op": "==",
+                "value": "blast"
+              },
+              {
+                "path": "player.hp",
+                "op": "<=",
+                "value": 3
+              }
+            ]
+          },
+          "result": {
+            "ending": "bitter_contract",
+            "summary": "你以重伤为代价引爆核心，封印得以成立。"
+          }
+        },
+        {
+          "if": {
+            "any": [
+              {
+                "path": "progress.flags.abandoned_survivors",
+                "op": "==",
+                "value": true
+              },
+              {
+                "path": "progress.doom",
+                "op": ">=",
+                "value": 6
+              }
+            ]
+          },
+          "result": {
+            "ending": "sealed_but_shadows",
+            "summary": "危机被压住了，但璃月港与枫丹间留下了新的裂痕。"
+          }
+        },
+        {
+          "if": {
+            "all": [
+              {
+                "path": "progress.flags.saved_survivors",
+                "op": "==",
+                "value": true
+              },
+              {
+                "path": "progress.doom",
+                "op": "<=",
+                "value": 4
+              },
+              {
+                "path": "player.corruption",
+                "op": "<=",
+                "value": 4
+              }
+            ]
+          },
+          "result": {
+            "ending": "twin_city_truce",
+            "summary": "你救下了人，也让两城暂时站到同一阵线。"
+          }
+        },
+        {
+          "if": {
+            "path": "player.corruption",
+            "op": ">=",
+            "value": 7
+          },
+          "result": {
+            "ending": "whisper_bearer",
+            "summary": "封印完成了，但你把低语带回了港口。"
+          }
+        }
+      ]
+    }
+  },
+  "stat_meta": {
+    "might": {
+      "label": "武艺",
+      "description": "正面对抗、强行突破"
+    },
+    "agility": {
+      "label": "身法",
+      "description": "潜入、闪避、追踪"
+    },
+    "insight": {
+      "label": "见闻",
+      "description": "调查、解读机关、鉴别线索"
+    },
+    "will": {
+      "label": "心志",
+      "description": "抗干扰、维持封印、抵御低语"
+    },
+    "fellowship": {
+      "label": "辞令",
+      "description": "交涉、威慑、争取协助"
+    }
+  },
+  "professions": [
+    {
+      "id": "liyue_scout",
+      "name": "璃月冒险团斥候",
+      "summary": "熟悉海岸与山道，擅长追踪与潜入。",
+      "stats": {
+        "might": 3,
+        "agility": 4,
+        "insight": 3,
+        "will": 2,
+        "fellowship": 2
+      },
+      "max_hp": 12,
+      "starting_items": [
+        "harpoon",
+        "smoke_bomb",
+        "first_aid_kit"
+      ],
+      "perks": [
+        "海岸老手：潜行/追踪检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：海岸老手",
+          "value": 1,
+          "tags_any": [
+            "stealth",
+            "tracking"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "harbor_mediator",
+      "name": "港务调停员",
+      "summary": "常与千岩军和商会打交道，嘴比刀更快。",
+      "stats": {
+        "might": 2,
+        "agility": 2,
+        "insight": 3,
+        "will": 3,
+        "fellowship": 4
+      },
+      "max_hp": 11,
+      "starting_items": [
+        "yelan_token",
+        "salted_ration",
+        "first_aid_kit"
+      ],
+      "perks": [
+        "官商通路：交涉检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：官商通路",
+          "value": 1,
+          "tags_any": [
+            "social"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ritual_scholar",
+      "name": "古仪式抄录员",
+      "summary": "长期协助钟离整理古契与碑文。",
+      "stats": {
+        "might": 2,
+        "agility": 2,
+        "insight": 4,
+        "will": 4,
+        "fellowship": 2
+      },
+      "max_hp": 10,
+      "starting_items": [
+        "geo_compass",
+        "contract_scroll",
+        "adeptus_incense"
+      ],
+      "perks": [
+        "古契熟读：仪式/符文检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：古契熟读",
+          "value": 1,
+          "tags_any": [
+            "ritual",
+            "rune",
+            "lore"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stray_duelist",
+      "name": "浪行决斗者",
+      "summary": "在港区角斗和护航中活下来的人。",
+      "stats": {
+        "might": 4,
+        "agility": 3,
+        "insight": 2,
+        "will": 3,
+        "fellowship": 2
+      },
+      "max_hp": 13,
+      "starting_items": [
+        "harpoon",
+        "hydro_resonator",
+        "first_aid_kit"
+      ],
+      "perks": [
+        "硬碰硬：战斗检定 +1"
+      ],
+      "check_bonus": [
+        {
+          "source": "职业：硬碰硬",
+          "value": 1,
+          "tags_any": [
+            "combat"
+          ]
+        }
+      ]
+    }
+  ],
+  "items": {
+    "harpoon": {
+      "id": "harpoon",
+      "name": "港口长叉",
+      "type": "gear",
+      "description": "战斗检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：港口长叉",
+          "value": 1,
+          "tags_any": [
+            "combat"
+          ]
+        }
+      ]
+    },
+    "yelan_token": {
+      "id": "yelan_token",
+      "name": "夜兰暗记",
+      "type": "gear",
+      "description": "交涉/潜行检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：夜兰暗记",
+          "value": 1,
+          "tags_any": [
+            "social",
+            "stealth"
+          ]
+        }
+      ]
+    },
+    "geo_compass": {
+      "id": "geo_compass",
+      "name": "岩纹罗盘",
+      "type": "consumable",
+      "description": "一次性：解读机关检定 +2。"
+    },
+    "contract_scroll": {
+      "id": "contract_scroll",
+      "name": "古契残页",
+      "type": "gear",
+      "description": "仪式/见闻检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：古契残页",
+          "value": 1,
+          "tags_any": [
+            "ritual",
+            "lore",
+            "rune"
+          ]
+        }
+      ]
+    },
+    "smoke_bomb": {
+      "id": "smoke_bomb",
+      "name": "烟雾弹",
+      "type": "consumable",
+      "description": "一次性：潜入检定 +2。"
+    },
+    "first_aid_kit": {
+      "id": "first_aid_kit",
+      "name": "急救包",
+      "type": "consumable",
+      "description": "一次性：生命 +3，并移除负伤。",
+      "use_effects": [
+        {
+          "op": "adjust",
+          "resource": "hp",
+          "amount": 3
+        },
+        {
+          "op": "remove_status",
+          "status": "wounded"
+        }
+      ]
+    },
+    "salted_ration": {
+      "id": "salted_ration",
+      "name": "盐渍口粮",
+      "type": "consumable",
+      "description": "一次性：生命 +2，侵蚀 -1。",
+      "use_effects": [
+        {
+          "op": "adjust",
+          "resource": "hp",
+          "amount": 2
+        },
+        {
+          "op": "adjust",
+          "resource": "corruption",
+          "amount": -1
+        }
+      ]
+    },
+    "adeptus_incense": {
+      "id": "adeptus_incense",
+      "name": "仙家安神香",
+      "type": "consumable",
+      "description": "一次性：移除低语，侵蚀 -1。",
+      "use_effects": [
+        {
+          "op": "remove_status",
+          "status": "abyss_whisper"
+        },
+        {
+          "op": "adjust",
+          "resource": "corruption",
+          "amount": -1
+        }
+      ]
+    },
+    "fontaine_seal_tube": {
+      "id": "fontaine_seal_tube",
+      "name": "枫丹密封管",
+      "type": "consumable",
+      "description": "一次性：封印检定 +3。"
+    },
+    "hydro_resonator": {
+      "id": "hydro_resonator",
+      "name": "临时共鸣器",
+      "type": "consumable",
+      "description": "一次性：爆破/机动检定 +1。"
+    },
+    "tidal_charm": {
+      "id": "tidal_charm",
+      "name": "潮汐护符",
+      "type": "gear",
+      "description": "心志检定 +1。",
+      "check_bonus": [
+        {
+          "source": "装备：潮汐护符",
+          "value": 1,
+          "stat_in": [
+            "will"
+          ]
+        }
+      ]
+    }
+  },
+  "statuses": {
+    "wounded": {
+      "id": "wounded",
+      "name": "负伤",
+      "description": "武艺与身法检定 -1。",
+      "check_bonus": [
+        {
+          "source": "状态：负伤",
+          "value": -1,
+          "stat_in": [
+            "might",
+            "agility"
+          ]
+        }
+      ]
+    },
+    "soaked": {
+      "id": "soaked",
+      "name": "湿冷",
+      "description": "身法检定 -1。",
+      "check_bonus": [
+        {
+          "source": "状态：湿冷",
+          "value": -1,
+          "stat_in": [
+            "agility"
+          ]
+        }
+      ]
+    },
+    "abyss_whisper": {
+      "id": "abyss_whisper",
+      "name": "深渊低语",
+      "description": "辞令与心志检定 -1；每回合侵蚀 +1。",
+      "check_bonus": [
+        {
+          "source": "状态：深渊低语",
+          "value": -1,
+          "stat_in": [
+            "fellowship",
+            "will"
+          ]
+        }
+      ],
+      "per_turn_effects": [
+        {
+          "op": "adjust",
+          "resource": "corruption",
+          "amount": 1
+        },
+        {
+          "op": "log",
+          "text": "低语在你耳边重复某个陌生名字，侵蚀 +1。"
+        }
+      ]
+    },
+    "contract_blessed": {
+      "id": "contract_blessed",
+      "name": "契约庇护",
+      "description": "下一次心志检定 +2。",
+      "check_bonus": [
+        {
+          "source": "状态：契约庇护",
+          "value": 2,
+          "stat_in": [
+            "will"
+          ]
+        }
+      ],
+      "consume_on_check": {
+        "stat": "will"
+      }
+    },
+    "pressured": {
+      "id": "pressured",
+      "name": "精神紧绷",
+      "description": "见闻与辞令检定 -1。",
+      "check_bonus": [
+        {
+          "source": "状态：精神紧绷",
+          "value": -1,
+          "stat_in": [
+            "insight",
+            "fellowship"
+          ]
+        }
+      ]
+    },
+    "burdened": {
+      "id": "burdened",
+      "name": "背负伤员",
+      "description": "身法检定 -1。",
+      "check_bonus": [
+        {
+          "source": "状态：背负伤员",
+          "value": -1,
+          "stat_in": [
+            "agility"
+          ]
+        }
+      ]
+    }
+  },
+  "endings": {
+    "twin_city_truce": {
+      "id": "twin_city_truce",
+      "title": "双城同潮",
+      "text": "你成功封印了潮汐核心，并救下了大部分被困者。夜兰将证据移交，那维莱特承诺枫丹会追查源头。璃月港今夜仍有风浪，但灯火没有熄灭。"
+    },
+    "sealed_but_shadows": {
+      "id": "sealed_but_shadows",
+      "title": "封印之下",
+      "text": "核心被压制，失踪潮暂时停止。但你知道这不是终点。港务司封存了档案，往生堂也悄悄多接了几单夜祭。"
+    },
+    "bitter_contract": {
+      "id": "bitter_contract",
+      "title": "代价契约",
+      "text": "你用近乎同归于尽的方式引爆了失控装置。封印成立，港口获救，但你留下的伤痕将比潮汐停留更久。"
+    },
+    "tide_drowned": {
+      "id": "tide_drowned",
+      "title": "沉没潮线",
+      "text": "你没能阻止核心外泄。港区在蓝黑色潮雾中失去轮廓，失踪名单在黎明前翻了一倍。"
+    },
+    "whisper_bearer": {
+      "id": "whisper_bearer",
+      "title": "低语携行者",
+      "text": "你完成了任务，却把深渊低语带回了人群。你仍会说笑、会行走，但每当海风吹来，你都会停下，像在聆听新的命令。"
+    },
+    "hero_falls": {
+      "id": "hero_falls",
+      "title": "星灯熄灭",
+      "text": "你倒在遗迹的最后一道石阶前。派蒙哭着喊你的名字，潮声却先一步盖过了一切。"
+    }
+  },
+  "nodes": {
+    "arrival": {
+      "title": "璃月港北码头",
+      "text": "海雾压得很低，码头木桩上挂着新贴的失踪告示。派蒙扯了扯你的袖子：\"那个披斗篷的，是不是夜兰？\"",
+      "actions": [
+        {
+          "id": "arrive_meet_yelan",
+          "label": "去见夜兰领取密查委托",
+          "hint": "主线情报",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "yelan_brief"
+            },
+            {
+              "op": "outcome",
+              "summary": "夜兰把一卷湿掉的账册推到你面前。",
+              "detail": "她低声说：\"别惊动太多人。我要真相，也要可控的结果。\""
+            }
+          ]
+        },
+        {
+          "id": "arrive_visit_wangsheng",
+          "label": "先去往生堂找钟离和胡桃",
+          "hint": "稳妥路线（末日 +1）",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "wangsheng_hall"
+            },
+            {
+              "op": "outcome",
+              "summary": "你选择先补足旧知识。",
+              "detail": "你多花了些时间，但也许能少踩几处致命陷阱。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "arrive_to_docks",
+          "label": "直接进港区排查",
+          "hint": "快速推进",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "harbor_docks"
+            },
+            {
+              "op": "outcome",
+              "summary": "你压低帽檐，混进了夜班工人的队伍。",
+              "detail": "港灯在雾里拉成细长的金线，脚下木板时不时传来空响。"
+            }
+          ]
+        }
+      ]
+    },
+    "yelan_brief": {
+      "title": "绯云坡暗巷",
+      "text": "夜兰靠在石墙边，手里转着一枚骨骰。她没寒暄，先把三条线索按在地图上：失踪船工、外海私运、被篡改的港口潮位记录。",
+      "actions": [
+        {
+          "id": "yelan_take_token",
+          "label": "收下夜兰暗记",
+          "hint": "获得官方背书",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "yelan_contact",
+              "value": true
+            },
+            {
+              "op": "add_item",
+              "item": "yelan_token",
+              "qty": 1,
+              "only_if_missing": true
+            },
+            {
+              "op": "outcome",
+              "summary": "夜兰把暗记塞进你掌心。",
+              "detail": "\"必要时亮这个。\"她看着你，语气平静，\"但别让我在尸体上看到它。\"",
+              "changes": [
+                "获得物品：夜兰暗记"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "yelan_secret_route",
+          "label": "套出夜间走私路线",
+          "hint": "辞令检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 12,
+            "label": "夜兰路线套取",
+            "tags": [
+              "social"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "know_smuggler_route",
+                "value": true
+              },
+              {
+                "op": "add_item",
+                "item": "smoke_bomb",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "outcome",
+                "summary": "夜兰在地图边缘点了两下。",
+                "detail": "她告诉你潮退后会露出一条半淹石栈，正好通向私运洞口。",
+                "changes": [
+                  "获得线索：走私路线",
+                  "获得物品：烟雾弹"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "pressured"
+              },
+              {
+                "op": "outcome",
+                "summary": "夜兰没回答，只收起了地图。",
+                "detail": "你意识到自己问得太急了。外头的钟声又敲了一次。",
+                "changes": [
+                  "末日进度 +1",
+                  "获得状态：精神紧绷"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "yelan_supply",
+          "label": "用 1 摩拉补给急救包",
+          "hint": "资源交换",
+          "kind": "story",
+          "requires": {
+            "path": "player.shillings",
+            "op": ">=",
+            "value": 1
+          },
+          "on_unavailable": {
+            "summary": "你钱袋见底。",
+            "detail": "夜兰耸了耸肩：\"我可没报销条。\""
+          },
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "shillings",
+              "amount": -1
+            },
+            {
+              "op": "add_item",
+              "item": "first_aid_kit",
+              "qty": 1
+            },
+            {
+              "op": "outcome",
+              "summary": "你从暗巷药贩手里换到一只急救包。",
+              "detail": "缠带上还留着药草和海盐味。",
+              "changes": [
+                "摩拉 -1",
+                "获得物品：急救包"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "yelan_to_docks",
+          "label": "前往港区继续调查",
+          "hint": "推进主线",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "harbor_docks"
+            },
+            {
+              "op": "outcome",
+              "summary": "夜兰最后提醒你：\"别信第一眼看到的证据。\"",
+              "detail": "你沿着湿滑石阶返回港区。"
+            }
+          ]
+        }
+      ]
+    },
+    "wangsheng_hall": {
+      "title": "往生堂偏厅",
+      "text": "钟离在灯下翻着旧碑拓片，胡桃抱着手臂坐在窗台。她先开口：\"今天晚上不太平，你要是乱来，我这边业务量会突然增加。\"",
+      "actions": [
+        {
+          "id": "wangsheng_zhongli_lecture",
+          "label": "向钟离请教古契封印",
+          "hint": "见闻检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 12,
+            "label": "古契解读",
+            "tags": [
+              "lore",
+              "rune"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "know_contract_formula",
+                "value": true
+              },
+              {
+                "op": "add_item",
+                "item": "contract_scroll",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "outcome",
+                "summary": "钟离把一段封印咒式写在残页背面。",
+                "detail": "\"记住顺序。\"他说，\"错一笔，便是另一份契约。\"",
+                "changes": [
+                  "获得线索：古契封印式"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "pressured"
+              },
+              {
+                "op": "outcome",
+                "summary": "你在关键句上卡住了。",
+                "detail": "窗外潮声更响，胡桃把扇子一合：\"先去救人，回来再补课。\"",
+                "changes": [
+                  "末日进度 +1",
+                  "获得状态：精神紧绷"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "wangsheng_hutao_warning",
+          "label": "听胡桃讲失踪者线索",
+          "hint": "道德线索",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "hutao_warning",
+              "value": true
+            },
+            {
+              "op": "set_flag",
+              "flag": "know_survivors",
+              "value": true
+            },
+            {
+              "op": "add_item",
+              "item": "salted_ration",
+              "qty": 1,
+              "only_if_missing": true
+            },
+            {
+              "op": "outcome",
+              "summary": "胡桃把一张草图推给你。",
+              "detail": "草图标着洞窟里的临时囚笼位置。她罕见地正经：\"先看人，再看账。\"",
+              "changes": [
+                "获得线索：被困者位置",
+                "获得物品：盐渍口粮"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "wangsheng_buy_incense",
+          "label": "花 1 摩拉换安神香",
+          "hint": "清除低语",
+          "kind": "story",
+          "requires": {
+            "path": "player.shillings",
+            "op": ">=",
+            "value": 1
+          },
+          "on_unavailable": {
+            "summary": "你掏不出钱。",
+            "detail": "胡桃摊手：\"往生堂概不赊账。\""
+          },
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "shillings",
+              "amount": -1
+            },
+            {
+              "op": "add_item",
+              "item": "adeptus_incense",
+              "qty": 1
+            },
+            {
+              "op": "outcome",
+              "summary": "你收下一小束安神香。",
+              "detail": "钟离提醒你，真正要镇住的不是雾，是心里的回声。",
+              "changes": [
+                "摩拉 -1",
+                "获得物品：仙家安神香"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "wangsheng_to_docks",
+          "label": "离开往生堂去港区",
+          "hint": "推进主线",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "harbor_docks"
+            },
+            {
+              "op": "outcome",
+              "summary": "你把残页收进内袋。",
+              "detail": "钟离在你身后补了一句：\"契约一旦签下，就别中途反悔。\""
+            }
+          ]
+        },
+        {
+          "id": "wangsheng_to_yelan",
+          "label": "改去找夜兰对接情报",
+          "hint": "补充资源",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "yelan_brief"
+            },
+            {
+              "op": "outcome",
+              "summary": "你决定把古契线索交给夜兰比对。",
+              "detail": "她最擅长把碎片拼成陷阱。"
+            }
+          ]
+        }
+      ]
+    },
+    "harbor_docks": {
+      "title": "夜班港区",
+      "text": "铁锚、缆绳和木箱堆出狭窄阴影。千岩军在查船，几名码头工却一直盯着北侧潮线，像在等某种信号。{{doom_text}}",
+      "actions": [
+        {
+          "id": "docks_inspect_manifest",
+          "label": "核对货单与潮位记录",
+          "hint": "见闻检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 13,
+            "label": "货单排查",
+            "tags": [
+              "lore"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "know_smuggler_route",
+                "value": true
+              },
+              {
+                "op": "outcome",
+                "summary": "你发现了被改写的潮位栏。",
+                "detail": "异常船只都在同一时间段靠近北侧海蚀洞。",
+                "changes": [
+                  "获得线索：走私潮窗"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "outcome",
+                "summary": "记录被人提前换走了。",
+                "detail": "你只来得及看到最后一页被海水泡烂的签名。",
+                "changes": [
+                  "末日进度 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "docks_chase_shadow",
+          "label": "追踪可疑搬运工",
+          "hint": "身法检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "agility",
+            "dc": 13,
+            "label": "码头追踪",
+            "tags": [
+              "stealth",
+              "tracking"
+            ],
+            "spend_if_has": {
+              "item": "smoke_bomb",
+              "bonus": 2,
+              "label": "烟雾弹"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "surprise_entry",
+                "value": true
+              },
+              {
+                "op": "goto",
+                "node": "sea_cave_entrance"
+              },
+              {
+                "op": "outcome",
+                "summary": "你踩着潮线追进了暗礁带。",
+                "detail": "目标从半塌石门钻了进去，洞内传来金属嗡鸣。",
+                "changes": [
+                  "获得优势：先手潜入"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -2
+              },
+              {
+                "op": "add_status",
+                "status": "soaked"
+              },
+              {
+                "op": "goto",
+                "node": "sea_cave_entrance"
+              },
+              {
+                "op": "outcome",
+                "summary": "你在湿石上滑倒，膝盖重重磕在礁岩上。",
+                "detail": "目标还是进了洞，但你已经暴露。",
+                "changes": [
+                  "生命 -2",
+                  "获得状态：湿冷"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "docks_talk_millelith",
+          "label": "向千岩军哨长打听失踪者",
+          "hint": "辞令检定 DC11",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 11,
+            "label": "官方口供",
+            "tags": [
+              "social"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "know_survivors",
+                "value": true
+              },
+              {
+                "op": "outcome",
+                "summary": "哨长给你看了临时名单。",
+                "detail": "名单尾页写着：\"北洞窟疑似仍有生还者\"。",
+                "changes": [
+                  "获得线索：生还者情报"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "add_status",
+                "status": "pressured"
+              },
+              {
+                "op": "outcome",
+                "summary": "对方怀疑你在套话。",
+                "detail": "你只得到一句含糊警告：\"别靠近北洞，今晚不归港。\"",
+                "changes": [
+                  "获得状态：精神紧绷"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "docks_call_yelan",
+          "label": "用暗记呼叫夜兰外围支援",
+          "hint": "获得情境加成",
+          "kind": "story",
+          "requires": {
+            "path": "progress.flags.yelan_contact",
+            "op": "==",
+            "value": true
+          },
+          "on_unavailable": {
+            "summary": "你没有可用联络暗号。",
+            "detail": "要么先去找夜兰，要么自己硬上。"
+          },
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "yelan_backup",
+              "value": true
+            },
+            {
+              "op": "outcome",
+              "summary": "巷口传来两短一长的敲击声。",
+              "detail": "你知道夜兰的人已经在外圈布控。",
+              "changes": [
+                "获得优势：外围牵制"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "docks_sail_cave",
+          "label": "雇小艇直抵海蚀洞入口",
+          "hint": "快速推进（末日 +1）",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "sea_cave_entrance"
+            },
+            {
+              "op": "outcome",
+              "summary": "你顶着浪涌靠近洞口。",
+              "detail": "海面下有不自然的蓝光在脉冲。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "sea_cave_entrance": {
+      "title": "海蚀洞前庭",
+      "text": "半塌的石门上刻着陌生纹路，潮水每次拍打都会引发短暂共振。洞内有人声，也有不像人的回响。",
+      "actions": [
+        {
+          "id": "cave_stealth_entry",
+          "label": "贴壁潜入前庭暗道",
+          "hint": "身法检定 DC14",
+          "kind": "check",
+          "check": {
+            "stat": "agility",
+            "dc": 14,
+            "label": "暗道潜入",
+            "tags": [
+              "stealth",
+              "dark"
+            ],
+            "spend_if_has": {
+              "item": "smoke_bomb",
+              "bonus": 2,
+              "label": "烟雾弹"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "surprise_entry",
+                "value": true
+              },
+              {
+                "op": "goto",
+                "node": "smuggler_den"
+              },
+              {
+                "op": "outcome",
+                "summary": "你从落石缝隙滑进了洞腹。",
+                "detail": "私运者的注意力都在下层，你成功绕过了第一道哨位。",
+                "changes": [
+                  "获得优势：先手潜入"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -2
+              },
+              {
+                "op": "add_status",
+                "status": "soaked"
+              },
+              {
+                "op": "goto",
+                "node": "smuggler_den"
+              },
+              {
+                "op": "outcome",
+                "summary": "你踩碎了一块空心石板。",
+                "detail": "洞内火把瞬间亮起，你只能硬着头皮冲进去。",
+                "changes": [
+                  "生命 -2",
+                  "获得状态：湿冷"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "cave_force_open",
+          "label": "强行撬开主门闯入",
+          "hint": "武艺检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "might",
+            "dc": 13,
+            "label": "破门突入",
+            "tags": [
+              "combat"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -1
+              },
+              {
+                "op": "set_flag",
+                "flag": "alarm_raised",
+                "value": true
+              },
+              {
+                "op": "goto",
+                "node": "smuggler_den"
+              },
+              {
+                "op": "outcome",
+                "summary": "石门被你硬生生顶开。",
+                "detail": "你进去了，但整个洞窟都听见了。",
+                "changes": [
+                  "生命 -1",
+                  "警报触发"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -3
+              },
+              {
+                "op": "add_status",
+                "status": "wounded"
+              },
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "goto",
+                "node": "smuggler_den"
+              },
+              {
+                "op": "outcome",
+                "summary": "反震把你掀翻在地。",
+                "detail": "门最终还是开了，但你也为此付出血的代价。",
+                "changes": [
+                  "生命 -3",
+                  "获得状态：负伤",
+                  "末日进度 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "cave_decode_tide",
+          "label": "解读门纹与潮律",
+          "hint": "见闻检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 13,
+            "label": "潮律破译",
+            "tags": [
+              "rune",
+              "lore"
+            ],
+            "spend_if_has": {
+              "item": "geo_compass",
+              "bonus": 2,
+              "label": "岩纹罗盘"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "know_ancient_gate",
+                "value": true
+              },
+              {
+                "op": "goto",
+                "node": "ruin_foyer"
+              },
+              {
+                "op": "outcome",
+                "summary": "你找到了共振间隙。",
+                "detail": "石门在最短的一息内打开，你直接进入遗迹前厅。",
+                "changes": [
+                  "获得线索：古门共振间隙"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "abyss_whisper"
+              },
+              {
+                "op": "goto",
+                "node": "smuggler_den"
+              },
+              {
+                "op": "outcome",
+                "summary": "你在纹路中听见了不该出现的声音。",
+                "detail": "那声音像在重复你的名字，带着潮水一样的节奏。",
+                "changes": [
+                  "侵蚀 +1",
+                  "获得状态：深渊低语"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "cave_retreat",
+          "label": "暂退港区重整",
+          "hint": "保守选择（末日 +1）",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "harbor_docks"
+            },
+            {
+              "op": "outcome",
+              "summary": "你决定先撤。",
+              "detail": "潮声没停，意味着对方也没停。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "smuggler_den": {
+      "title": "走私者洞腹",
+      "text": "木箱上印着璃月与枫丹两地标记，角落里还躺着被捆住的失踪船工。深处通道吹来刺骨湿风，夹着像金属摩擦的低鸣。",
+      "actions": [
+        {
+          "id": "den_interrogate",
+          "label": "逼问走私头目核心去向",
+          "hint": "辞令检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 13,
+            "label": "洞腹审讯",
+            "tags": [
+              "social"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "contact_neuvillette",
+                "value": true
+              },
+              {
+                "op": "add_item",
+                "item": "fontaine_seal_tube",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "outcome",
+                "summary": "头目终于松口。",
+                "detail": "他说核心来自枫丹旧实验线，还交出一支密封管作为临时封印器。",
+                "changes": [
+                  "获得物品：枫丹密封管",
+                  "获得线索：枫丹实验线"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "pressured"
+              },
+              {
+                "op": "outcome",
+                "summary": "对方咬断了话头。",
+                "detail": "你只听见一句含糊的\"审判已被延后\"，然后洞壁开始震动。",
+                "changes": [
+                  "侵蚀 +1",
+                  "获得状态：精神紧绷"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "den_loot_crates",
+          "label": "搜查木箱补充装备",
+          "hint": "见闻检定 DC12",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 12,
+            "label": "木箱搜查",
+            "tags": [
+              "lore"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "add_item",
+                "item": "hydro_resonator",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "add_item",
+                "item": "first_aid_kit",
+                "qty": 1,
+                "only_if_missing": true
+              },
+              {
+                "op": "outcome",
+                "summary": "你在防水箱里找到一套临时器材。",
+                "detail": "其中有可用于定向爆破的共鸣器。",
+                "changes": [
+                  "获得物品：临时共鸣器",
+                  "获得物品：急救包"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -1
+              },
+              {
+                "op": "add_status",
+                "status": "wounded"
+              },
+              {
+                "op": "outcome",
+                "summary": "箱体机关突然弹开。",
+                "detail": "碎铁片划开你的手臂，血滴在木箱印记上。",
+                "changes": [
+                  "生命 -1",
+                  "获得状态：负伤"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "den_free_captive",
+          "label": "先救出被困船工",
+          "hint": "降低外部压力",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "saved_hostage",
+              "value": true
+            },
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": -1
+            },
+            {
+              "op": "outcome",
+              "summary": "你斩断绳索，让船工从侧洞撤离。",
+              "detail": "其中一人回头说：\"前厅有法庭印记……像枫丹的。\"",
+              "changes": [
+                "关键选择：优先救援",
+                "末日进度 -1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "den_forward_ruin",
+          "label": "深入遗迹前厅",
+          "hint": "推进终局",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "ruin_foyer"
+            },
+            {
+              "op": "outcome",
+              "summary": "你沿着金属低鸣最强的位置前进。",
+              "detail": "前方石门内，有蓝白色脉冲在不断起伏。",
+              "changes": [
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "den_back_harbor",
+          "label": "返回港区再做准备",
+          "hint": "回补路线",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "harbor_docks"
+            },
+            {
+              "op": "outcome",
+              "summary": "你暂时退出洞腹。",
+              "detail": "潮线抬高得比预计更快。"
+            }
+          ]
+        }
+      ]
+    },
+    "ruin_foyer": {
+      "title": "遗迹前厅",
+      "text": "石柱表面刻着璃月古契与枫丹法庭符号的混合纹样。空气里有细碎水滴悬浮，像被某种力量固定在半空。",
+      "actions": [
+        {
+          "id": "foyer_call_neuvillette",
+          "label": "通过密封管发起远程联络",
+          "hint": "那维莱特提供封印建议",
+          "kind": "story",
+          "requires": {
+            "any": [
+              {
+                "item": "fontaine_seal_tube",
+                "op": ">=",
+                "value": 1
+              },
+              {
+                "path": "progress.flags.contact_neuvillette",
+                "op": "==",
+                "value": true
+              }
+            ]
+          },
+          "on_unavailable": {
+            "summary": "你无法建立联络。",
+            "detail": "也许要先拿到枫丹侧的密封管。"
+          },
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "neuvillette_advice",
+              "value": true
+            },
+            {
+              "op": "add_status",
+              "status": "contract_blessed"
+            },
+            {
+              "op": "outcome",
+              "summary": "短暂静默后，另一端传来沉稳声线。",
+              "detail": "那维莱特只说了两句：\"先稳住流体脉冲，再谈审判。\"",
+              "changes": [
+                "获得优势：审判建议",
+                "获得状态：契约庇护"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "foyer_activate_formula",
+          "label": "按古契顺序点亮柱纹",
+          "hint": "需要古契线索",
+          "kind": "story",
+          "requires": {
+            "any": [
+              {
+                "path": "progress.flags.know_contract_formula",
+                "op": "==",
+                "value": true
+              },
+              {
+                "item": "contract_scroll",
+                "op": ">=",
+                "value": 1
+              }
+            ]
+          },
+          "on_unavailable": {
+            "summary": "你不确定正确顺序。",
+            "detail": "胡乱触碰只会让前厅先一步失控。"
+          },
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "litany_ready",
+              "value": true
+            },
+            {
+              "op": "outcome",
+              "summary": "柱纹按顺序黯下去一圈。",
+              "detail": "这意味着你至少争取到了几秒稳定窗口。",
+              "changes": [
+                "获得优势：封印顺序已就绪"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "foyer_break_pillar",
+          "label": "破坏引导脉冲的副柱",
+          "hint": "见闻检定 DC14",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 14,
+            "label": "副柱破坏",
+            "tags": [
+              "ritual",
+              "rune"
+            ],
+            "extra_bonus_if_flags": [
+              {
+                "flag": "yelan_backup",
+                "bonus": 1,
+                "source": "夜兰外围牵制"
+              },
+              {
+                "flag": "know_ancient_gate",
+                "bonus": 1,
+                "source": "提前解读门纹"
+              }
+            ],
+            "spend_if_has": {
+              "item": "fontaine_seal_tube",
+              "bonus": 2,
+              "label": "枫丹密封管"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "ritual_weakened",
+                "value": true
+              },
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": -1
+              },
+              {
+                "op": "outcome",
+                "summary": "副柱裂开，脉冲频率明显下降。",
+                "detail": "你能感觉到核心区的压力减弱了。",
+                "changes": [
+                  "末日进度 -1",
+                  "获得优势：仪式削弱"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "add_status",
+                "status": "abyss_whisper"
+              },
+              {
+                "op": "outcome",
+                "summary": "你触发了反向共振。",
+                "detail": "石柱没碎，反而把低语放大了。",
+                "changes": [
+                  "侵蚀 +1",
+                  "末日进度 +1",
+                  "获得状态：深渊低语"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "foyer_short_prayer",
+          "label": "进行短暂稳心祷式",
+          "hint": "心志检定 DC11",
+          "kind": "check",
+          "check": {
+            "stat": "will",
+            "dc": 11,
+            "label": "稳心祷式",
+            "tags": [
+              "faith",
+              "ritual"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "add_status",
+                "status": "contract_blessed"
+              },
+              {
+                "op": "outcome",
+                "summary": "你的呼吸终于和潮声错开。",
+                "detail": "至少下一次直面核心时，你不会立刻失衡。",
+                "changes": [
+                  "获得状态：契约庇护"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "add_status",
+                "status": "pressured"
+              },
+              {
+                "op": "outcome",
+                "summary": "祷词在中途断了。",
+                "detail": "你听见水滴里传来细微笑声。",
+                "changes": [
+                  "获得状态：精神紧绷"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "foyer_descend",
+          "label": "下行至核心前区",
+          "hint": "进入道德抉择",
+          "kind": "move",
+          "effects": [
+            {
+              "op": "goto",
+              "node": "survivor_choice"
+            },
+            {
+              "op": "outcome",
+              "summary": "你顺着石阶进入更深处。",
+              "detail": "右侧囚笼里有人在呼救，左侧则是正在抬升的核心脉冲。"
+            }
+          ]
+        }
+      ]
+    },
+    "survivor_choice": {
+      "title": "核心前区",
+      "text": "你同时看见了两件事：被困的冒险者和即将越过阈值的潮汐核心。胡桃此前说过的那句\"先看人\"，在脑海里和夜兰的\"可控结果\"撞在一起。",
+      "actions": [
+        {
+          "id": "survivor_rescue",
+          "label": "先救人再处理核心",
+          "hint": "仁慈选择（末日 +1）",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "saved_survivors",
+              "value": true
+            },
+            {
+              "op": "add_status",
+              "status": "burdened"
+            },
+            {
+              "op": "adjust",
+              "resource": "doom",
+              "amount": 1
+            },
+            {
+              "op": "goto",
+              "node": "abyss_core"
+            },
+            {
+              "op": "outcome",
+              "summary": "你砍断锁链，把伤员推向回程坡道。",
+              "detail": "你慢了一步，但那些人活下来了。",
+              "changes": [
+                "关键选择：优先救人",
+                "获得状态：背负伤员",
+                "末日进度 +1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "survivor_seal_first",
+          "label": "先封核心再回头救援",
+          "hint": "效率优先",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "set_flag",
+              "flag": "abandoned_survivors",
+              "value": true
+            },
+            {
+              "op": "adjust",
+              "resource": "corruption",
+              "amount": 2
+            },
+            {
+              "op": "goto",
+              "node": "abyss_core"
+            },
+            {
+              "op": "outcome",
+              "summary": "你咬牙转向核心方向。",
+              "detail": "呼救声没有立刻停下，但你知道自己没资格回头。",
+              "changes": [
+                "关键选择：放弃即时救援",
+                "侵蚀 +2"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "survivor_split_team",
+          "label": "分派队伍同时救援与封控",
+          "hint": "辞令检定 DC13",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 13,
+            "label": "临场指挥",
+            "tags": [
+              "social"
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "saved_survivors",
+                "value": true
+              },
+              {
+                "op": "set_flag",
+                "flag": "split_team",
+                "value": true
+              },
+              {
+                "op": "goto",
+                "node": "abyss_core"
+              },
+              {
+                "op": "outcome",
+                "summary": "你把任务分给了仍能行动的人。",
+                "detail": "场面一度混乱，但最终两边都没有彻底失控。",
+                "changes": [
+                  "关键选择：分队执行"
+                ]
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "set_flag",
+                "flag": "abandoned_survivors",
+                "value": true
+              },
+              {
+                "op": "adjust",
+                "resource": "doom",
+                "amount": 1
+              },
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "goto",
+                "node": "abyss_core"
+              },
+              {
+                "op": "outcome",
+                "summary": "命令没有被有效执行。",
+                "detail": "你最终还是被迫独自面对核心，背后只剩凌乱脚步。",
+                "changes": [
+                  "关键选择：分队失败",
+                  "末日进度 +1",
+                  "侵蚀 +1"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "abyss_core": {
+      "title": "潮汐核心井",
+      "text": "蓝黑色液流在半空环成圆弧，深渊使徒立于中央法台。你耳边同时响起夜兰的撤离口令、钟离的契约顺序，以及那维莱特低沉的提醒：\"不要让脉冲越过第三环。\"",
+      "actions": [
+        {
+          "id": "core_duel",
+          "label": "正面对决深渊使徒",
+          "hint": "武艺检定（受末日影响）",
+          "kind": "check",
+          "check": {
+            "stat": "might",
+            "dc": 15,
+            "label": "核心区强攻",
+            "tags": [
+              "combat"
+            ],
+            "dc_adjust_by_doom": [
+              {
+                "min": 5,
+                "delta": 2
+              },
+              {
+                "min": 3,
+                "delta": 1
+              }
+            ],
+            "extra_bonus_if_flags": [
+              {
+                "flag": "surprise_entry",
+                "bonus": 2,
+                "source": "先手突袭"
+              },
+              {
+                "flag": "ritual_weakened",
+                "bonus": 1,
+                "source": "仪式已削弱"
+              }
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "resolve_victory",
+                "method": "steel"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "hp",
+                "amount": -4
+              },
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 1
+              },
+              {
+                "op": "finish_if",
+                "if": {
+                  "path": "player.hp",
+                  "op": "<=",
+                  "value": 0
+                },
+                "ending": "hero_falls",
+                "summary": "你在法台前被彻底击倒。"
+              },
+              {
+                "op": "outcome",
+                "summary": "你被逼退到核心边缘。",
+                "detail": "你还站着，但下一次失误就可能没有机会。",
+                "changes": [
+                  "生命 -4",
+                  "侵蚀 +1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "core_seal",
+          "label": "执行封印序列",
+          "hint": "见闻检定（受末日与前置准备影响）",
+          "kind": "check",
+          "check": {
+            "stat": "insight",
+            "dc": 15,
+            "label": "潮核封印",
+            "tags": [
+              "ritual",
+              "rune",
+              "corruption"
+            ],
+            "dc_adjust_by_doom": [
+              {
+                "min": 5,
+                "delta": 2
+              },
+              {
+                "min": 3,
+                "delta": 1
+              }
+            ],
+            "dc_adjust_if_flags": [
+              {
+                "flag": "ritual_weakened",
+                "delta": -1
+              },
+              {
+                "flag": "litany_ready",
+                "delta": -1
+              }
+            ],
+            "extra_bonus_if_flags": [
+              {
+                "flag": "neuvillette_advice",
+                "bonus": 1,
+                "source": "审判建议"
+              }
+            ],
+            "spend_if_has": {
+              "item": "fontaine_seal_tube",
+              "bonus": 3,
+              "label": "枫丹密封管"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "resolve_victory",
+                "method": "sigil"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 2
+              },
+              {
+                "op": "finish_if",
+                "if": {
+                  "path": "player.corruption",
+                  "op": ">=",
+                  "value": 8
+                },
+                "ending": "whisper_bearer",
+                "summary": "你完成了咒式，却在最后一个音节上失去了自我。"
+              },
+              {
+                "op": "finish",
+                "ending": "tide_drowned",
+                "summary": "封印链在第三环崩溃，潮核彻底外泄。"
+              }
+            ]
+          }
+        },
+        {
+          "id": "core_parley",
+          "label": "以情报与谎言拖延核心升频",
+          "hint": "辞令检定（受末日影响）",
+          "kind": "check",
+          "check": {
+            "stat": "fellowship",
+            "dc": 14,
+            "label": "法台博弈",
+            "tags": [
+              "social",
+              "corruption"
+            ],
+            "dc_adjust_by_doom": [
+              {
+                "min": 5,
+                "delta": 2
+              },
+              {
+                "min": 3,
+                "delta": 1
+              }
+            ],
+            "extra_bonus_if_flags": [
+              {
+                "flag": "split_team",
+                "bonus": 1,
+                "source": "分队牵制"
+              }
+            ]
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "resolve_victory",
+                "method": "deceive"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "adjust",
+                "resource": "corruption",
+                "amount": 2
+              },
+              {
+                "op": "finish_if",
+                "if": {
+                  "path": "player.corruption",
+                  "op": ">=",
+                  "value": 7
+                },
+                "ending": "whisper_bearer",
+                "summary": "你说服了对方片刻，却被它留下的低语钩住了。"
+              },
+              {
+                "op": "finish",
+                "ending": "tide_drowned",
+                "summary": "你争取到的几秒不够长，核心仍越过了阈值。"
+              }
+            ]
+          }
+        },
+        {
+          "id": "core_blast",
+          "label": "定向爆破切断能量回路",
+          "hint": "需要临时共鸣器",
+          "kind": "check",
+          "requires": {
+            "item": "hydro_resonator",
+            "op": ">=",
+            "value": 1
+          },
+          "on_unavailable": {
+            "summary": "你没有可用爆破装置。",
+            "detail": "徒手引爆只会把自己和核心一起送走。"
+          },
+          "check": {
+            "stat": "agility",
+            "dc": 12,
+            "label": "定向爆破",
+            "tags": [
+              "combat",
+              "stealth"
+            ],
+            "spend_if_has": {
+              "item": "hydro_resonator",
+              "bonus": 1,
+              "label": "临时共鸣器"
+            }
+          },
+          "on_success": {
+            "effects": [
+              {
+                "op": "resolve_victory",
+                "method": "blast"
+              }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              {
+                "op": "finish",
+                "ending": "hero_falls",
+                "summary": "爆破提前触发，你被冲击波掀进了核心井壁。"
+              }
+            ]
+          }
+        },
+        {
+          "id": "core_take_whisper",
+          "label": "触碰核心接受低语",
+          "hint": "主动堕落",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "adjust",
+              "resource": "corruption",
+              "amount": 5
+            },
+            {
+              "op": "finish",
+              "ending": "whisper_bearer",
+              "summary": "你把核心里的声音带进了自己的血液里。"
+            }
+          ]
+        },
+        {
+          "id": "core_flee",
+          "label": "撤离遗迹放弃封控",
+          "hint": "放弃主线",
+          "kind": "story",
+          "effects": [
+            {
+              "op": "finish",
+              "ending": "tide_drowned",
+              "summary": "你活着离开了，但港区没能同样幸运。"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
