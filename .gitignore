@@ -1,5 +1,41 @@
+# OS / editor noise
 .DS_Store
+**/.DS_Store
+Thumbs.db
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment files
+.env
+.env.*
+.venv/
+venv/
+
+# JavaScript build output
 node_modules/
 dist/
-.env
+
+# Python cache / test output
+__pycache__/
+**/__pycache__/
+.pycache/
+**/.pycache/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Generic local runtime artifacts
+*.log
+*.tmp
+*.temp

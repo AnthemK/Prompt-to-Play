@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Lite TRPG Sim Launcher Icon</title>
+  <desc id="desc">Dark fantasy launcher icon with a d20 crest, blade, and candle glow.</desc>
+
+  <defs>
+    <!-- Global atmosphere gradients -->
+    <radialGradient id="bgGlow" cx="52%" cy="32%" r="72%">
+      <stop offset="0%" stop-color="#1f2b2a"/>
+      <stop offset="45%" stop-color="#111918"/>
+      <stop offset="100%" stop-color="#080c0c"/>
+    </radialGradient>
+
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d1b58f"/>
+      <stop offset="52%" stop-color="#8a6a49"/>
+      <stop offset="100%" stop-color="#d8c39d"/>
+    </linearGradient>
+
+    <linearGradient id="steelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e2e7eb"/>
+      <stop offset="50%" stop-color="#9ca7af"/>
+      <stop offset="100%" stop-color="#5f6870"/>
+    </linearGradient>
+
+    <linearGradient id="emberGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd58e"/>
+      <stop offset="55%" stop-color="#dd7f3f"/>
+      <stop offset="100%" stop-color="#7d3720"/>
+    </linearGradient>
+
+    <filter id="softBloom" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+
+    <filter id="hardShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Background plate -->
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#bgGlow)"/>
+  <circle cx="512" cy="510" r="406" fill="none" stroke="url(#ringGrad)" stroke-width="26" opacity="0.9"/>
+  <circle cx="512" cy="510" r="356" fill="none" stroke="#2f3a39" stroke-width="3" opacity="0.75"/>
+
+  <!-- Ember light -->
+  <ellipse cx="512" cy="375" rx="170" ry="120" fill="#c96d3a" opacity="0.22" filter="url(#softBloom)"/>
+
+  <!-- Vertical blade behind the die -->
+  <g filter="url(#hardShadow)">
+    <path d="M512 160L548 300L512 844L476 300Z" fill="url(#steelGrad)"/>
+    <rect x="434" y="800" width="156" height="36" rx="14" fill="#76563a"/>
+    <rect x="468" y="835" width="88" height="64" rx="20" fill="#5a412d"/>
+  </g>
+
+  <!-- d20-style crest -->
+  <g filter="url(#hardShadow)">
+    <polygon points="512,266 706,402 632,662 392,662 318,402" fill="#121a1b" stroke="#d7bf96" stroke-width="16"/>
+    <polygon points="512,315 660,420 603,621 421,621 364,420" fill="#1f2a2c" stroke="#415054" stroke-width="6"/>
+
+    <!-- Facet lines -->
+    <path d="M512 315L512 621M364 420L660 420M421 621L512 420L603 621" stroke="#8ea0a6" stroke-opacity="0.55" stroke-width="4" fill="none"/>
+
+    <!-- Number rune -->
+    <text x="512" y="508" text-anchor="middle" fill="#f3e4ca" font-family="Georgia, 'Times New Roman', serif" font-size="178" font-weight="700">20</text>
+  </g>
+
+  <!-- Candle flame marker (tabletop vibe) -->
+  <g filter="url(#hardShadow)">
+    <path d="M512 302C486 340 489 375 512 405C535 375 538 340 512 302Z" fill="url(#emberGrad)"/>
+    <path d="M512 324C499 344 500 362 512 378C524 362 525 344 512 324Z" fill="#fff0c8" opacity="0.72"/>
+  </g>
+
+  <!-- Bottom title initials, small and neutral for icon usage -->
+  <text x="512" y="968" text-anchor="middle" fill="#c8b28b" font-family="Palatino, Georgia, serif" font-size="52" letter-spacing="6">LITE TRPG SIM</text>
+</svg>

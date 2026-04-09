@@ -8,16 +8,72 @@ Story packs feed data into these helpers instead of re-implementing rules.
 from __future__ import annotations
 
 import random
+from datetime import datetime, timezone
 from typing import Any
 
 from .resolution import (
+    BreakdownEntry,
+    ResolutionPayload,
     add_damage_effect,
     add_flag_effect,
     add_item_effect,
     add_resource_effect,
     add_status_effect,
     build_resolution,
+    refresh_resolution_explain,
 )
+
+DEFAULT_DEBUG_TRACE_LIMIT = 400
+
+
+def ensure_debug_trace(state: dict[str, Any]) -> dict[str, Any]:
+    """Ensure state has a normalized debug-trace block and return it."""
+    trace = state.get("debug_trace")
+    if not isinstance(trace, dict):
+        trace = {}
+        state["debug_trace"] = trace
+
+    trace.setdefault("enabled", True)
+    trace.setdefault("max_entries", DEFAULT_DEBUG_TRACE_LIMIT)
+    trace.setdefault("entries", [])
+
+    trace["enabled"] = bool(trace.get("enabled", True))
+    trace["max_entries"] = max(50, int(trace.get("max_entries", DEFAULT_DEBUG_TRACE_LIMIT)))
+    entries = trace.get("entries")
+    if not isinstance(entries, list):
+        trace["entries"] = []
+    elif len(entries) > int(trace["max_entries"]):
+        trace["entries"] = entries[-int(trace["max_entries"]) :]
+    return trace
+
+
+def debug_event(
+    state: dict[str, Any],
+    *,
+    event: str,
+    message: str,
+    payload: dict[str, Any] | None = None,
+    level: str = "info",
+) -> None:
+    """Append one structured debug event for diagnostics and bug reports."""
+    trace = ensure_debug_trace(state)
+    if not bool(trace.get("enabled", True)):
+        return
+
+    entry: dict[str, Any] = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "level": str(level or "info"),
+        "event": str(event or "unknown"),
+        "message": str(message or ""),
+    }
+    if isinstance(payload, dict) and payload:
+        entry["payload"] = payload
+
+    entries = trace.setdefault("entries", [])
+    entries.append(entry)
+    max_entries = int(trace.get("max_entries", DEFAULT_DEBUG_TRACE_LIMIT))
+    if len(entries) > max_entries:
+        trace["entries"] = entries[-max_entries:]
 
 
 def stat_modifier(value: int) -> int:
@@ -80,6 +136,12 @@ def remove_status(state: dict[str, Any], status_id: str) -> None:
 
 def adjust_resource(state: dict[str, Any], content: dict[str, Any], resource: str, amount: int) -> int:
     """Apply a clamped resource delta and return the actual change applied."""
+    if resource == "shield":
+        player = state["player"]
+        before = int(player.get("shield", 0))
+        player["shield"] = max(0, before + int(amount))
+        return int(player["shield"]) - before
+
     if resource == "hp":
         player = state["player"]
         before = int(player["hp"])
@@ -114,6 +176,12 @@ def log_event(state: dict[str, Any], entry: str) -> None:
     logs.append(entry)
     if len(logs) > 120:
         state["log"] = logs[-120:]
+    debug_event(
+        state,
+        event="player_log.appended",
+        message="Added one player-visible log line.",
+        payload={"entry": str(entry)},
+    )
 
 
 def _entry_name(entry: dict[str, Any], fallback: str) -> str:
@@ -171,7 +239,7 @@ def apply_state_effect(
     content: dict[str, Any],
     effect: dict[str, Any],
     *,
-    resolution: dict[str, Any] | None = None,
+    resolution: ResolutionPayload | None = None,
     default_source: str = "系统效果",
 ) -> bool:
     """Apply one generic effect op to state.
@@ -189,12 +257,24 @@ def apply_state_effect(
         value = bool(effect.get("value", True))
         state["progress"].setdefault("flags", {})[flag] = value
         add_flag_effect(resolution, flag=flag, value=value, source=source)
+        debug_event(
+            state,
+            event="effect.set_flag",
+            message="Set one progress flag via effect.",
+            payload={"flag": flag, "value": value, "source": source},
+        )
         return True
 
     if op == "adjust":
         resource = str(effect.get("resource", ""))
         delta = adjust_resource(state, content, resource, int(effect.get("amount", 0)))
         add_resource_effect(resolution, resource, delta, source)
+        debug_event(
+            state,
+            event="effect.adjust_resource",
+            message="Adjusted one player/progress resource via effect.",
+            payload={"resource": resource, "delta": int(delta), "source": source},
+        )
         return True
 
     if op == "add_status":
@@ -204,6 +284,12 @@ def apply_state_effect(
         add_status(state, status_id)
         status_name = _entry_name(content.get("statuses", {}).get(status_id, {}), status_id)
         add_status_effect(resolution, mode="add", status_id=status_id, name=status_name, source=source)
+        debug_event(
+            state,
+            event="effect.add_status",
+            message="Added one status via effect.",
+            payload={"status_id": status_id, "status_name": status_name, "source": source},
+        )
         return True
 
     if op == "remove_status":
@@ -213,6 +299,12 @@ def apply_state_effect(
         remove_status(state, status_id)
         status_name = _entry_name(content.get("statuses", {}).get(status_id, {}), status_id)
         add_status_effect(resolution, mode="remove", status_id=status_id, name=status_name, source=source)
+        debug_event(
+            state,
+            event="effect.remove_status",
+            message="Removed one status via effect.",
+            payload={"status_id": status_id, "status_name": status_name, "source": source},
+        )
         return True
 
     if op == "add_item":
@@ -225,6 +317,12 @@ def apply_state_effect(
         add_item(state, item_id, qty)
         item_name = _entry_name(content.get("items", {}).get(item_id, {}), item_id)
         add_item_effect(resolution, mode="add", item_id=item_id, name=item_name, qty=qty, source=source)
+        debug_event(
+            state,
+            event="effect.add_item",
+            message="Added item stack via effect.",
+            payload={"item_id": item_id, "item_name": item_name, "qty": int(qty), "source": source},
+        )
         return True
 
     if op == "remove_first_item":
@@ -237,6 +335,12 @@ def apply_state_effect(
             if remove_item(state, item_id, 1):
                 item_name = _entry_name(content.get("items", {}).get(item_id, {}), item_id)
                 add_item_effect(resolution, mode="remove", item_id=item_id, name=item_name, qty=1, source=source)
+                debug_event(
+                    state,
+                    event="effect.remove_first_item",
+                    message="Removed first matching item via effect.",
+                    payload={"item_id": str(item_id), "item_name": item_name, "source": source},
+                )
                 break
         return True
 
@@ -327,7 +431,7 @@ def apply_passive_effects(
     trigger: str,
     *,
     ctx: dict[str, Any] | None = None,
-    resolution: dict[str, Any] | None = None,
+    resolution: ResolutionPayload | None = None,
 ) -> None:
     """Run passive effects for one lifecycle trigger."""
     trigger_ctx = dict(ctx or {})
@@ -493,6 +597,172 @@ def _extra_bonus_from_flags(state: dict[str, Any], check_cfg: dict[str, Any]) ->
     return bonuses
 
 
+def _compare_env_value(left: Any, op: str, right: Any) -> bool:
+    """Evaluate one simple environment-rule comparison."""
+    if op == "==":
+        return left == right
+    if op == "!=":
+        return left != right
+    if op in {">", ">=", "<", "<="}:
+        try:
+            left_num = float(left)
+            right_num = float(right)
+        except (TypeError, ValueError):
+            return False
+        if op == ">":
+            return left_num > right_num
+        if op == ">=":
+            return left_num >= right_num
+        if op == "<":
+            return left_num < right_num
+        return left_num <= right_num
+    return False
+
+
+def _environment_bonus(
+    state: dict[str, Any],
+    cfg: dict[str, Any],
+    *,
+    stat: str,
+    tags: list[str],
+    kind: str,
+) -> list[tuple[int, str]]:
+    """Collect encounter-environment bonuses for check/save/contest flows."""
+    encounter = state.get("encounter")
+    if not isinstance(encounter, dict):
+        return []
+
+    runtime_rules = encounter.get("environment_rules", [])
+    inline_rules = cfg.get("environment_bonus_rules", [])
+    rules: list[dict[str, Any]] = []
+    if isinstance(runtime_rules, list):
+        rules.extend([entry for entry in runtime_rules if isinstance(entry, dict)])
+    if isinstance(inline_rules, list):
+        rules.extend([entry for entry in inline_rules if isinstance(entry, dict)])
+    if not rules:
+        return []
+
+    env = encounter.get("environment", {})
+    if not isinstance(env, dict):
+        return []
+
+    bonuses: list[tuple[int, str]] = []
+    for rule in rules:
+        field = str(rule.get("field", "")).strip()
+        if not field:
+            continue
+        if field not in env:
+            continue
+
+        applies_to = rule.get("applies_to")
+        if isinstance(applies_to, list) and applies_to:
+            applies = {str(entry).strip().lower() for entry in applies_to}
+            if kind not in applies and "any" not in applies:
+                continue
+
+        rule_for_match = dict(rule)
+        if "stat" in rule_for_match and "stat_equals" not in rule_for_match:
+            rule_for_match["stat_equals"] = rule_for_match.get("stat")
+        if not _match_bonus_rule(rule_for_match, stat=stat, tags=tags):
+            continue
+
+        op = str(rule.get("op", "==")).strip() or "=="
+        right = rule.get("value")
+        left = env.get(field)
+        if not _compare_env_value(left, op, right):
+            continue
+
+        bonus = int(rule.get("bonus", 0))
+        if bonus == 0:
+            continue
+        source = str(rule.get("source", f"环境：{field}"))
+        bonuses.append((bonus, source))
+    return bonuses
+
+
+def _match_environment_impact_rule(
+    rule: dict[str, Any],
+    *,
+    impact_kind: str,
+    damage_type: str,
+    target: str,
+    resource: str,
+) -> bool:
+    """Return whether one environment-impact rule applies to this impact flow."""
+    applies_to = rule.get("applies_to")
+    if isinstance(applies_to, list) and applies_to:
+        applies = {str(entry).strip().lower() for entry in applies_to}
+        if impact_kind not in applies and "any" not in applies:
+            return False
+
+    expected_target = str(rule.get("target", "")).strip().lower()
+    if expected_target and expected_target != target:
+        return False
+
+    expected_resource = str(rule.get("resource", "")).strip().lower()
+    if expected_resource and expected_resource != resource:
+        return False
+
+    if not _match_damage_rule(rule, damage_type):
+        return False
+    return True
+
+
+def _environment_impact_modifiers(
+    state: dict[str, Any],
+    cfg: dict[str, Any],
+    *,
+    impact_kind: str,
+    damage_type: str,
+    target: str,
+    resource: str,
+) -> tuple[int, int, list[str]]:
+    """Collect flat/percent impact modifiers from encounter environment rules."""
+    encounter = state.get("encounter")
+    if not isinstance(encounter, dict):
+        return 0, 0, []
+
+    env = encounter.get("environment", {})
+    if not isinstance(env, dict):
+        return 0, 0, []
+
+    runtime_rules = encounter.get("environment_impact_rules", [])
+    inline_rules = cfg.get("environment_impact_rules", [])
+    rules: list[dict[str, Any]] = []
+    if isinstance(runtime_rules, list):
+        rules.extend([entry for entry in runtime_rules if isinstance(entry, dict)])
+    if isinstance(inline_rules, list):
+        rules.extend([entry for entry in inline_rules if isinstance(entry, dict)])
+    if not rules:
+        return 0, 0, []
+
+    flat_total = 0
+    percent_total = 0
+    sources: list[str] = []
+    for rule in rules:
+        field = str(rule.get("field", "")).strip()
+        if not field or field not in env:
+            continue
+        op = str(rule.get("op", "==")).strip() or "=="
+        left = env.get(field)
+        right = rule.get("value")
+        if not _compare_env_value(left, op, right):
+            continue
+        if not _match_environment_impact_rule(
+            rule,
+            impact_kind=impact_kind,
+            damage_type=damage_type,
+            target=target,
+            resource=resource,
+        ):
+            continue
+        flat_total += int(rule.get("delta", 0))
+        percent_total += int(rule.get("percent", 0))
+        sources.append(str(rule.get("source", f"环境影响：{field}")))
+
+    return flat_total, percent_total, sources
+
+
 def _roll_die(sides: int) -> int:
     """Roll one die with the given number of sides."""
     safe_sides = max(2, int(sides))
@@ -503,8 +773,8 @@ def _spend_bonus_item(
     state: dict[str, Any],
     content: dict[str, Any],
     cfg: dict[str, Any],
-    breakdown: list[dict[str, Any]],
-    resolution: dict[str, Any],
+    breakdown: list[BreakdownEntry],
+    resolution: ResolutionPayload,
 ) -> None:
     """Spend one configured item to add a temporary bonus to this resolution."""
     spend_if_has = cfg.get("spend_if_has")
@@ -537,11 +807,12 @@ def _build_modifier_breakdown(
     *,
     stat: str,
     tags: list[str],
+    kind: str,
     include_doom_flag_bonus: bool,
-) -> list[dict[str, Any]]:
+) -> list[BreakdownEntry]:
     """Build and return the full modifier breakdown for one stat test."""
     stat_value = int(state["player"]["stats"].get(stat, 0))
-    breakdown: list[dict[str, Any]] = [{"value": stat_modifier(stat_value), "source": f"属性修正({stat_value})"}]
+    breakdown: list[BreakdownEntry] = [{"value": stat_modifier(stat_value), "source": f"属性修正({stat_value})"}]
 
     for value, source in _profession_bonus(state, content, stat, tags):
         breakdown.append({"value": value, "source": source})
@@ -560,6 +831,9 @@ def _build_modifier_breakdown(
         for value, source in _extra_bonus_from_flags(state, cfg):
             breakdown.append({"value": value, "source": source})
 
+    for value, source in _environment_bonus(state, cfg, stat=stat, tags=tags, kind=kind):
+        breakdown.append({"value": value, "source": source})
+
     return breakdown
 
 
@@ -572,7 +846,7 @@ def _perform_stat_test(
     default_label: str,
     trigger_kind: str,
     include_doom_flag_bonus: bool = True,
-) -> dict[str, Any]:
+) -> ResolutionPayload:
     """Execute a generic d20 stat test used by check/save flows."""
     stat = str(cfg.get("stat", "might"))
     tags = [str(tag) for tag in cfg.get("tags", []) if isinstance(tag, str)]
@@ -599,6 +873,7 @@ def _perform_stat_test(
         cfg,
         stat=stat,
         tags=tags,
+        kind=kind,
         include_doom_flag_bonus=include_doom_flag_bonus,
     )
     _spend_bonus_item(state, content, cfg, breakdown, resolution)
@@ -622,10 +897,28 @@ def _perform_stat_test(
         ctx={"kind": trigger_kind, "stat": stat, "tags": tags, "success": success},
         resolution=resolution,
     )
-    return resolution
+    debug_event(
+        state,
+        event=f"{kind}.resolved",
+        message="Resolved one stat test.",
+        payload={
+            "kind": kind,
+            "label": label,
+            "stat": stat,
+            "dc": int(dc),
+            "roll": int(roll),
+            "modifier": int(modifier),
+            "total": int(total),
+            "success": bool(success),
+            "tags": tags,
+        },
+    )
+    # Rebuild explain fragments after passive hooks and effect writes complete.
+    refreshed = refresh_resolution_explain(resolution)
+    return refreshed if isinstance(refreshed, dict) else resolution
 
 
-def perform_check(state: dict[str, Any], content: dict[str, Any], check_cfg: dict[str, Any]) -> dict[str, Any]:
+def perform_check(state: dict[str, Any], content: dict[str, Any], check_cfg: dict[str, Any]) -> ResolutionPayload:
     """Execute the engine's standard attribute check."""
     return _perform_stat_test(
         state,
@@ -637,7 +930,7 @@ def perform_check(state: dict[str, Any], content: dict[str, Any], check_cfg: dic
     )
 
 
-def perform_save(state: dict[str, Any], content: dict[str, Any], save_cfg: dict[str, Any]) -> dict[str, Any]:
+def perform_save(state: dict[str, Any], content: dict[str, Any], save_cfg: dict[str, Any]) -> ResolutionPayload:
     """Execute a saving throw style resolution against a fixed DC."""
     return _perform_stat_test(
         state,
@@ -649,7 +942,7 @@ def perform_save(state: dict[str, Any], content: dict[str, Any], save_cfg: dict[
     )
 
 
-def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg: dict[str, Any]) -> dict[str, Any]:
+def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg: dict[str, Any]) -> ResolutionPayload:
     """Execute a player-vs-opponent contested roll."""
     stat = str(contest_cfg.get("stat", "might"))
     tags = [str(tag) for tag in contest_cfg.get("tags", []) if isinstance(tag, str)]
@@ -672,6 +965,7 @@ def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg:
         contest_cfg,
         stat=stat,
         tags=tags,
+        kind="contest",
         include_doom_flag_bonus=True,
     )
     _spend_bonus_item(state, content, contest_cfg, breakdown, resolution)
@@ -684,7 +978,33 @@ def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg:
     opponent_modifier = int(contest_cfg.get("opponent_modifier", 0))
     opponent_total = opponent_roll + opponent_modifier
 
-    success = total >= opponent_total
+    active_side = str(contest_cfg.get("active_side", "player")).strip().lower()
+    if active_side not in {"player", "opponent"}:
+        active_side = "player"
+    passive_side = "opponent" if active_side == "player" else "player"
+
+    # Keep `success` as "player side success" so existing branch semantics do
+    # not break while still exposing active/passive metadata for narration.
+    margin = total - opponent_total
+    tie = margin == 0
+    tie_policy = str(contest_cfg.get("tie_policy", "player_wins")).strip().lower() or "player_wins"
+    if tie_policy not in {"player_wins", "player_loses", "active_wins", "active_loses"}:
+        tie_policy = "player_wins"
+
+    if margin > 0:
+        success = True
+    elif margin < 0:
+        success = False
+    else:
+        if tie_policy == "player_wins":
+            success = True
+        elif tie_policy == "player_loses":
+            success = False
+        elif tie_policy == "active_wins":
+            success = active_side == "player"
+        else:  # active_loses
+            success = active_side != "player"
+
     resolution["roll"] = roll
     resolution["modifier"] = modifier
     resolution["total"] = total
@@ -694,6 +1014,18 @@ def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg:
     resolution["opponent_roll"] = opponent_roll
     resolution["opponent_modifier"] = opponent_modifier
     resolution["opponent_total"] = opponent_total
+    resolution["active_side"] = active_side
+    resolution["passive_side"] = passive_side
+    resolution["tie"] = tie
+    resolution["tie_policy"] = tie_policy
+    resolution["margin"] = margin
+    if tie:
+        resolution.setdefault("breakdown", []).append(
+            {
+                "value": 0,
+                "source": f"平局策略：{tie_policy}",
+            }
+        )
 
     apply_passive_effects(
         state,
@@ -702,7 +1034,24 @@ def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg:
         ctx={"kind": "contest", "stat": stat, "tags": tags, "success": success},
         resolution=resolution,
     )
-    return resolution
+    debug_event(
+        state,
+        event="contest.resolved",
+        message="Resolved one contested roll.",
+        payload={
+            "label": label,
+            "stat": stat,
+            "player_total": int(total),
+            "opponent_total": int(opponent_total),
+            "margin": int(margin),
+            "tie": bool(tie),
+            "tie_policy": tie_policy,
+            "active_side": active_side,
+            "success": bool(success),
+        },
+    )
+    refreshed = refresh_resolution_explain(resolution)
+    return refreshed if isinstance(refreshed, dict) else resolution
 
 
 def _match_damage_rule(rule: dict[str, Any], damage_type: str) -> bool:
@@ -814,6 +1163,134 @@ def _collect_enemy_resistance_rules(state: dict[str, Any]) -> list[dict[str, Any
     )
 
 
+def _normalize_vulnerability_rules(raw_rules: Any, *, default_source: str) -> list[dict[str, Any]]:
+    """Normalize vulnerability declarations into flat + percent rule entries."""
+    normalized: list[dict[str, Any]] = []
+
+    if isinstance(raw_rules, dict):
+        for key, value in raw_rules.items():
+            normalized.append(
+                {
+                    "type": str(key).strip().lower(),
+                    "increase": int(value),
+                    "percent": 0,
+                    "source": default_source,
+                }
+            )
+        return normalized
+
+    if not isinstance(raw_rules, list):
+        return normalized
+
+    for entry in raw_rules:
+        if not isinstance(entry, dict):
+            continue
+        normalized.append(
+            {
+                "type": str(entry.get("type", "")).strip().lower(),
+                "type_in": [str(item).strip().lower() for item in entry.get("type_in", []) if str(item).strip()]
+                if isinstance(entry.get("type_in"), list)
+                else [],
+                "increase": int(entry.get("increase", 0)),
+                "percent": int(entry.get("percent", 0)),
+                "source": str(entry.get("source", default_source)),
+            }
+        )
+    return normalized
+
+
+def _collect_player_vulnerability_rules(state: dict[str, Any], content: dict[str, Any]) -> list[dict[str, Any]]:
+    """Collect player-side vulnerability rules from profession, items, and statuses."""
+    rules: list[dict[str, Any]] = []
+
+    profession = get_profession(content, str(state["player"].get("profession_id", "")))
+    if isinstance(profession, dict):
+        rules.extend(
+            _normalize_vulnerability_rules(
+                profession.get("damage_vulnerabilities", []),
+                default_source=_effect_source_name("profession", profession, str(profession.get("id", "职业"))),
+            )
+        )
+
+    items = content.get("items", {})
+    for item_id, qty in state["player"].get("inventory", {}).items():
+        if int(qty) <= 0:
+            continue
+        item = items.get(item_id)
+        if not isinstance(item, dict):
+            continue
+        rules.extend(
+            _normalize_vulnerability_rules(
+                item.get("damage_vulnerabilities", []),
+                default_source=_effect_source_name("item", item, str(item_id)),
+            )
+        )
+
+    statuses = content.get("statuses", {})
+    for status_id in state["player"].get("statuses", []):
+        status = statuses.get(status_id)
+        if not isinstance(status, dict):
+            continue
+        rules.extend(
+            _normalize_vulnerability_rules(
+                status.get("damage_vulnerabilities", []),
+                default_source=_effect_source_name("status", status, str(status_id)),
+            )
+        )
+
+    return rules
+
+
+def _collect_enemy_vulnerability_rules(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Collect vulnerability rules from the active encounter enemy runtime block."""
+    encounter = state.get("encounter")
+    if not isinstance(encounter, dict):
+        return []
+
+    enemy = encounter.get("enemy")
+    if not isinstance(enemy, dict):
+        return []
+
+    return _normalize_vulnerability_rules(
+        enemy.get("vulnerabilities", []),
+        default_source=f"敌方：{enemy.get('name', '敌方')}",
+    )
+
+
+def _target_shield(state: dict[str, Any], target: str) -> int:
+    """Return current shield value for player or encounter enemy."""
+    if target == "enemy":
+        encounter = state.get("encounter")
+        if not isinstance(encounter, dict):
+            return 0
+        enemy = encounter.get("enemy")
+        if not isinstance(enemy, dict):
+            return 0
+        return max(0, int(enemy.get("shield", 0)))
+    return max(0, int(state.get("player", {}).get("shield", 0)))
+
+
+def _consume_target_shield(state: dict[str, Any], target: str, amount: int) -> tuple[int, int, int]:
+    """Consume shield points and return `(absorbed, before, after)`."""
+    if amount <= 0:
+        before = _target_shield(state, target)
+        return 0, before, before
+
+    before = _target_shield(state, target)
+    absorbed = min(before, max(0, int(amount)))
+    after = before - absorbed
+
+    if target == "enemy":
+        encounter = state.get("encounter")
+        if isinstance(encounter, dict):
+            enemy = encounter.get("enemy")
+            if isinstance(enemy, dict):
+                enemy["shield"] = after
+    else:
+        state["player"]["shield"] = after
+    return absorbed, before, after
+
+
 def _apply_damage_to_target(
     state: dict[str, Any],
     content: dict[str, Any],
@@ -821,7 +1298,7 @@ def _apply_damage_to_target(
     target: str,
     resource: str,
     amount: int,
-    resolution: dict[str, Any],
+    resolution: ResolutionPayload,
     source: str,
 ) -> tuple[int, str]:
     """Apply final damage value to the selected target and return applied amount."""
@@ -852,20 +1329,70 @@ def _apply_damage_to_target(
     return abs(int(delta)), "你"
 
 
-def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: dict[str, Any]) -> dict[str, Any]:
-    """Execute typed damage with resistance and mitigation handling."""
+def _apply_healing_to_target(
+    state: dict[str, Any],
+    content: dict[str, Any],
+    *,
+    target: str,
+    resource: str,
+    amount: int,
+    resolution: ResolutionPayload,
+    source: str,
+) -> tuple[int, str]:
+    """Apply a positive resource change to player or encounter enemy."""
+    if target == "enemy":
+        encounter = state.get("encounter")
+        if not isinstance(encounter, dict):
+            return 0, "敌方目标"
+
+        enemy = encounter.get("enemy")
+        if not isinstance(enemy, dict):
+            return 0, "敌方目标"
+
+        enemy_name = str(enemy.get("name", "敌方目标"))
+        if resource == "shield":
+            before_shield = max(0, int(enemy.get("shield", 0)))
+            enemy["shield"] = before_shield + max(0, int(amount))
+            return max(0, int(enemy.get("shield", 0)) - before_shield), enemy_name
+
+        if resource != "hp":
+            return 0, enemy_name
+
+        before_hp = max(0, int(enemy.get("hp", 0)))
+        max_hp = max(0, int(enemy.get("max_hp", before_hp)))
+        after_hp = before_hp + max(0, int(amount))
+        if max_hp > 0:
+            after_hp = min(max_hp, after_hp)
+        enemy["hp"] = after_hp
+        return max(0, after_hp - before_hp), enemy_name
+
+    delta = adjust_resource(state, content, resource, amount)
+    add_resource_effect(resolution, resource, delta, source)
+    return max(0, int(delta)), "你"
+
+
+def _perform_damage_like(
+    state: dict[str, Any],
+    content: dict[str, Any],
+    damage_cfg: dict[str, Any],
+    *,
+    resolution_kind: str,
+    impact_kind: str,
+    default_label: str,
+) -> ResolutionPayload:
+    """Execute one typed impact flow with resistance, vulnerability, and shield."""
     target = str(damage_cfg.get("target", "player")).strip().lower() or "player"
     resource = str(damage_cfg.get("resource", "hp")).strip() or "hp"
     damage_type = str(damage_cfg.get("damage_type", "physical")).strip().lower() or "physical"
     penetration = max(0, int(damage_cfg.get("penetration", 0)))
     tags = [str(tag) for tag in damage_cfg.get("tags", []) if isinstance(tag, str)]
-    if "damage" not in tags:
-        tags.append("damage")
+    if resolution_kind not in tags:
+        tags.append(resolution_kind)
     if damage_type not in tags:
         tags.append(damage_type)
 
-    label = str(damage_cfg.get("label", "伤害结算"))
-    resolution = build_resolution(kind="damage", label=label, tags=tags)
+    label = str(damage_cfg.get("label", default_label))
+    resolution = build_resolution(kind=resolution_kind, label=label, tags=tags)
 
     static_amount = max(0, int(damage_cfg.get("amount", 0)))
     roll_cfg = damage_cfg.get("roll")
@@ -880,8 +1407,29 @@ def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: d
         resolution["roll"] = rolled_amount
         resolution["breakdown"] = [{"value": rolled_amount, "source": f"{dice}d{sides}+{bonus}"}]
 
-    declared = max(0, static_amount + rolled_amount)
-    base_breakdown: list[dict[str, Any]] = [{"value": declared, "source": "宣告伤害"}]
+    declared_raw = max(0, static_amount + rolled_amount)
+    env_flat, env_percent, env_sources = _environment_impact_modifiers(
+        state,
+        damage_cfg,
+        impact_kind=impact_kind,
+        damage_type=damage_type,
+        target=target,
+        resource=resource,
+    )
+    env_percent = max(-90, min(300, env_percent))
+    declared_with_flat = max(0, declared_raw + env_flat)
+    env_percent_amount = int(round(declared_with_flat * env_percent / 100)) if env_percent != 0 else 0
+    declared = max(0, declared_with_flat + env_percent_amount)
+
+    base_breakdown: list[BreakdownEntry] = [{"value": declared_raw, "source": "宣告伤害"}]
+    if env_flat != 0:
+        source_text = " / ".join(env_sources) if env_sources else "环境影响(固定)"
+        base_breakdown.append({"value": env_flat, "source": source_text})
+    if env_percent_amount != 0:
+        percent_source = f"环境影响({env_percent}%)"
+        if env_sources:
+            percent_source = f"{percent_source}: {' / '.join(env_sources)}"
+        base_breakdown.append({"value": env_percent_amount, "source": percent_source})
     if isinstance(resolution.get("breakdown"), list):
         base_breakdown.extend([entry for entry in resolution.get("breakdown", []) if isinstance(entry, dict)])
 
@@ -903,10 +1451,43 @@ def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: d
     percent_total = max(0, min(95, percent_total))
     effective_flat = max(0, flat_total - penetration)
     mitigated_flat = min(declared, effective_flat)
-    after_flat = max(0, declared - mitigated_flat)
-    mitigated_percent = int(round(after_flat * percent_total / 100))
-    final_amount = max(0, after_flat - mitigated_percent)
-    mitigated = max(0, declared - final_amount)
+    after_resist_flat = max(0, declared - mitigated_flat)
+    mitigated_percent = int(round(after_resist_flat * percent_total / 100))
+    after_resistance = max(0, after_resist_flat - mitigated_percent)
+
+    if bool(damage_cfg.get("ignore_vulnerability")):
+        vulnerability_rules: list[dict[str, Any]] = []
+    elif target == "enemy":
+        vulnerability_rules = _collect_enemy_vulnerability_rules(state)
+    else:
+        vulnerability_rules = _collect_player_vulnerability_rules(state, content)
+
+    vulnerability_flat_total = max(0, int(damage_cfg.get("vulnerability_flat", 0)))
+    vulnerability_percent_total = max(0, int(damage_cfg.get("vulnerability_percent", 0)))
+    for rule in vulnerability_rules:
+        if not _match_damage_rule(rule, damage_type):
+            continue
+        vulnerability_flat_total += max(0, int(rule.get("increase", 0)))
+        vulnerability_percent_total += max(0, int(rule.get("percent", 0)))
+
+    vulnerability_percent_total = max(0, min(300, vulnerability_percent_total))
+    amplified_flat = vulnerability_flat_total
+    after_vulnerability_flat = after_resistance + amplified_flat
+    amplified_percent = int(round(after_vulnerability_flat * vulnerability_percent_total / 100))
+    before_shield = max(0, after_vulnerability_flat + amplified_percent)
+    amplified = max(0, before_shield - after_resistance)
+
+    shield_absorbed = 0
+    shield_before = 0
+    shield_after = 0
+    if resource == "hp" and not bool(damage_cfg.get("ignore_shield")):
+        shield_absorbed, shield_before, shield_after = _consume_target_shield(state, target, before_shield)
+    else:
+        shield_before = _target_shield(state, target)
+        shield_after = shield_before
+
+    final_amount = max(0, before_shield - shield_absorbed)
+    mitigated = max(0, declared - after_resistance)
 
     if penetration > 0:
         base_breakdown.append({"value": penetration, "source": "穿透"})
@@ -914,6 +1495,12 @@ def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: d
         base_breakdown.append({"value": -mitigated_flat, "source": "平减伤"})
     if mitigated_percent > 0:
         base_breakdown.append({"value": -mitigated_percent, "source": f"百分比减伤({percent_total}%)"})
+    if amplified_flat > 0:
+        base_breakdown.append({"value": amplified_flat, "source": "易伤增幅(固定)"})
+    if amplified_percent > 0:
+        base_breakdown.append({"value": amplified_percent, "source": f"易伤增幅({vulnerability_percent_total}%)"})
+    if shield_absorbed > 0:
+        base_breakdown.append({"value": -shield_absorbed, "source": "护盾吸收"})
     resolution["breakdown"] = base_breakdown
 
     applied, target_label = _apply_damage_to_target(
@@ -928,7 +1515,12 @@ def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: d
 
     resolution["amount"] = declared
     resolution["mitigated"] = mitigated
+    resolution["amplified"] = amplified
+    resolution["shield_absorbed"] = shield_absorbed
+    resolution["shield_before"] = shield_before
+    resolution["shield_after"] = shield_after
     resolution["applied"] = applied
+    resolution["impact_kind"] = impact_kind
     resolution["damage_type"] = damage_type
     resolution["target"] = target
     resolution["target_label"] = target_label
@@ -942,6 +1534,11 @@ def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: d
         amount=declared,
         applied=applied,
         mitigated=mitigated,
+        amplified=amplified,
+        shield_absorbed=shield_absorbed,
+        shield_before=shield_before,
+        shield_after=shield_after,
+        impact_kind=impact_kind,
         damage_type=damage_type,
         target=target,
         target_label=target_label,
@@ -950,10 +1547,215 @@ def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: d
         resistance_percent=percent_total,
         source=str(damage_cfg.get("source", "伤害效果")),
     )
-    return resolution
+    debug_event(
+        state,
+        event=f"{resolution_kind}.resolved",
+        message="Resolved one impact flow with mitigation/amplification/shield.",
+        payload={
+            "kind": resolution_kind,
+            "label": label,
+            "target": target,
+            "target_label": target_label,
+            "resource": resource,
+            "damage_type": damage_type,
+            "declared_raw": int(declared_raw),
+            "declared": int(declared),
+            "environment_flat": int(env_flat),
+            "environment_percent": int(env_percent),
+            "applied": int(applied),
+            "mitigated": int(mitigated),
+            "amplified": int(amplified),
+            "shield_absorbed": int(shield_absorbed),
+        },
+    )
+    refreshed = refresh_resolution_explain(resolution)
+    return refreshed if isinstance(refreshed, dict) else resolution
 
 
-def advance_turn(state: dict[str, Any], content: dict[str, Any], resolution: dict[str, Any] | None = None) -> None:
+def perform_damage(state: dict[str, Any], content: dict[str, Any], damage_cfg: dict[str, Any]) -> ResolutionPayload:
+    """Execute typed damage with resistance, vulnerability, and shield handling."""
+    return _perform_damage_like(
+        state,
+        content,
+        damage_cfg,
+        resolution_kind="damage",
+        impact_kind="damage",
+        default_label="伤害结算",
+    )
+
+
+def perform_healing(state: dict[str, Any], content: dict[str, Any], healing_cfg: dict[str, Any]) -> ResolutionPayload:
+    """Execute one healing resolution that reuses the unified impact payload."""
+    target = str(healing_cfg.get("target", "player")).strip().lower() or "player"
+    resource = str(healing_cfg.get("resource", "hp")).strip() or "hp"
+    damage_type = str(healing_cfg.get("damage_type", "restorative")).strip().lower() or "restorative"
+    tags = [str(tag) for tag in healing_cfg.get("tags", []) if isinstance(tag, str)]
+    if "healing" not in tags:
+        tags.append("healing")
+    if damage_type not in tags:
+        tags.append(damage_type)
+
+    label = str(healing_cfg.get("label", "治疗结算"))
+    resolution = build_resolution(kind="healing", label=label, tags=tags)
+
+    static_amount = max(0, int(healing_cfg.get("amount", 0)))
+    roll_cfg = healing_cfg.get("roll")
+    rolled_amount = 0
+    if isinstance(roll_cfg, dict):
+        dice = max(1, int(roll_cfg.get("dice", 1)))
+        sides = max(2, int(roll_cfg.get("sides", 6)))
+        bonus = int(roll_cfg.get("bonus", 0))
+        rolled_amount = sum(_roll_die(sides) for _ in range(dice)) + bonus
+        if rolled_amount < 0:
+            rolled_amount = 0
+        resolution["roll"] = rolled_amount
+        resolution["breakdown"] = [{"value": rolled_amount, "source": f"{dice}d{sides}+{bonus}"}]
+
+    declared = max(0, static_amount + rolled_amount)
+    base_breakdown: list[BreakdownEntry] = [{"value": declared, "source": "宣告治疗"}]
+    if isinstance(resolution.get("breakdown"), list):
+        base_breakdown.extend([entry for entry in resolution.get("breakdown", []) if isinstance(entry, dict)])
+    resolution["breakdown"] = base_breakdown
+
+    shield_before = _target_shield(state, target)
+    applied, target_label = _apply_healing_to_target(
+        state,
+        content,
+        target=target,
+        resource=resource,
+        amount=declared,
+        resolution=resolution,
+        source=str(healing_cfg.get("source", "治疗效果")),
+    )
+    shield_after = _target_shield(state, target)
+
+    resolution["amount"] = declared
+    resolution["mitigated"] = max(0, declared - applied)
+    resolution["amplified"] = 0
+    resolution["shield_absorbed"] = 0
+    resolution["shield_before"] = shield_before
+    resolution["shield_after"] = shield_after
+    resolution["applied"] = applied
+    resolution["impact_kind"] = "healing"
+    resolution["damage_type"] = damage_type
+    resolution["target"] = target
+    resolution["target_label"] = target_label
+    resolution["penetration"] = 0
+    resolution["resistance_flat"] = 0
+    resolution["resistance_percent"] = 0
+    resolution["success"] = applied > 0
+    add_damage_effect(
+        resolution,
+        resource=resource,
+        amount=declared,
+        applied=applied,
+        mitigated=max(0, declared - applied),
+        amplified=0,
+        shield_absorbed=0,
+        shield_before=shield_before,
+        shield_after=shield_after,
+        impact_kind="healing",
+        damage_type=damage_type,
+        target=target,
+        target_label=target_label,
+        penetration=0,
+        resistance_flat=0,
+        resistance_percent=0,
+        source=str(healing_cfg.get("source", "治疗效果")),
+    )
+    debug_event(
+        state,
+        event="healing.resolved",
+        message="Resolved one healing flow.",
+        payload={
+            "label": label,
+            "target": target,
+            "target_label": target_label,
+            "resource": resource,
+            "declared": int(declared),
+            "applied": int(applied),
+        },
+    )
+    refreshed = refresh_resolution_explain(resolution)
+    return refreshed if isinstance(refreshed, dict) else resolution
+
+
+def perform_drain(state: dict[str, Any], content: dict[str, Any], drain_cfg: dict[str, Any]) -> ResolutionPayload:
+    """Execute lifesteal-like drain: deal typed damage, then recover resources."""
+    damage_resolution = _perform_damage_like(
+        state,
+        content,
+        drain_cfg,
+        resolution_kind="drain",
+        impact_kind="drain",
+        default_label="吸取结算",
+    )
+    applied_damage = max(0, int(damage_resolution.get("applied", 0)))
+
+    recover_percent = max(0, int(drain_cfg.get("recover_percent", 100)))
+    recover_flat = int(drain_cfg.get("recover_flat", 0))
+    recover_raw = int(round(applied_damage * recover_percent / 100.0)) + recover_flat
+    recover_amount = max(0, recover_raw)
+
+    recover_cap = drain_cfg.get("recover_cap")
+    if recover_cap is not None:
+        recover_amount = min(recover_amount, max(0, int(recover_cap)))
+
+    recover_target = str(drain_cfg.get("recover_target", "player")).strip().lower() or "player"
+    recover_resource = str(drain_cfg.get("recover_resource", drain_cfg.get("resource", "hp"))).strip() or "hp"
+    recover_shield_before = _target_shield(state, recover_target)
+    recovered, recover_target_label = _apply_healing_to_target(
+        state,
+        content,
+        target=recover_target,
+        resource=recover_resource,
+        amount=recover_amount,
+        resolution=damage_resolution,
+        source=str(drain_cfg.get("recover_source", "吸取回复")),
+    )
+    recover_shield_after = _target_shield(state, recover_target)
+    damage_resolution["drain_recovered"] = recovered
+    if recovered > 0:
+        add_damage_effect(
+            damage_resolution,
+            resource=recover_resource,
+            amount=recover_amount,
+            applied=recovered,
+            mitigated=max(0, recover_amount - recovered),
+            amplified=0,
+            shield_absorbed=0,
+            shield_before=recover_shield_before,
+            shield_after=recover_shield_after,
+            impact_kind="healing",
+            damage_type=str(drain_cfg.get("recover_type", "drain-heal")),
+            target=recover_target,
+            target_label=recover_target_label,
+            penetration=0,
+            resistance_flat=0,
+            resistance_percent=0,
+            source=str(drain_cfg.get("recover_source", "吸取回复")),
+        )
+        damage_resolution.setdefault("breakdown", []).append(
+            {"value": recovered, "source": f"吸取回复({recover_target_label})"}
+        )
+    debug_event(
+        state,
+        event="drain.resolved",
+        message="Resolved one drain flow with damage and recovery phases.",
+        payload={
+            "applied_damage": int(applied_damage),
+            "recover_target": recover_target,
+            "recover_target_label": recover_target_label,
+            "recover_resource": recover_resource,
+            "declared_recover": int(recover_amount),
+            "applied_recover": int(recovered),
+        },
+    )
+    refreshed = refresh_resolution_explain(damage_resolution)
+    return refreshed if isinstance(refreshed, dict) else damage_resolution
+
+
+def advance_turn(state: dict[str, Any], content: dict[str, Any], resolution: ResolutionPayload | None = None) -> None:
     """Advance shared turn counters and run turn-end passive effects."""
     state["progress"]["turns"] = int(state["progress"].get("turns", 0)) + 1
     encounter = state.get("encounter")
@@ -966,20 +1768,47 @@ def advance_turn(state: dict[str, Any], content: dict[str, Any], resolution: dic
         ctx={"kind": "turn_end"},
         resolution=resolution,
     )
+    debug_event(
+        state,
+        event="turn.advanced",
+        message="Advanced one global turn and applied turn_end passive effects.",
+        payload={
+            "turns": int(state.get("progress", {}).get("turns", 0)),
+            "encounter_round": int((state.get("encounter") or {}).get("round", 0))
+            if isinstance(state.get("encounter"), dict)
+            else None,
+        },
+    )
 
 
-def use_utility_item(state: dict[str, Any], content: dict[str, Any], item_id: str) -> tuple[bool, str, dict[str, Any]]:
+def use_utility_item(state: dict[str, Any], content: dict[str, Any], item_id: str) -> tuple[bool, str, ResolutionPayload]:
     """Consume one directly-usable item from inventory."""
     item = content.get("items", {}).get(item_id, {"name": item_id})
     item_name = str(item.get("name", item_id))
     resolution = build_resolution(kind="utility", label=f"使用{item_name}", success=False, tags=["utility"])
 
     if not has_item(state, item_id):
-        return False, "你没有这件物品。", resolution
+        debug_event(
+            state,
+            event="utility.failed",
+            message="Tried to use missing utility item.",
+            payload={"item_id": item_id},
+            level="warn",
+        )
+        refreshed = refresh_resolution_explain(resolution)
+        return False, "你没有这件物品。", refreshed if isinstance(refreshed, dict) else resolution
 
     effects = item.get("use_effects", [])
     if not isinstance(effects, list) or not effects:
-        return False, f"{item.get('name', item_id)} 不能在这里直接使用。", resolution
+        debug_event(
+            state,
+            event="utility.failed",
+            message="Tried to use an item without use_effects.",
+            payload={"item_id": item_id, "item_name": item_name},
+            level="warn",
+        )
+        refreshed = refresh_resolution_explain(resolution)
+        return False, f"{item.get('name', item_id)} 不能在这里直接使用。", refreshed if isinstance(refreshed, dict) else resolution
 
     remove_item(state, item_id, 1)
     add_item_effect(resolution, mode="spend", item_id=item_id, name=item_name, qty=1, source=f"物品：{item_name}")
@@ -990,7 +1819,14 @@ def use_utility_item(state: dict[str, Any], content: dict[str, Any], item_id: st
         apply_state_effect(state, content, effect, resolution=resolution, default_source=f"物品：{item_name}")
 
     resolution["success"] = True
-    return True, f"你使用了{item_name}。", resolution
+    debug_event(
+        state,
+        event="utility.used",
+        message="Used one utility item successfully.",
+        payload={"item_id": item_id, "item_name": item_name},
+    )
+    refreshed = refresh_resolution_explain(resolution)
+    return True, f"你使用了{item_name}。", refreshed if isinstance(refreshed, dict) else resolution
 
 
 def inventory_view(state: dict[str, Any], content: dict[str, Any]) -> list[dict[str, Any]]:

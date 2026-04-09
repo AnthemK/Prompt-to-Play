@@ -1,5 +1,6 @@
 {
   "id": "teyvat_tide_lantern",
+  "story_interface_version": "1.1",
   "world": {
     "id": "teyvat-liyue-tide-lantern",
     "title": "提瓦特：潮汐下的无名星灯",

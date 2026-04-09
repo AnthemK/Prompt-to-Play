@@ -1,281 +1,267 @@
-# TODO（游戏机制与系统迭代总表）
-
-> 目标：保持“轻量可玩”的同时，逐步向更强机制深度与更高可扩展性演进。  
-> 对标参考：D&D 跑团、神界原罪、博德之门3（只看机制，不看画面）。
+# TODO
 
-## 当前进度（2026-04-08）
+> Scope: this file is for development planning only.  
+> Player-facing information belongs in `README.md`.  
+> Technical document navigation starts from `docs/TECHNICAL_OVERVIEW.md`.
 
-- [x] 已落地统一结算结果基础版（`last_outcome.resolution`）
-- [x] 已落地基础被动效果生命周期：`before_check / after_check / turn_end`
-- [x] 已兼容旧字段：`per_turn_effects / consume_on_check`
-- [x] 已落地最小遭遇态（状态结构 / 存档 / API / 前端面板 / effect DSL）
-- [x] 已新增故事作者指南（`backend/stories/README.md`）
-- [x] 已补最小单元测试（统一结算 / 生命周期 / 道具使用）
-- [x] 已补遭遇流测试（启动 / 推进 / 结束）
-- [x] 已接入 `save / contest / damage` 到统一 `resolution`
-- [x] 已把遭遇从“最小状态块”升级到“阶段 + 回合规则 + 敌方/目标进度”的通用框架雏形
-- [x] 已接入伤害类型 / 抗性 / 减伤 / 穿透（player + enemy）
-- [ ] 当前执行主线：继续扩展对抗语义、遭遇行动经济、敌方行为与可复用模板
+## Planning Rule
 
-## 近期执行计划（2026-04-09 起，4 周）
+`lite-trpg-sim` should evolve as a lite tabletop simulator.
 
-### Iteration A（统一结算补完，预计 3-5 天）
+This file should help answer:
 
-- [ ] 把 `contest` 扩成可配置对抗模板（主动方/被动方、平局策略、失败代价）
-- [ ] 给 `damage` 增加 `vulnerability`（易伤）与 `shield`（护盾）结算顺序
-- [ ] 增加 `healing` 与 `drain` 两类通用结算（与 `damage` 共用字段风格）
-- [ ] 把结算日志统一成“可解释文本片段 + 结构化字段”双轨输出
-- [ ] 增补测试：对抗边界、穿透与抗性叠加、护盾吸收、易伤倍率
+- What should we improve next?
+- Why is that improvement worth doing?
+- What should we explicitly delay?
 
-### Iteration B（遭遇系统深化，预计 5-7 天）
+This file should not become:
 
-- [ ] 增加基础行动经济：每回合主行动/副行动/移动预算
-- [ ] 增加敌方行为模板：优先攻击、压制、撤退、召援、阶段技能
-- [ ] 增加遭遇出口策略：击败、潜逃、交涉、拖延达成目标
-- [ ] 遭遇内支持“环境状态对象”最小版（光照、掩体、危险区）
-- [ ] 增补测试：多回合推进、敌方模板行为、遭遇出口正确结算
-
-### Iteration C（故事接口与工具链，预计 4-6 天）
-
-- [ ] 固化 `story interface` 版本号与能力声明（story pack capability flags）
-- [ ] 增加 story schema 校验与引用完整性校验 CLI
-- [ ] 提供 `story pack scaffold` 命令（模板 + 示例 + 文档链接）
-- [ ] 更新 `backend/stories/README.md` 为“作者必读规范”（字段、禁用模式、兼容策略）
-- [ ] 增补测试：schema 校验、死链检测、最小示例包可加载
+- a changelog
+- a player rules reference
+- a pile of equal-priority feature wishes
 
-### Iteration D（技术债并行清理，持续执行）
-
-- [ ] 统一命名与注释规范：template/runtime/state/view 明确区分
-- [ ] 把关键模块补齐类型注解（优先 `resolution.py` / `adventure.py` / `rules.py`）
-- [ ] 建立“改代码必须改文档”检查清单并纳入提交流程
-- [ ] 补文档：`README.md`、`Memory.md`、`docs/*` 与实际实现保持同步
-
-### 本阶段完成标准（DoD）
-
-- [ ] 单回合到多回合遭遇均可稳定推进，且至少 3 种出口可达成
-- [ ] 所有核心结算（check/save/contest/damage/healing）都能输出结构化解释
-- [ ] 新增机制均可由故事包配置触发，无题材硬编码
-- [ ] 后端测试持续通过，启动器冒烟测试持续通过
-- [ ] 文档（README/Memory/stories README）与实现一致
-
-## 一、当前判断（作为迭代基线）
-
-- [x] 当前系统作为“数据驱动互动小说 / 轻跑团引擎”已经有不错底子
-- [x] 当前系统作为“可持续扩展的 RPG / CRPG 机制底层”仍不够优秀
-- [x] 当前优势：故事包解耦、通用解释器、前后端分离、存档结构稳定
-- [x] 当前短板：行动经济、敌方行为、成长系统、环境涌现、调试工具仍薄弱
-- [x] 与 D&D / 神界原罪 / 博德之门3 相比，当前仍偏“检定驱动互动小说”
-- [x] 下一阶段原则：优先补系统底盘，而不是继续快速堆新故事包
-
-## 二、系统优先原则（新增）
-
-- [ ] 在完成 `M1` 之前，不再把“新增大量故事内容”作为主目标
-- [ ] 所有新增机制必须先设计成通用系统能力，再由故事包调用
-- [ ] 所有关键结果必须可解释：为什么触发、谁触发、影响了什么、持续多久
-- [ ] 检定、战斗、状态、成长、环境交互必须尽量走同一套规则中台
-- [ ] 保存结构必须优先兼容未来的遭遇、成长、队伍、阵营等扩展
-- [ ] 故事包应继续只描述内容与配置，不承载越来越多的系统特例逻辑
-
-## 三、最需要持续改进的 6 个系统支柱
-
-### 1) 统一结算内核（最重要）
-
-- [ ] 把“检定成功/失败”升级为统一 `resolution result` 结构
-- [ ] 统一支持：普通检定、对抗检定、豁免、伤害、治疗、逃脱、社交压制
-- [ ] 为所有结果补齐标准字段：来源、目标、标签、DC/阈值、修正来源、最终后果
-- [ ] 状态、物品、职业、环境都通过同一结算管线施加影响
-- [ ] 避免未来出现“剧情检定一套、战斗一套、社交一套”的分裂系统
-
-### 2) 通用遭遇框架
-
-- [ ] 增加可复用的 `encounter` 状态模型，而不是只靠节点文本模拟高风险事件
-- [ ] 遭遇至少支持：敌对、潜入、追逐、谈判、撤离 5 类
-- [ ] 每个遭遇支持回合推进、敌方行为、阶段变化、目标切换
-- [ ] 同一遭遇允许多种解决方式，不强制只能“打赢”
-
-### 3) 状态 / 效果生命周期
-
-- [ ] 状态支持持续时间、层数、优先级、互斥、触发时机
-- [ ] effect 支持事件钩子：回合开始、回合结束、受击、行动前、行动后、结算后
-- [ ] 把职业特性、装备词条、环境效果统一抽象为 effect source
-- [ ] 减少靠散落布尔旗标承载复杂系统效果
-
-### 4) 角色构筑与成长
-
-- [ ] 当前职业差异主要靠初始数值和标签加成，深度不足
-- [ ] 需要引入轻量但清晰的成长层：技能熟练、专长、职业分支、装备位
-- [ ] 后续故事包应能复用成长系统，而不是每包重写职业机制
-
-### 5) 环境交互与涌现
-
-- [ ] 当前环境主要是文本后果，不是规则对象
-- [ ] 需要让地形、机关、元素、掩体、光照、区域危险进入规则层
-- [ ] 这是从“分支小说”走向“系统驱动 RPG”的关键一步
-
-### 6) 平衡与验证工具
-
-- [ ] 系统一旦变深，没有仿真和校验工具就会快速失控
-- [ ] 需要尽早建设 schema 校验、死路检测、结局分布仿真、机制回归测试
-- [ ] 工具链不是锦上添花，而是扩展性的基础设施
-
-## 四、P0（系统打底与工程稳固，1-2 周）
-
-- [x] 定义统一结算结果结构（用于检定、伤害、社交、豁免）
-- [x] 预留遭遇态存档结构（保证未来扩展不破坏存档）
-- [ ] 设计 effect 生命周期与触发时机规范
-- [ ] 设计轻量技能层数据结构（与属性分离）
-- [ ] 增加故事包 Schema 校验脚本（`story.json/yaml` 自动校验）
-- [ ] 增加故事包引用完整性检查（node/item/status/ending 引用死链检测）
-- [ ] 增加 `story pack` 脚手架命令（快速新建故事包目录与模板）
-- [ ] 给前端资源栏加“故事包可配置显示名”（例：先令->摩拉）
-- [ ] 给前端存档槽位增加“删除槽位”功能
-- [ ] 给前端存档槽位增加“重命名/备注”功能
-- [ ] 给前端导入存档增加更严格的错误提示（版本不匹配、字段缺失）
-- [ ] 后端增加存档迁移器（`schema_version` 升级路径）
-- [ ] 完成最小单元测试集（rules/adventure/content/engine）
-- [ ] 完成最小回归测试脚本（新开局、行动、结局、存读档）
-
-## 五、P1（机制升级第一波，2-4 周）
-
-### 1) 战斗与遭遇（核心）
-
-- [ ] 新增“遭遇模板”系统（敌人、回合、行为）
-- [ ] 引入基础行动经济（每回合 1 主行动 + 1 位移/副动作）
-- [ ] 引入敌人属性（生命、防御、命中、抗性）
-- [x] 引入伤害类型（物理/火/冰/雷/毒/精神等，可配置）
-- [x] 引入抗性（百分比或固定值）
-- [ ] 补完易伤（`vulnerability`）与护盾（`shield`）结算层
-- [ ] 引入“逃跑/投降/谈判”作为通用遭遇出口
-- [ ] 让检定与战斗统一走同一规则中台（避免两套系统分裂）
-
-### 2) 检定系统（向跑团感靠拢）
-
-- [ ] 把“属性”与“技能”解耦，属性只提供底层修正
-- [ ] 增加技能层（如调查、潜行、威吓、宗教、奥术）
-- [ ] 增加熟练机制（熟练加值/专精）
-- [ ] 增加优势/劣势机制（双骰取高/低）
-- [ ] 增加“被动检定”机制（不显式掷骰也可触发）
-- [ ] 增加对抗检定（玩家 vs 敌方/目标）
-- [ ] 增加“部分成功”分支（成功但付代价）
-
-### 3) 状态与资源
-
-- [ ] 状态支持持续时间（N 回合）
-- [ ] 状态支持层数（stack）
-- [ ] 状态支持触发时机（回合开始/结束/受击/行动后）
-- [ ] 引入集中/专注机制，允许技能、祷式、能力维护成本
-- [ ] 增加临时护盾、护甲、流血、击倒、专注等通用状态
-- [ ] 引入疲劳/压力等长期资源（独立于生命/腐化）
-
-## 六、P2（机制升级第二波，1-2 月）
-
-### 1) 角色构筑与成长
-
-- [ ] 增加章节结算奖励（经验/声望/资源）
-- [ ] 增加成长节点（属性点、专长、技能熟练）
-- [ ] 增加职业分支（每职业 2-3 条轻量专精路线）
-- [ ] 增加装备位系统（武器/护甲/饰品）
-- [ ] 增加物品稀有度与词条系统（保持轻量）
-
-### 2) 环境与涌现
-
-- [ ] 场景对象交互系统（油桶、机关、火焰、地形）
-- [ ] 地形状态系统（高地、掩体、泥泞、水域、黑暗）
-- [ ] 环境连锁反应（点燃、导电、冻结、毒雾）
-- [ ] 增加区域效果系统（光环、领域、危险区域、视野压制）
-- [ ] 场景危险计时器（回合数触发塌陷/增援）
-- [ ] 把环境影响统一并入检定与战斗计算
-
-### 3) NPC 与阵营
-
-- [ ] 增加阵营声望系统（可跨章节）
-- [ ] 增加 NPC 关系值（信任/恐惧/债务）
-- [ ] 增加关键 NPC 生死与立场变化的全局影响
-- [ ] 增加“谎言被识破”与“承诺违约”的后果链
-
-## 七、P3（内容生产效率与可维护性）
-
-### 1) 故事 DSL 演进
-
-- [ ] 扩展条件表达式（更复杂布尔逻辑与集合判断）
-- [ ] 增加变量作用域（全局、章节、节点临时变量）
-- [ ] 增加规则对象引用（enemy/skill/effect/encounter template）
-- [ ] 增加脚本化公式字段（安全沙箱内表达式）
-- [ ] 增加“随机表”支持（事件表、掉落表、传闻表）
-- [ ] 增加“可复用片段”机制（避免故事文件重复）
-
-### 2) 编辑与调试工具
-
-- [ ] 提供故事包可视化流程图导出（node/action 关系图）
-- [ ] 提供“剧情回放”工具（可复盘每一步状态变化）
-- [ ] 提供“强制跳转节点/改变量”的调试面板（开发模式）
-- [ ] 提供“平衡性扫描”工具（DC/奖励/惩罚分布统计）
-- [ ] 提供“死路检测”与“不可达结局检测”
-
-### 3) 质量与测试体系
-
-- [ ] 为每个故事包增加最低覆盖的“冒烟路线集合”
-- [ ] 加入 Monte Carlo 仿真（统计结局分布与失败率）
-- [ ] 加入遭遇平衡模拟（不同构筑/不同难度的胜率统计）
-- [ ] 加入机制回归快照（关键规则变更自动对比）
-- [ ] 加入 API 合约测试（前后端兼容）
-- [ ] CI 自动运行：lint + schema + tests + sim smoke
-
-## 八、P4（前端体验层）
-
-- [ ] 增加“日志过滤器”（检定/剧情/资源变化）
-- [ ] 增加“最近关键决策”面板
-- [ ] 增加“检定历史对比”面板（查看修正来源变化）
-- [ ] 增加“遭遇面板”（回合、目标、状态来源、行动顺序）
-- [ ] 增加“结局达成图鉴”
-- [ ] 增加“路线回顾”导出（文本版）
-- [ ] 增加“无障碍模式”（字号、对比度、键盘导航）
-- [ ] 增加“开发者模式”开关（显示原始 node_id/flag）
-
-## 九、P5（多故事包生态）
-
-- [ ] 定义故事包版本规范（`story_interface_version`）
-- [ ] 增加故事包依赖与兼容声明（最低引擎版本）
-- [ ] 增加故事包元数据（作者、标签、时长、难度）
-- [ ] 增加故事包“机制能力声明”（依赖哪些系统模块）
-- [ ] 增加故事包热切换体验（不中断返回主菜单切换）
-- [ ] 增加故事包打包导入功能（zip -> story pack）
-- [ ] 增加故事包签名与安全校验（防篡改）
-
-## 十、技术债与工程项
-
-- [ ] 把后端代码补全类型注解并启用 `mypy`（可选严格模式）
-- [ ] 统一错误码体系（API 错误可机器识别）
-- [ ] API 增加版本前缀（如 `/api/v1/`）
-- [ ] 统一时间与时区处理（存档与日志）
-- [ ] 抽离常量与配置，减少散落魔法值
-- [ ] 增加性能分析脚本（大 story 包加载时间）
-- [ ] 增加依赖最小化文档与离线运行保障
-- [ ] 建立“改代码必须同步改注释 / docs / story author guide”的提交流程检查表
-- [ ] 持续清理模糊命名，明确区分 template / runtime / state / view
-- [ ] 增加 story schema 自动校验与文档版本检查，防止接口文档过期
-
-## 十一、与 D&D / BG3 / 神原 的机制差距清单（持续追踪）
-
-- [ ] 行动经济（现在弱）
-- [ ] 敌人 AI（现在几乎没有）
-- [ ] 技能与熟练系统（现在简化）
-- [ ] 法术/能力体系（现在缺失）
-- [ ] 环境连锁反应（现在缺失）
-- [ ] 构筑深度（现在偏浅）
-- [ ] 遭遇设计工具（现在不足）
-- [ ] 长线战役与角色成长（现在不足）
-
-## 十二、里程碑计划（建议）
-
-- [ ] M1：系统底盘版（统一结算内核 + 遭遇雏形 + 技能熟练 + 状态持续）
-- [ ] M2：可扩展战役版（成长 + 阵营关系 + 章节链）
-- [ ] M3：创作平台版（完整 story tooling + 验证/仿真/图谱）
-
-## 十三、完成标准（DoD）
-
-- [ ] 新机制必须可由故事包配置触发，避免写死题材逻辑
-- [ ] 新机制必须提供可解释结果（玩家看得见为什么成功/失败）
-- [ ] 新机制必须有最小测试覆盖
-- [ ] 新机制必须补 README 与 Memory
-- [ ] 新机制必须至少在两个不同题材故事包上验证
+## Direction Filters
+
+Before adding a new task, test it against these filters:
+
+- Does it improve decision quality, readability, or replay value?
+- Does it stay reusable across different story settings?
+- Does it keep the play loop fast?
+- Can it be explained to players without creating rules bloat?
+
+If the answer is mostly "no", it should not enter the near-term roadmap.
+
+## Current Product Read
+
+### Strong enough to build on
+
+- Story/system separation is real
+- Story packs drive content through a shared contract
+- Unified resolution payloads are in place
+- Encounter runtime is usable for lite scenarios
+- Save slots plus import/export are working
+- Story author tooling and validation exist
+- Demo story already serves as a regression pack
+
+### Still limiting quality
+
+- Checks are still too attribute-heavy
+- Effect/status lifecycle is not coherent enough yet
+- Story-driven UI labels are not flexible enough everywhere
+- Encounter readability can improve without adding more combat bulk
+- Some frontend feedback remains functional but not elegant
+
+## Active Milestone: Lite Core Polish
+
+This is the current highest-priority milestone.
+
+Success means:
+
+- the system feels more like a tabletop ruleset
+- story authors get more leverage without more complexity
+- the UI explains results more clearly
+- the project stays lite
+
+## Priority 1: Small Skill Layer
+
+Goal: improve character differentiation and check expression without turning the simulator into a spreadsheet game.
+
+Tasks:
+
+- [ ] Introduce a small reusable skill list above raw attributes
+- [ ] Let checks read `attribute + optional skill`
+- [ ] Allow professions and content to reference the same skill vocabulary
+- [ ] Surface the tested skill clearly in frontend result panels
+- [ ] Keep the total skill count intentionally small
+
+Why now:
+
+- This is the cleanest way to improve TRPG feel
+- It helps new stories express different approaches to the same problem
+- It strengthens replay value without adding heavy subsystems
+
+Done when:
+
+- Authors can define checks with attribute plus skill
+- Players can see what kind of competence was tested
+- Demo story covers at least one skill-driven route
+
+## Priority 2: Effect Lifecycle Cleanup
+
+Goal: make statuses, passives, and encounter-driven effects follow one readable lifecycle.
+
+Tasks:
+
+- [ ] Define a concise trigger vocabulary for ongoing effects
+- [ ] Add lightweight duration/expiry support where it clearly helps play
+- [ ] Reduce reliance on loose flags for effect behavior
+- [ ] Make resolution output explain effect-driven modifiers consistently
+- [ ] Update story author docs with the lifecycle model
+
+Why now:
+
+- This is the biggest remaining coherence gap in the rules layer
+- Future stories will become messy if this stays vague
+- It improves debugging and story-author confidence at the same time
+
+Done when:
+
+- Common status patterns no longer need ad hoc handling
+- Effect timing is understandable from docs and debug trace
+- Demo story covers at least one timed or triggered effect path
+
+## Priority 3: Story-Facing UI Labels And Metadata
+
+Goal: make new settings feel more native without requiring frontend rewrites.
+
+Tasks:
+
+- [ ] Allow story packs to configure visible resource labels
+- [ ] Improve story selection metadata shown at setup
+- [ ] Audit hardcoded generic labels that should be story-driven
+- [ ] Tighten validation around missing metadata and inconsistent labels
+
+Why now:
+
+- This directly supports the "swap stories without rewriting the UI" promise
+- It raises perceived quality for every new story pack
+
+Done when:
+
+- At least one story can rename visible resources cleanly
+- Setup screen metadata feels specific rather than placeholder-generic
+
+## Priority 4: UX Readability Pass
+
+Goal: improve the feel of play without increasing rules weight.
+
+Tasks:
+
+- [ ] Make action outcomes easier to scan
+- [ ] Make encounter state easier to read at a glance
+- [ ] Improve save-slot feedback and confidence
+- [ ] Improve import/export error clarity
+- [ ] Review whether recent log and last outcome are visually distinct enough
+
+Why now:
+
+- Presentation quality is a multiplier on every existing mechanic
+- This improves playability faster than adding another half-system
+
+Done when:
+
+- A fresh player can read results and encounter state with less hesitation
+- Save/load actions feel trustworthy and understandable
+
+## Priority 5: Demo Story Refit
+
+Goal: turn `demo` from a pure testbed into a short, adventure-flavored showcase that still works as a regression pack.
+
+Tasks:
+
+- [x] Reframe the Demo fiction from "test chamber" to a compact field mission with clear stakes
+- [x] Keep the playtime short, ideally around 8 to 12 minutes for one route
+- [x] Preserve explicit coverage of the current core mechanics
+- [x] Add one `before_check` trigger example so Demo matches current coverage claims
+- [x] Add one true `defeat` victory route to acceptance coverage
+- [x] Ensure both professions demonstrate meaningfully different openings or advantages
+- [x] Ensure items and environment-manipulation actions are part of at least one recommended route
+- [x] Keep the text brisk and readable, but not dry or purely diagnostic
+
+Why now:
+
+- Demo is currently useful for regression, but weak as a showcase of the simulator's appeal
+- Future system work needs one story that is both testable and representative
+- A good Demo helps validate not just correctness, but also whether the game feels fun
+
+Planned shape:
+
+1. A concise mission hook
+2. One preparation step with profession or item texture
+3. One exploration or infiltration beat
+4. One pressure encounter with multiple exits
+5. Multiple endings:
+   - defeat
+   - negotiate
+   - delay
+   - escape
+   - death
+   - corruption
+
+Coverage targets:
+
+- opening character setup
+- utility item use
+- `check/save/contest/damage/healing/drain`
+- passive triggers:
+  - `before_check`
+  - `after_check`
+  - `turn_end`
+- environment changes and environment-driven modifiers
+- action economy, turn rules, enemy behaviors, phase sync
+- save/load round-trip inside an encounter
+- debug trace availability
+
+Done when:
+
+- [x] Demo is fun enough to use as a first-play sample
+- [x] Demo acceptance still passes
+- [x] Demo README clearly explains both showcase routes and acceptance coverage
+- [x] A reviewer can point to Demo as both:
+  - a system regression pack
+  - a compact example of the game's intended feel
+
+## Deferred On Purpose
+
+These are not "never" items. They are deliberately not near-term priorities.
+
+- [ ] Large character progression trees
+- [ ] Complex equipment rarity and loot systems
+- [ ] Full tactical-grid combat
+- [ ] Heavy faction or campaign metagame layers
+- [ ] Broad story-count expansion as the main goal
+
+Reason:
+
+- Each of these can easily bloat the simulator before the lite core is mature
+
+## Later Candidates, Only If The Core Holds
+
+### Medium-term
+
+- [ ] Advantage / disadvantage support
+- [ ] Partial-success support for selected checks
+- [ ] A very small specialization or perk layer
+- [ ] Better encounter history and filtering in the UI
+- [ ] Better story-pack metadata browsing
+
+### Long-term
+
+- [ ] Story graph inspection tools
+- [ ] Stronger debug-mode visual panels
+- [ ] Balancing and simulation helpers for authors
+
+These only matter after the active milestone is complete.
+
+## Exit Criteria For The Current Milestone
+
+Do not call the next phase "done" unless:
+
+- [ ] the simulator still feels fast to play
+- [ ] new mechanics remain explainable in a short rules summary
+- [ ] story authors can use the new mechanics without hacks
+- [ ] Demo story still covers the important system paths
+- [ ] docs remain in sync:
+  - `MEMORY.md`
+  - `docs/TECHNICAL_OVERVIEW.md`
+  - story author docs
+  - any affected technical references
+
+## Maintenance Rule
+
+When finishing a task from this file:
+
+- remove or reword completed items
+- keep only the current milestone near the top
+- move distant ideas downward or out entirely
+- prune anything that no longer fits the lite direction

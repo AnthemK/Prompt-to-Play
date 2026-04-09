@@ -1,0 +1,636 @@
+{
+  "id": "demo",
+  "story_interface_version": "1.1",
+  "world": {
+    "id": "demo_world",
+    "title": "Demo: 灰烬哨站的封匣",
+    "chapter_title": "灰与风中的夜行夺匣",
+    "tone": "tense-adventure",
+    "intro": "灰烬哨站的烽灯已经熄了三夜。山脊上只剩断裂旗杆和半塌石墙，封存匣却还留在里面。你受命在天亮前潜入哨站，把匣子带回来，并在局势彻底恶化前决定这场夜行该如何收场。",
+    "start_node": "mission_brief",
+    "start_log": "你在山脊下接过了任务简报，夜风里夹着冷灰、潮湿石粉和旧铁锈的味道。",
+    "default_shillings": 5,
+    "corruption_limit": 10,
+    "is_demo": true,
+    "debug_trace_enabled": true,
+    "debug_trace_limit": 500,
+    "doom_texts": [
+      { "min": 0, "text": "夜色仍在替你藏住脚步。" },
+      { "min": 3, "text": "哨站深处的异响正在把这次任务推向失控。" }
+    ],
+    "corruption_penalties": [
+      { "min": 4, "value": -1, "source": "腐化惩罚" }
+    ],
+    "default_ending_id": "ending_escape",
+    "fatal_rules": {
+      "on_hp_zero": { "ending": "ending_death", "summary": "你倒在了哨站的碎石与灰烬之间。" },
+      "on_corruption_limit": { "ending": "ending_corrupt", "summary": "封匣里的低语彻底撬开了你的心智。" }
+    },
+    "resolve_victory": {
+      "default": { "ending": "ending_victory", "summary": "你带着封匣离开了灰烬哨站。" },
+      "rules": []
+    }
+  },
+  "stat_meta": {
+    "might": { "label": "力量" },
+    "agility": { "label": "敏捷" },
+    "insight": { "label": "洞察" },
+    "will": { "label": "意志" },
+    "fellowship": { "label": "交涉" }
+  },
+  "professions": [
+    {
+      "id": "warden",
+      "name": "守望者",
+      "summary": "扛盾推进的老兵，能在最糟的时候把阵线硬撑住。",
+      "max_hp": 12,
+      "stats": { "might": 4, "agility": 2, "insight": 2, "will": 3, "fellowship": 1 },
+      "starting_items": ["medkit", "smoke_bomb"],
+      "perks": ["生命更高，对抗更稳", "更擅长把敌人钉在你面前"],
+      "check_bonus": [
+        { "tags_any": ["contest"], "value": 1, "source": "职业：压阵步伐" }
+      ]
+    },
+    {
+      "id": "scout",
+      "name": "斥候",
+      "summary": "擅长地形与侦察的夜行手，总能先一步摸到缝隙。",
+      "max_hp": 10,
+      "stats": { "might": 2, "agility": 4, "insight": 3, "will": 2, "fellowship": 2 },
+      "starting_items": ["medkit", "route_map"],
+      "perks": ["更擅长潜入与侦察", "更容易把环境变成自己的掩护"],
+      "check_bonus": [
+        { "tags_any": ["stealth", "analysis"], "value": 1, "source": "职业：夜路老手" }
+      ]
+    },
+    {
+      "id": "cheat_overseer",
+      "name": "演示监察官（作弊）",
+      "summary": "专供验收与功能演示的作弊角色：属性拉满，物资拉满，适合快速触达 Demo 的大多数路线。",
+      "max_hp": 18,
+      "stats": { "might": 5, "agility": 5, "insight": 5, "will": 5, "fellowship": 5 },
+      "starting_items": [
+        "medkit",
+        "medkit",
+        "medkit",
+        "route_map",
+        "route_map",
+        "smoke_bomb",
+        "smoke_bomb",
+        "smoke_bomb"
+      ],
+      "perks": ["所有基础属性均为满值", "初始携带充足消耗品，便于快速验收各类功能"],
+      "check_bonus": [
+        { "value": 2, "source": "职业：演示特许" }
+      ]
+    }
+  ],
+  "items": {
+    "medkit": {
+      "id": "medkit",
+      "name": "急救包",
+      "type": "consumable",
+      "description": "粗糙但管用的战地包扎工具，适合在墙角抢回一口气。",
+      "use_effects": [
+        { "op": "adjust", "resource": "hp", "amount": 2, "source": "物品：急救包" }
+      ]
+    },
+    "route_map": {
+      "id": "route_map",
+      "name": "炭笔路线图",
+      "type": "consumable",
+      "description": "用炭笔补出的路线草图，能在下一次侦察或潜行前替你抢一个先手。",
+      "use_effects": [
+        { "op": "add_status", "status": "mapped_route", "source": "物品：炭笔路线图" }
+      ]
+    },
+    "smoke_bomb": {
+      "id": "smoke_bomb",
+      "name": "烟幕罐",
+      "type": "consumable",
+      "description": "一掷就会炸开浓灰与火药味，足够替你争一口喘息和半步位置。",
+      "use_effects": [
+        { "op": "adjust", "resource": "shield", "amount": 1, "source": "物品：烟幕罐" },
+        { "op": "add_status", "status": "guarded", "source": "物品：烟幕罐" }
+      ]
+    }
+  },
+  "statuses": {
+    "mapped_route": {
+      "id": "mapped_route",
+      "name": "路线在心",
+      "description": "你在真正落步前就已经把下一段路先走了一遍。",
+      "trigger_effects": [
+        {
+          "trigger": "before_check",
+          "match": { "stat_in": ["agility", "insight"], "tags_any": ["stealth", "analysis"] },
+          "op": "add_status",
+          "status": "opening_edge",
+          "source": "状态：路线在心"
+        },
+        {
+          "trigger": "after_check",
+          "match": { "stat_in": ["agility", "insight"], "tags_any": ["stealth", "analysis"] },
+          "op": "remove_self",
+          "source": "状态：路线在心耗尽"
+        }
+      ]
+    },
+    "opening_edge": {
+      "id": "opening_edge",
+      "name": "先手优势",
+      "description": "你抢先占到了更顺手的角度，下一次出手会更干净。",
+      "check_bonus": [
+        { "stat_in": ["agility", "insight"], "tags_any": ["check", "stealth", "analysis"], "value": 2, "source": "状态：先手优势" }
+      ],
+      "trigger_effects": [
+        {
+          "trigger": "after_check",
+          "match": { "stat_in": ["agility", "insight"], "tags_any": ["stealth", "analysis"] },
+          "op": "remove_self",
+          "source": "状态：先手优势耗尽"
+        }
+      ]
+    },
+    "guarded": {
+      "id": "guarded",
+      "name": "借掩警戒",
+      "description": "你的姿态更稳，来袭的冲击更难直接把你掀翻。",
+      "check_bonus": [
+        { "tags_any": ["save"], "value": 1, "source": "状态：借掩警戒" }
+      ],
+      "damage_resistances": [
+        { "type": "physical", "reduce": 1, "source": "状态：借掩警戒" }
+      ]
+    },
+    "ash_choked": {
+      "id": "ash_choked",
+      "name": "灰呛",
+      "description": "你每一次换气都像在吞下烧热的灰，体力会在回合末持续流失。",
+      "trigger_effects": [
+        { "trigger": "turn_end", "op": "adjust", "resource": "hp", "amount": -1, "source": "状态：灰呛" }
+      ]
+    }
+  },
+  "endings": {
+    "ending_victory": {
+      "id": "ending_victory",
+      "title": "封匣到手",
+      "text": "你亲手击溃了哨站里的最后阻力，在碎石和余烬之间拖着封匣离开山脊。天亮之前，已经没有人能从你手里把它再夺回去。"
+    },
+    "ending_compromise": {
+      "id": "ending_compromise",
+      "title": "短暂的妥协",
+      "text": "你没能彻底压住局势，却靠威胁、姿态和一点点退让逼对方停手。封匣仍被你带走，只是这笔账远远没有算完。"
+    },
+    "ending_delay": {
+      "id": "ending_delay",
+      "title": "拖延达标",
+      "text": "你守住了最关键的几分钟，把封匣和局势一并拖进可控区间。胜利谈不上漂亮，却足够专业，也足够冷静。"
+    },
+    "ending_escape": {
+      "id": "ending_escape",
+      "title": "带着代价撤离",
+      "text": "你放弃彻底压住哨站，带着封匣和未解的余波转身撤离。身后还有脚步、碎火和骂声，但至少任务没有烂在这里。"
+    },
+    "ending_death": {
+      "id": "ending_death",
+      "title": "哨站之下",
+      "text": "你没能从灰烬与断墙之间再站起来。封匣、秘密，还有你没来得及带走的一切，都重新沉回了黑暗。"
+    },
+    "ending_corrupt": {
+      "id": "ending_corrupt",
+      "title": "低语入骨",
+      "text": "封匣里的呢喃撬开了你最后一道防线。任务也许还算完成，但走下山脊的那个身影，已经不再是原来的你。"
+    }
+  },
+  "nodes": {
+    "mission_brief": {
+      "title": "山脊上的简报",
+      "text": "灰烬哨站伏在夜色里，像一头烧黑后仍未死透的兽。碎墙后面藏着你要取回的封匣，也藏着今晚会吞人的麻烦。你的任务很简单：进去，带出匣子，别让局势把你拖死在里面。{{doom_text}}",
+      "actions": [
+        {
+          "id": "inspect_brief",
+          "label": "借月光复核路线",
+          "hint": "做一次基础侦察检定，争取额外准备和更稳的起手。",
+          "kind": "check",
+          "check": { "stat": "insight", "dc": 8, "label": "路线研判", "tags": ["analysis"] },
+          "on_success": {
+            "effects": [
+              { "op": "add_item", "item": "route_map", "qty": 1, "only_if_missing": true },
+              { "op": "outcome", "summary": "你补全了路线细节。", "detail": "炭笔在纸边多出了一条更窄、更脏、却足够安全的绕行线。" }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              { "op": "adjust", "resource": "doom", "amount": 1, "source": "失误：路线遗漏" },
+              { "op": "outcome", "summary": "你漏掉了一段关键死角。", "detail": "你仍然能进，只是这趟夜路忽然显得更短，也更险。" }
+            ]
+          }
+        },
+        {
+          "id": "quiet_breach",
+          "label": "沿崩塌外墙潜入",
+          "hint": "做一次潜入检定，成功时让主遭遇开场更偏向你。",
+          "kind": "check",
+          "check": { "stat": "agility", "dc": 8, "label": "潜入落步", "tags": ["stealth"] },
+          "on_success": {
+            "effects": [
+              { "op": "start_encounter", "encounter": "ashwatch_vault" },
+              { "op": "adjust_environment", "field": "light", "amount": -1, "source": "潜入成功：先关灯火" },
+              { "op": "goto", "node": "vault_floor" },
+              { "op": "outcome", "summary": "你顺着碎墙滑进了哨站。", "detail": "一盏残灯先被你掐灭，整座大厅像突然屏住了一口气。" }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              { "op": "start_encounter", "encounter": "ashwatch_vault" },
+              { "op": "adjust_environment", "field": "alarm", "amount": 1, "source": "潜入失手：响动惊敌" },
+              { "op": "goto", "node": "vault_floor" },
+              { "op": "outcome", "summary": "碎石在你靴下发出脆响。", "detail": "回声沿断墙滚了一圈，哨站深处立刻有人抬起了头。" }
+            ]
+          }
+        },
+        {
+          "id": "force_breach",
+          "label": "踹开侧门直接闯入",
+          "hint": "不做前置检定，直接带着更高警报闯进去。",
+          "kind": "story",
+          "effects": [
+            { "op": "start_encounter", "encounter": "ashwatch_vault" },
+            { "op": "adjust_environment", "field": "alarm", "amount": 2, "source": "强行破门" },
+            { "op": "add_status", "status": "ash_choked", "source": "强行破门：扑面灰尘" },
+            { "op": "goto", "node": "vault_floor" },
+            { "op": "outcome", "summary": "你一脚踹开了锈死的侧门。", "detail": "灰尘、碎木和回音同时炸开，整座哨站像被你一脚彻底踹醒。" }
+          ]
+        },
+        {
+          "id": "fatal_test_death",
+          "label": "故障演练：生命归零",
+          "hint": "用于验收 on_hp_zero 失败结局链路。",
+          "kind": "story",
+          "effects": [
+            { "op": "adjust", "resource": "hp", "amount": -99, "source": "验收动作：生命归零" },
+            { "op": "outcome", "summary": "你主动触发了生命归零测试。", "detail": "系统将校验致命失败规则。" }
+          ]
+        },
+        {
+          "id": "fatal_test_corruption",
+          "label": "故障演练：腐化超限",
+          "hint": "用于验收 on_corruption_limit 失败结局链路。",
+          "kind": "story",
+          "effects": [
+            { "op": "adjust", "resource": "corruption", "amount": 99, "source": "验收动作：腐化超限" },
+            { "op": "outcome", "summary": "你主动触发了腐化超限测试。", "detail": "系统将校验失控失败规则。" }
+          ]
+        }
+      ]
+    },
+    "vault_floor": {
+      "title": "封匣大厅",
+      "text": "断裂梁木、倒塌旗杆和半熄灯盏把大厅切成一块块深浅不一的阴影。封匣就在尽头的石座上，而你的对手正从两侧缓缓收拢。当前阶段：{{encounter.phase_label}}。封匣掌控：{{encounter.objective.progress}} / {{encounter.objective.target}}。",
+      "actions": []
+    }
+  },
+  "encounters": {
+    "ashwatch_vault": {
+      "id": "ashwatch_vault",
+      "title": "灰烬哨站：封匣争夺",
+      "type": "mission",
+      "summary": "残存守卫和翻涌灰雾一起堵在你与封匣之间。",
+      "goal": "先拿到封匣，再决定这场夜行该怎么收束",
+      "pressure_label": "警报",
+      "pressure_max": 5,
+      "start_pressure": 0,
+      "enemy": {
+        "name": "灰灯守卫",
+        "intent": "拖住你，直到更多脚步从外墙后赶来",
+        "hp": 6,
+        "max_hp": 6,
+        "shield": 1,
+        "resistances": [
+          { "type": "physical", "reduce": 1, "source": "敌方：灰铁护板" }
+        ],
+        "vulnerabilities": [
+          { "type": "necrotic", "increase": 1, "source": "敌方：腐印裂口" }
+        ]
+      },
+      "objective": {
+        "label": "封匣掌控",
+        "start": 0,
+        "target": 3
+      },
+      "environment": {
+        "light": { "label": "光照", "value": 2, "min": 0, "max": 3 },
+        "cover": { "label": "掩体", "value": 0, "min": 0, "max": 2 },
+        "alarm": { "label": "警报", "value": 0, "min": 0, "max": 5 }
+      },
+      "environment_rules": [
+        {
+          "field": "light",
+          "op": "<=",
+          "value": 1,
+          "bonus": 2,
+          "source": "环境：暗处落步",
+          "applies_to": ["check", "contest"],
+          "stat_in": ["agility", "insight"]
+        },
+        {
+          "field": "alarm",
+          "op": ">=",
+          "value": 2,
+          "bonus": -1,
+          "source": "环境：四面回声",
+          "applies_to": ["save"],
+          "stat_equals": "will"
+        }
+      ],
+      "environment_impact_rules": [
+        {
+          "field": "cover",
+          "op": ">=",
+          "value": 1,
+          "delta": -1,
+          "source": "环境：断墙掩护",
+          "applies_to": ["damage"],
+          "target": "player",
+          "type": "physical"
+        },
+        {
+          "field": "alarm",
+          "op": ">=",
+          "value": 3,
+          "delta": 1,
+          "source": "环境：围逼火力",
+          "applies_to": ["damage", "drain"],
+          "target": "player",
+          "type": "physical"
+        }
+      ],
+      "action_economy": {
+        "budget": { "main": 1, "bonus": 1, "move": 0 },
+        "default_cost": { "main": 1, "bonus": 0, "move": 0 },
+        "max_actions": 2
+      },
+      "enemy_behavior_selection": "priority",
+      "enemy_behaviors": [
+        {
+          "id": "press_fire",
+          "label": "压火逼位",
+          "priority": 3,
+          "repeat_cooldown": 1,
+          "if": { "path": "encounter.objective.progress", "op": "<", "value": 2 },
+          "effects": [
+            { "op": "damage", "target": "player", "resource": "hp", "amount": 1, "damage_type": "physical", "source": "敌方：压火逼位" },
+            { "op": "adjust_environment", "field": "alarm", "amount": 1, "source": "敌方：越逼越近" }
+          ]
+        },
+        {
+          "id": "watch_step",
+          "label": "收缩阵线",
+          "priority": 1,
+          "effects": [
+            { "op": "adjust_objective", "amount": 1, "source": "敌方收缩阵线的空档" }
+          ]
+        }
+      ],
+      "phases": {
+        "opening": {
+          "label": "试探交火",
+          "intent": "双方都还在找彼此最脆的一处"
+        },
+        "critical": {
+          "label": "烟尘翻涌",
+          "intent": "灯火乱跳，热灰和低语一起往肺里钻",
+          "enemy_behavior_selection": "weighted",
+          "enemy_behaviors": [
+            {
+              "id": "ash_burst",
+              "label": "灰雾倒灌",
+              "weight": 3,
+              "effects": [
+                { "op": "add_status", "status": "ash_choked", "source": "敌方：灰雾倒灌" },
+                { "op": "damage", "target": "player", "resource": "hp", "amount": 1, "damage_type": "poison", "source": "敌方：灰雾倒灌" }
+              ]
+            },
+            {
+              "id": "break_cover",
+              "label": "打碎掩体",
+              "weight": 1,
+              "effects": [
+                { "op": "adjust_environment", "field": "cover", "amount": -1, "source": "敌方：打碎掩体" },
+                { "op": "adjust_environment", "field": "alarm", "amount": 1, "source": "敌方：逼近封匣" }
+              ]
+            }
+          ]
+        }
+      },
+      "start_phase": "opening",
+      "phase_rules": [
+        { "if": { "path": "encounter.environment.alarm", "op": ">=", "value": 2 }, "phase": "critical" }
+      ],
+      "turn_rules": [
+        {
+          "if": { "path": "encounter.phase", "op": "==", "value": "opening" },
+          "effects": [
+            { "op": "adjust_encounter", "amount": 1, "source": "回合规则：局势升温" }
+          ]
+        }
+      ],
+      "actions": [
+        {
+          "id": "demo_shadow_step",
+          "label": "沿阴影贴近封匣",
+          "hint": "做一次敏捷检定，推进封匣掌控并顺手压低光照。",
+          "kind": "check",
+          "check": { "stat": "agility", "dc": 8, "label": "贴影潜行", "tags": ["stealth"] },
+          "on_success": {
+            "effects": [
+              { "op": "adjust_objective", "amount": 1, "source": "潜入成功" },
+              { "op": "adjust_environment", "field": "light", "amount": -1, "source": "你先压灭了一盏灯" },
+              { "op": "outcome", "summary": "你贴着断墙摸近了封匣。", "detail": "灯火更暗了半层，而你的手几乎已经够到了石座边缘。" }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              { "op": "adjust_environment", "field": "alarm", "amount": 1, "source": "潜入失误" },
+              { "op": "damage", "target": "player", "resource": "hp", "amount": 1, "damage_type": "physical", "source": "潜入失误：飞石反击" }
+            ]
+          }
+        },
+        {
+          "id": "demo_hold_nerve",
+          "label": "压住耳边低语",
+          "hint": "进行一次意志豁免，别让耳边的低语把你掀翻。",
+          "kind": "save",
+          "save": { "stat": "will", "dc": 8, "label": "稳住心志", "tags": ["fear"] },
+          "on_success": {
+            "effects": [
+              { "op": "add_status", "status": "guarded", "source": "豁免成功：姿态收紧" },
+              { "op": "adjust_objective", "amount": 1, "source": "你趁对方迟疑逼近石座" }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              { "op": "damage", "target": "player", "resource": "hp", "amount": 1, "damage_type": "psychic", "source": "失败：低语震荡" },
+              { "op": "adjust", "resource": "corruption", "amount": 1, "source": "失败：低语渗入" }
+            ]
+          }
+        },
+        {
+          "id": "demo_wrest_seal",
+          "label": "正面夺匣",
+          "hint": "做一次力量对抗，硬把封匣控制权往自己这边扯。",
+          "kind": "contest",
+          "contest": {
+            "stat": "might",
+            "label": "夺匣对抗",
+            "opponent_label": "灰灯守卫",
+            "opponent_modifier": 2,
+            "active_side": "opponent",
+            "tie_policy": "active_loses",
+            "failure_cost": {
+              "mode": "resource_loss",
+              "resource": "hp",
+              "amount": 1,
+              "source": "对抗失败代价"
+            }
+          },
+          "on_success": {
+            "effects": [
+              { "op": "adjust_enemy_hp", "amount": -1, "source": "你把对手撞得踉跄后退" },
+              { "op": "adjust_objective", "amount": 1, "source": "你一把抢到了封匣的主手位" }
+            ]
+          },
+          "on_failure": {
+            "effects": [
+              { "op": "damage", "target": "player", "resource": "hp", "amount": 1, "damage_type": "physical", "source": "对抗失败反噬" }
+            ]
+          }
+        },
+        {
+          "id": "demo_cut_down",
+          "label": "斩断守卫阵线",
+          "hint": "正面斩开阵线，测试伤害、抗性、护盾与穿透。",
+          "kind": "damage",
+          "damage": {
+            "target": "enemy",
+            "resource": "hp",
+            "amount": 4,
+            "damage_type": "physical",
+            "penetration": 1,
+            "label": "斩断阵线",
+            "source": "玩家：斩断阵线"
+          },
+          "on_success": {
+            "effects": [
+              { "op": "adjust_objective", "amount": 1, "source": "你顺势逼近了封匣位置" }
+            ]
+          },
+          "on_failure": { "effects": [] }
+        },
+        {
+          "id": "demo_field_dress",
+          "label": "贴墙包扎",
+          "hint": "在碎墙后抢一口气，演示治疗结算。",
+          "kind": "healing",
+          "cost": { "bonus": 1 },
+          "turn_flow": "continue",
+          "healing": {
+            "target": "player",
+            "resource": "hp",
+            "amount": 2,
+            "label": "贴墙包扎",
+            "source": "玩家：贴墙包扎"
+          }
+        },
+        {
+          "id": "demo_siphon_miasma",
+          "label": "抽离灰雾",
+          "hint": "抽离灰雾里的衰败气息，先伤敌再回补自己。",
+          "kind": "drain",
+          "drain": {
+            "target": "enemy",
+            "resource": "hp",
+            "amount": 2,
+            "damage_type": "necrotic",
+            "recover_target": "player",
+            "recover_resource": "hp",
+            "recover_percent": 50,
+            "recover_flat": 1,
+            "label": "抽离灰雾",
+            "source": "玩家：抽离灰雾",
+            "recover_source": "汲取回流"
+          }
+        },
+        {
+          "id": "demo_douse_lamps",
+          "label": "掐灭残灯",
+          "hint": "改变光照，让后续潜行和侦察更占便宜。",
+          "kind": "story",
+          "cost": { "bonus": 1 },
+          "turn_flow": "continue",
+          "effects": [
+            { "op": "adjust_environment", "field": "light", "amount": -1, "source": "你掐灭了残灯" },
+            { "op": "outcome", "summary": "大厅里又暗了一层。", "detail": "残灯一灭，守卫的影子反倒先乱了半拍。" }
+          ]
+        },
+        {
+          "id": "demo_take_cover",
+          "label": "翻进断墙后",
+          "hint": "翻进断墙后面，用位置换一点生机。",
+          "kind": "story",
+          "cost": { "bonus": 1 },
+          "turn_flow": "continue",
+          "effects": [
+            { "op": "adjust_environment", "field": "cover", "amount": 1, "source": "你扑进断墙后" },
+            { "op": "outcome", "summary": "你把碎墙变成了临时掩体。", "detail": "再有来袭的硬冲击，至少不会第一下就全落在你身上。" }
+          ]
+        }
+      ],
+      "exit_strategies": [
+        {
+          "id": "defeat_finish",
+          "mode": "defeat",
+          "label": "击溃守卫带走封匣",
+          "summary": "你以击败路线完成了任务。",
+          "detail": "守卫被你彻底压垮，封匣最终稳稳落进了你手里。",
+          "effects": [
+            { "op": "finish", "ending": "ending_victory", "summary": "你击溃了守卫，带着封匣离开。" }
+          ]
+        },
+        {
+          "id": "negotiate_finish",
+          "mode": "negotiate",
+          "label": "逼对方让路",
+          "summary": "你用姿态和条件逼出了暂时妥协。",
+          "detail": "这不是体面的停火，却足够让你带着封匣退开一步。",
+          "effects": [
+            { "op": "finish", "ending": "ending_compromise", "summary": "你迫使守卫在威胁下暂时让路。" }
+          ]
+        },
+        {
+          "id": "delay_finish",
+          "mode": "delay",
+          "label": "拖到窗口完全打开",
+          "summary": "你靠时间和位置慢慢拿稳了封匣。",
+          "detail": "不是最快的路线，但你确实把局势拖到了能收手的那一刻。",
+          "effects": [
+            { "op": "finish", "ending": "ending_delay", "summary": "你拖到了足够安全的收束窗口。" }
+          ]
+        },
+        {
+          "id": "escape_finish",
+          "mode": "escape",
+          "label": "立即带匣撤离",
+          "summary": "你放弃彻底压住局面，选择立即撤走。",
+          "detail": "任务保住了，但你把一串不小的余波留在了身后。",
+          "effects": [
+            { "op": "adjust", "resource": "doom", "amount": 1, "source": "撤离余波" },
+            { "op": "finish", "ending": "ending_escape", "summary": "你带着代价撤出了哨站。" }
+          ]
+        }
+      ]
+    }
+  }
+}

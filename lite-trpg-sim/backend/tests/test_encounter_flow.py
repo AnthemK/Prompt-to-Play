@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import unittest
 from unittest.mock import patch
 
@@ -90,7 +91,15 @@ def make_content() -> dict:
                             "stat": "agility",
                             "label": "阵线对抗",
                             "opponent_label": "伏击者",
-                            "opponent_modifier": 1
+                            "opponent_modifier": 1,
+                            "active_side": "opponent",
+                            "tie_policy": "active_loses",
+                            "failure_cost": {
+                                "mode": "resource_loss",
+                                "resource": "hp",
+                                "amount": 1,
+                                "source": "阵线失守代价",
+                            },
                         },
                         "on_success": {
                           "effects": [
@@ -195,6 +204,243 @@ class EncounterFlowTests(unittest.TestCase):
         director.apply_action(state, "encounter_escape")
         self.assertIsNone(state["encounter"])
         self.assertEqual(state["progress"]["turns"], 3)
+
+    def test_contest_failure_cost_applies_before_failure_branch_effects(self) -> None:
+        """Contest failure_cost should apply generic penalty on top of failure branch."""
+        content = make_content()
+        state = make_state()
+        state["player"]["stats"]["agility"] = 2
+        director = StoryDirector(content)
+
+        director.apply_action(state, "start_encounter")
+        with patch("backend.game.rules.random.randint", side_effect=[4, 15]):
+            director.apply_action(state, "encounter_hold")
+
+        # on_failure damage 2 + contest failure_cost hp 1
+        self.assertEqual(state["player"]["hp"], 7)
+        resolution = state.get("last_outcome", {}).get("resolution", {})
+        self.assertEqual(resolution.get("kind"), "contest")
+        effects = resolution.get("effects", [])
+        self.assertTrue(any(effect.get("kind") == "resource" and int(effect.get("delta", 0)) == -1 for effect in effects))
+
+    def test_encounter_action_economy_and_enemy_behavior(self) -> None:
+        """Encounter should support continue-actions and per-turn enemy behavior templates."""
+        content = make_content()
+        ambush = content["encounters"]["dock_ambush"]
+        ambush["action_economy"] = {
+            "budget": {"main": 1, "bonus": 1, "move": 0},
+            "default_cost": {"main": 1, "bonus": 0, "move": 0},
+            "max_actions": 2,
+        }
+        ambush["actions"] = copy.deepcopy(ambush["actions"]) + [
+            {
+                "id": "encounter_feint",
+                "label": "佯攻试探",
+                "kind": "story",
+                "cost": {"bonus": 1},
+                "turn_flow": "continue",
+                "effects": [
+                    {
+                        "op": "outcome",
+                        "summary": "你佯攻逼迫对方移动。",
+                        "detail": "你暂时争取到侧翼空间。",
+                    }
+                ],
+            }
+        ]
+        ambush["enemy_behaviors"] = [
+            {
+                "id": "enemy_suppress",
+                "label": "敌方压制射击",
+                "effects": [{"op": "damage", "amount": 1, "source": "敌方压制射击"}],
+            }
+        ]
+
+        state = make_state()
+        state["player"]["stats"]["agility"] = 4
+        state["player"]["stats"]["will"] = 3
+        director = StoryDirector(content)
+
+        director.apply_action(state, "start_encounter")
+        self.assertEqual(state["progress"]["turns"], 1)
+        self.assertEqual(state["encounter"]["round"], 1)
+        # Enemy behavior runs at turn end after start action.
+        self.assertEqual(state["player"]["hp"], 9)
+
+        director.apply_action(state, "encounter_feint")
+        # Continue-action should not advance turn.
+        self.assertEqual(state["progress"]["turns"], 1)
+        self.assertEqual(state["encounter"]["round"], 1)
+        self.assertEqual(state["encounter"]["economy"]["spent"]["bonus"], 1)
+
+        with patch("backend.game.rules.random.randint", side_effect=[13, 7]):
+            director.apply_action(state, "encounter_hold")
+        # Main action ends turn, then enemy behavior runs.
+        self.assertEqual(state["progress"]["turns"], 2)
+        self.assertEqual(state["encounter"]["round"], 2)
+        self.assertEqual(state["player"]["hp"], 8)
+        self.assertEqual(state["encounter"]["last_enemy_behavior"]["label"], "敌方压制射击")
+
+    def test_encounter_manual_end_turn_action_available(self) -> None:
+        """Encounter should expose a manual end-turn action when budget remains."""
+        content = make_content()
+        content["encounters"]["dock_ambush"]["action_economy"] = {
+            "budget": {"main": 1, "bonus": 1, "move": 0},
+            "default_cost": {"main": 1, "bonus": 0, "move": 0},
+            "max_actions": 2,
+        }
+        state = make_state()
+        director = StoryDirector(content)
+        director.apply_action(state, "start_encounter")
+
+        scene = director.scene_view(state)
+        action_ids = [action["id"] for action in scene["actions"]]
+        self.assertIn("encounter_end_turn", action_ids)
+
+        director.apply_action(state, "encounter_end_turn")
+        self.assertEqual(state["progress"]["turns"], 2)
+
+    def test_enemy_behavior_priority_and_cooldown(self) -> None:
+        """Enemy behavior should support priority selection with repeat cooldown."""
+        content = make_content()
+        ambush = content["encounters"]["dock_ambush"]
+        ambush["enemy_behavior_selection"] = "priority"
+        ambush["enemy_behaviors"] = [
+            {
+                "id": "fallback_poke",
+                "label": "敌方骚扰打击",
+                "priority": 1,
+                "effects": [{"op": "damage", "amount": 1, "source": "敌方骚扰打击"}],
+            },
+            {
+                "id": "heavy_press",
+                "label": "敌方重压突袭",
+                "priority": 3,
+                "repeat_cooldown": 1,
+                "effects": [{"op": "damage", "amount": 2, "source": "敌方重压突袭"}],
+            },
+        ]
+        # Use only explicit end-turn to keep this test deterministic.
+        ambush["actions"] = []
+
+        state = make_state()
+        director = StoryDirector(content)
+        director.apply_action(state, "start_encounter")
+        # Round 1 end: highest priority behavior.
+        self.assertEqual(state["player"]["hp"], 8)
+        self.assertEqual(state["encounter"]["last_enemy_behavior"]["id"], "heavy_press")
+
+        director.apply_action(state, "encounter_end_turn")
+        # Round 2 end: heavy behavior is in cooldown, fallback fires.
+        self.assertEqual(state["player"]["hp"], 7)
+        self.assertEqual(state["encounter"]["last_enemy_behavior"]["id"], "fallback_poke")
+
+        director.apply_action(state, "encounter_end_turn")
+        # Round 3 end: heavy behavior available again.
+        self.assertEqual(state["player"]["hp"], 5)
+        self.assertEqual(state["encounter"]["last_enemy_behavior"]["id"], "heavy_press")
+
+    def test_encounter_environment_adjustment_and_phase_sync(self) -> None:
+        """Encounter environment fields should support runtime updates and phase rules."""
+        content = make_content()
+        ambush = content["encounters"]["dock_ambush"]
+        ambush["environment"] = {
+            "light": {"label": "光照", "value": 2, "min": 0, "max": 3},
+            "hazard": {"label": "危险区", "value": 0, "min": 0, "max": 5},
+        }
+        ambush["phase_rules"] = [
+            {"if": {"path": "encounter.environment.light", "op": "<=", "value": 1}, "phase": "critical"}
+        ]
+        ambush["actions"] = list(ambush["actions"]) + [
+            {
+                "id": "encounter_darkening",
+                "label": "压暗火盆",
+                "kind": "story",
+                "effects": [
+                    {"op": "adjust_environment", "field": "light", "amount": -2},
+                ],
+            }
+        ]
+
+        state = make_state()
+        director = StoryDirector(content)
+        director.apply_action(state, "start_encounter")
+        self.assertEqual(state["encounter"]["environment"]["light"], 2)
+
+        director.apply_action(state, "encounter_darkening")
+        # Clamp to min and trigger phase sync by environment rule.
+        self.assertEqual(state["encounter"]["environment"]["light"], 0)
+        self.assertEqual(state["encounter"]["phase"], "critical")
+        resolution = state.get("last_outcome", {}).get("resolution", {})
+        effects = resolution.get("effects", [])
+        self.assertTrue(any(effect.get("kind") == "encounter" and effect.get("mode") == "environment" for effect in effects))
+
+    def test_encounter_exit_strategy_visibility(self) -> None:
+        """Exit strategy actions should appear only when their mode is available."""
+        content = make_content()
+        content["encounters"]["dock_ambush"]["exit_strategies"] = [
+            {"id": "defeat_route", "mode": "defeat", "label": "彻底击溃敌人"},
+            {"id": "escape_route", "mode": "escape", "label": "强行撤离"},
+            {"id": "negotiate_route", "mode": "negotiate", "label": "逼迫谈判"},
+            {"id": "delay_route", "mode": "delay", "label": "拖到援军抵达"},
+        ]
+        state = make_state()
+        director = StoryDirector(content)
+        director.apply_action(state, "start_encounter")
+
+        scene = director.scene_view(state)
+        action_ids = [action["id"] for action in scene["actions"]]
+        self.assertIn("encounter_exit_escape_route", action_ids)
+        self.assertNotIn("encounter_exit_defeat_route", action_ids)
+        self.assertNotIn("encounter_exit_negotiate_route", action_ids)
+        self.assertNotIn("encounter_exit_delay_route", action_ids)
+
+        state["encounter"]["objective"]["progress"] = 1
+        scene = director.scene_view(state)
+        action_ids = [action["id"] for action in scene["actions"]]
+        self.assertIn("encounter_exit_negotiate_route", action_ids)
+
+        state["encounter"]["objective"]["progress"] = 2
+        scene = director.scene_view(state)
+        action_ids = [action["id"] for action in scene["actions"]]
+        self.assertIn("encounter_exit_delay_route", action_ids)
+
+        state["encounter"]["enemy"]["hp"] = 0
+        scene = director.scene_view(state)
+        action_ids = [action["id"] for action in scene["actions"]]
+        self.assertIn("encounter_exit_defeat_route", action_ids)
+
+    def test_encounter_exit_strategy_execution(self) -> None:
+        """Choosing an exit strategy should apply effects, set flag, and leave encounter."""
+        content = make_content()
+        content["encounters"]["dock_ambush"]["exit_strategies"] = [
+            {
+                "id": "fallback_escape",
+                "mode": "escape",
+                "label": "冒险撤离",
+                "summary": "你仓促撤离了战场。",
+                "detail": "你逃过一劫，但敌人掌握了先手。",
+                "set_flag": "dock_escape_used",
+                "effects": [
+                    {"op": "adjust", "resource": "doom", "amount": 1},
+                ],
+            }
+        ]
+        state = make_state()
+        director = StoryDirector(content)
+        director.apply_action(state, "start_encounter")
+        director.apply_action(state, "encounter_exit_fallback_escape")
+
+        self.assertIsNone(state["encounter"])
+        self.assertTrue(state["progress"]["flags"]["dock_escape_used"])
+        self.assertEqual(state["progress"]["doom"], 1)
+        self.assertEqual(state["progress"]["turns"], 2)
+        self.assertEqual(state["last_outcome"]["summary"], "你仓促撤离了战场。")
+        resolution = state["last_outcome"]["resolution"]
+        self.assertEqual(resolution.get("system", {}).get("action"), "encounter_exit")
+        self.assertEqual(resolution.get("system", {}).get("mode"), "escape")
+        self.assertIn("exit", resolution.get("tags", []))
+        self.assertIn("escape", resolution.get("tags", []))
 
 
 if __name__ == "__main__":

@@ -7,14 +7,119 @@ to learn one payload shape to render outcomes consistently.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
+
+
+class BreakdownEntry(TypedDict):
+    """One modifier or impact component in resolution breakdown output."""
+
+    value: int
+    source: str
+
+
+class ExplainFragment(TypedDict, total=False):
+    """One human-readable explanation fragment for resolution rendering."""
+
+    code: str
+    text: str
+    data: dict[str, Any]
+
+
+class ResolutionExplain(TypedDict):
+    """Top-level explain block merged into every resolution payload."""
+
+    summary: str
+    fragments: list[ExplainFragment]
+
+
+class ResolutionEffect(TypedDict, total=False):
+    """Normalized effect payload shared by state/resource/status/item updates."""
+
+    kind: str
+    source: str
+    resource: str
+    label: str
+    delta: int
+    mode: str
+    status_id: str
+    name: str
+    item_id: str
+    qty: int
+    flag: str
+    value: bool
+    title: str
+    amount: int
+    applied: int
+    mitigated: int
+    amplified: int
+    shield_absorbed: int
+    shield_before: int
+    shield_after: int
+    impact_kind: str
+    damage_type: str
+    target: str
+    target_label: str
+    penetration: int
+    resistance_flat: int
+    resistance_percent: int
+
+
+class ResolutionPayload(TypedDict, total=False):
+    """Unified resolution object used by check/combat/utility/story actions."""
+
+    kind: str
+    label: str
+    success: bool | None
+    stat: str | None
+    dc: int | None
+    roll: int | None
+    modifier: int | None
+    total: int | None
+    tags: list[str]
+    breakdown: list[BreakdownEntry]
+    amount: int | None
+    applied: int | None
+    mitigated: int | None
+    amplified: int | None
+    shield_absorbed: int | None
+    shield_before: int | None
+    shield_after: int | None
+    impact_kind: str | None
+    drain_recovered: int | None
+    damage_type: str | None
+    target: str | None
+    target_label: str | None
+    penetration: int | None
+    resistance_flat: int | None
+    resistance_percent: int | None
+    opponent_label: str | None
+    opponent_roll: int | None
+    opponent_modifier: int | None
+    opponent_total: int | None
+    active_side: str | None
+    passive_side: str | None
+    tie: bool | None
+    tie_policy: str | None
+    margin: int | None
+    explain: ResolutionExplain
+    system: dict[str, Any]
+    effects: list[ResolutionEffect]
 
 _RESOURCE_LABELS = {
     "hp": "生命",
+    "shield": "护盾",
     "corruption": "腐化",
     "doom": "末日进度",
     "shillings": "先令",
 }
+
+
+def _safe_int(value: Any, default: int = 0) -> int:
+    """Convert unknown values to int without raising on None/invalid input."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return int(default)
 
 
 def build_resolution(
@@ -28,8 +133,8 @@ def build_resolution(
     modifier: int | None = None,
     total: int | None = None,
     tags: list[str] | None = None,
-    breakdown: list[dict[str, Any]] | None = None,
-) -> dict[str, Any]:
+    breakdown: list[BreakdownEntry] | None = None,
+) -> ResolutionPayload:
     """Create the canonical resolution payload skeleton."""
     return {
         "kind": kind,
@@ -45,6 +150,12 @@ def build_resolution(
         "amount": None,
         "applied": None,
         "mitigated": None,
+        "amplified": None,
+        "shield_absorbed": None,
+        "shield_before": None,
+        "shield_after": None,
+        "impact_kind": None,
+        "drain_recovered": None,
         "damage_type": None,
         "target": None,
         "target_label": None,
@@ -55,11 +166,17 @@ def build_resolution(
         "opponent_roll": None,
         "opponent_modifier": None,
         "opponent_total": None,
+        "active_side": None,
+        "passive_side": None,
+        "tie": None,
+        "tie_policy": None,
+        "margin": None,
+        "explain": {"summary": "", "fragments": []},
         "effects": [],
     }
 
 
-def ensure_resolution(resolution: dict[str, Any] | None) -> dict[str, Any] | None:
+def ensure_resolution(resolution: ResolutionPayload | None) -> ResolutionPayload | None:
     """Backfill optional fields so downstream renderers can rely on them."""
     if not isinstance(resolution, dict):
         return None
@@ -76,6 +193,12 @@ def ensure_resolution(resolution: dict[str, Any] | None) -> dict[str, Any] | Non
     resolution.setdefault("amount", None)
     resolution.setdefault("applied", None)
     resolution.setdefault("mitigated", None)
+    resolution.setdefault("amplified", None)
+    resolution.setdefault("shield_absorbed", None)
+    resolution.setdefault("shield_before", None)
+    resolution.setdefault("shield_after", None)
+    resolution.setdefault("impact_kind", None)
+    resolution.setdefault("drain_recovered", None)
     resolution.setdefault("damage_type", None)
     resolution.setdefault("target", None)
     resolution.setdefault("target_label", None)
@@ -86,11 +209,27 @@ def ensure_resolution(resolution: dict[str, Any] | None) -> dict[str, Any] | Non
     resolution.setdefault("opponent_roll", None)
     resolution.setdefault("opponent_modifier", None)
     resolution.setdefault("opponent_total", None)
+    resolution.setdefault("active_side", None)
+    resolution.setdefault("passive_side", None)
+    resolution.setdefault("tie", None)
+    resolution.setdefault("tie_policy", None)
+    resolution.setdefault("margin", None)
+    resolution.setdefault("explain", {"summary": "", "fragments": []})
     resolution.setdefault("effects", [])
+    explain = resolution.get("explain")
+    if not isinstance(explain, dict):
+        explain = {"summary": "", "fragments": []}
+        resolution["explain"] = explain
+    explain.setdefault("summary", "")
+    fragments = explain.get("fragments")
+    if not isinstance(fragments, list):
+        explain["fragments"] = []
+    else:
+        explain["fragments"] = [entry for entry in fragments if isinstance(entry, dict)]
     return resolution
 
 
-def push_resolution_effect(resolution: dict[str, Any] | None, payload: dict[str, Any]) -> None:
+def push_resolution_effect(resolution: ResolutionPayload | None, payload: ResolutionEffect) -> None:
     """Append one normalized effect entry to a resolution payload."""
     active = ensure_resolution(resolution)
     if active is None:
@@ -98,7 +237,7 @@ def push_resolution_effect(resolution: dict[str, Any] | None, payload: dict[str,
     active["effects"].append(payload)
 
 
-def add_resource_effect(resolution: dict[str, Any] | None, resource: str, delta: int, source: str) -> None:
+def add_resource_effect(resolution: ResolutionPayload | None, resource: str, delta: int, source: str) -> None:
     """Record a resource delta such as HP, corruption, or currency."""
     if int(delta) == 0:
         return
@@ -114,8 +253,203 @@ def add_resource_effect(resolution: dict[str, Any] | None, resource: str, delta:
     )
 
 
+def push_explain_fragment(
+    resolution: ResolutionPayload | None,
+    *,
+    code: str,
+    text: str,
+    data: dict[str, Any] | None = None,
+) -> None:
+    """Append one normalized explanation fragment to a resolution payload."""
+    active = ensure_resolution(resolution)
+    if active is None:
+        return
+    explain = active.get("explain", {})
+    if not isinstance(explain, dict):
+        explain = {"summary": "", "fragments": []}
+        active["explain"] = explain
+    fragments = explain.get("fragments")
+    if not isinstance(fragments, list):
+        fragments = []
+        explain["fragments"] = fragments
+
+    clean_text = str(text or "").strip()
+    clean_code = str(code or "").strip() or "detail"
+    if not clean_text:
+        return
+    if any(str(entry.get("text", "")) == clean_text for entry in fragments if isinstance(entry, dict)):
+        return
+
+    payload: ExplainFragment = {"code": clean_code, "text": clean_text}
+    if isinstance(data, dict) and data:
+        payload["data"] = data
+    fragments.append(payload)
+
+
+def _build_status_summary(active: ResolutionPayload) -> str:
+    """Build a concise status summary for the top of explanation output."""
+    label = str(active.get("label", "")).strip() or "结算"
+    success = active.get("success")
+    if success is True:
+        return f"{label}：成功"
+    if success is False:
+        return f"{label}：失败"
+    return f"{label}：完成"
+
+
+def _append_breakdown_fragments(active: ResolutionPayload) -> None:
+    """Mirror modifier/impact breakdown entries into explain fragments."""
+    for entry in active.get("breakdown", []):
+        if not isinstance(entry, dict):
+            continue
+        source = str(entry.get("source", "")).strip()
+        value = _safe_int(entry.get("value", 0))
+        if not source:
+            continue
+        sign = "+" if value >= 0 else ""
+        push_explain_fragment(
+            active,
+            code="breakdown",
+            text=f"{source} {sign}{value}",
+            data={"source": source, "value": value},
+        )
+
+
+def _append_resolution_specific_fragments(active: ResolutionPayload) -> None:
+    """Append kind-specific explanation lines derived from structured fields."""
+    kind = str(active.get("kind", "")).strip().lower()
+
+    if kind in {"check", "save"}:
+        roll = active.get("roll")
+        modifier = active.get("modifier")
+        total = active.get("total")
+        dc = active.get("dc")
+        if all(isinstance(value, int) for value in (roll, modifier, total, dc)):
+            sign = "+" if _safe_int(modifier) >= 0 else ""
+            push_explain_fragment(
+                active,
+                code="roll",
+                text=f"d20={roll} + 修正{sign}{modifier} = {total} / DC {dc}",
+                data={
+                    "roll": _safe_int(roll),
+                    "modifier": _safe_int(modifier),
+                    "total": _safe_int(total),
+                    "dc": _safe_int(dc),
+                },
+            )
+        return
+
+    if kind == "contest":
+        roll = active.get("roll")
+        modifier = active.get("modifier")
+        total = active.get("total")
+        opponent_roll = active.get("opponent_roll")
+        opponent_modifier = active.get("opponent_modifier")
+        opponent_total = active.get("opponent_total")
+        opponent_label = str(active.get("opponent_label", "对手"))
+        if all(
+            isinstance(value, int)
+            for value in (roll, modifier, total, opponent_roll, opponent_modifier, opponent_total)
+        ):
+            sign = "+" if _safe_int(modifier) >= 0 else ""
+            opponent_sign = "+" if _safe_int(opponent_modifier) >= 0 else ""
+            push_explain_fragment(
+                active,
+                code="contest.player",
+                text=f"你：d20={roll} + 修正{sign}{modifier} = {total}",
+                data={"roll": _safe_int(roll), "modifier": _safe_int(modifier), "total": _safe_int(total)},
+            )
+            push_explain_fragment(
+                active,
+                code="contest.opponent",
+                text=f"{opponent_label}：d20={opponent_roll} + 修正{opponent_sign}{opponent_modifier} = {opponent_total}",
+                data={
+                    "label": opponent_label,
+                    "roll": _safe_int(opponent_roll),
+                    "modifier": _safe_int(opponent_modifier),
+                    "total": _safe_int(opponent_total),
+                },
+            )
+        tie = active.get("tie")
+        if tie is True:
+            push_explain_fragment(
+                active,
+                code="contest.tie",
+                text=f"平局判定：{str(active.get('tie_policy', 'player_wins'))} · 结果边际 {_safe_int(active.get('margin', 0))}",
+                data={
+                    "tie_policy": str(active.get("tie_policy", "player_wins")),
+                    "margin": _safe_int(active.get("margin", 0)),
+                },
+            )
+        return
+
+    if kind in {"damage", "healing", "drain"}:
+        impact_kind = str(active.get("impact_kind", kind)).strip() or kind
+        damage_type = str(active.get("damage_type", "physical")).strip() or "physical"
+        target = str(active.get("target", "player")).strip().lower() or "player"
+        target_label = str(active.get("target_label", "")).strip() if target == "enemy" else "你"
+        title_map = {"damage": "伤害", "healing": "治疗", "drain": "吸取"}
+        push_explain_fragment(
+            active,
+            code="impact.summary",
+            text=(
+                f"{title_map.get(impact_kind, '结算')}类型：{damage_type} · "
+                f"目标：{target_label or '敌方'} · 宣告：{_safe_int(active.get('amount', 0))} · "
+                f"减伤：{_safe_int(active.get('mitigated', 0))} · 易伤增幅：{_safe_int(active.get('amplified', 0))} · "
+                f"护盾吸收：{_safe_int(active.get('shield_absorbed', 0))} · 生效：{_safe_int(active.get('applied', 0))}"
+            ),
+            data={
+                "impact_kind": impact_kind,
+                "damage_type": damage_type,
+                "target": target,
+                "target_label": target_label or "敌方",
+                "amount": _safe_int(active.get("amount", 0)),
+                "mitigated": _safe_int(active.get("mitigated", 0)),
+                "amplified": _safe_int(active.get("amplified", 0)),
+                "shield_absorbed": _safe_int(active.get("shield_absorbed", 0)),
+                "applied": _safe_int(active.get("applied", 0)),
+            },
+        )
+        if kind == "drain":
+            push_explain_fragment(
+                active,
+                code="impact.drain_recovered",
+                text=f"吸取回复：{_safe_int(active.get('drain_recovered', 0))}",
+                data={"drain_recovered": _safe_int(active.get("drain_recovered", 0))},
+            )
+        return
+
+
+def refresh_resolution_explain(resolution: ResolutionPayload | None) -> ResolutionPayload | None:
+    """Rebuild explain summary/fragments from structured resolution fields.
+
+    This keeps the output in a dual-track shape:
+    1) Structured machine fields (`dc`, `roll`, `effects`, ...)
+    2) Human-readable explain fragments (`explain.summary/fragments`)
+    """
+    active = ensure_resolution(resolution)
+    if active is None:
+        return None
+
+    explain = active.get("explain", {})
+    if not isinstance(explain, dict):
+        explain = {"summary": "", "fragments": []}
+        active["explain"] = explain
+    explain["summary"] = _build_status_summary(active)
+    explain["fragments"] = []
+
+    push_explain_fragment(active, code="summary", text=str(explain["summary"]))
+    _append_resolution_specific_fragments(active)
+    _append_breakdown_fragments(active)
+
+    for line in resolution_change_lines(active):
+        push_explain_fragment(active, code="change", text=line)
+
+    return active
+
+
 def add_status_effect(
-    resolution: dict[str, Any] | None,
+    resolution: ResolutionPayload | None,
     *,
     mode: str,
     status_id: str,
@@ -136,7 +470,7 @@ def add_status_effect(
 
 
 def add_item_effect(
-    resolution: dict[str, Any] | None,
+    resolution: ResolutionPayload | None,
     *,
     mode: str,
     item_id: str,
@@ -158,7 +492,7 @@ def add_item_effect(
     )
 
 
-def add_flag_effect(resolution: dict[str, Any] | None, *, flag: str, value: bool, source: str) -> None:
+def add_flag_effect(resolution: ResolutionPayload | None, *, flag: str, value: bool, source: str) -> None:
     """Record a progress-flag mutation."""
     push_resolution_effect(
         resolution,
@@ -172,7 +506,7 @@ def add_flag_effect(resolution: dict[str, Any] | None, *, flag: str, value: bool
 
 
 def add_encounter_effect(
-    resolution: dict[str, Any] | None,
+    resolution: ResolutionPayload | None,
     *,
     mode: str,
     title: str,
@@ -195,12 +529,17 @@ def add_encounter_effect(
 
 
 def add_damage_effect(
-    resolution: dict[str, Any] | None,
+    resolution: ResolutionPayload | None,
     *,
     resource: str,
     amount: int,
     applied: int,
     mitigated: int,
+    amplified: int = 0,
+    shield_absorbed: int = 0,
+    shield_before: int = 0,
+    shield_after: int = 0,
+    impact_kind: str = "damage",
     damage_type: str,
     target: str,
     target_label: str,
@@ -209,7 +548,7 @@ def add_damage_effect(
     resistance_percent: int,
     source: str,
 ) -> None:
-    """Record a normalized damage or healing effect."""
+    """Record one normalized impact effect (damage/healing/drain)."""
     push_resolution_effect(
         resolution,
         {
@@ -219,6 +558,11 @@ def add_damage_effect(
             "amount": int(amount),
             "applied": int(applied),
             "mitigated": int(mitigated),
+            "amplified": int(amplified),
+            "shield_absorbed": int(shield_absorbed),
+            "shield_before": int(shield_before),
+            "shield_after": int(shield_after),
+            "impact_kind": impact_kind,
             "damage_type": damage_type,
             "target": target,
             "target_label": target_label,
@@ -230,7 +574,7 @@ def add_damage_effect(
     )
 
 
-def resolution_change_lines(resolution: dict[str, Any] | None) -> list[str]:
+def resolution_change_lines(resolution: ResolutionPayload | None) -> list[str]:
     """Project resolution effects into short player-facing summary lines."""
     active = ensure_resolution(resolution)
     if active is None:
@@ -282,12 +626,23 @@ def resolution_change_lines(resolution: dict[str, Any] | None) -> list[str]:
             elif mode == "phase":
                 label = str(effect.get("label", "阶段切换"))
                 lines.append(f"遭遇阶段：{label}")
+            elif mode == "enemy_behavior":
+                label = str(effect.get("label", "敌方行动"))
+                lines.append(f"敌方行动：{label}")
             elif mode == "pressure":
                 delta = int(effect.get("delta", 0))
                 if delta != 0:
                     sign = "+" if delta > 0 else ""
                     label = str(effect.get("label", "压力"))
                     lines.append(f"{label} {sign}{delta}")
+            elif mode == "environment":
+                label = str(effect.get("label", "环境变化"))
+                delta = effect.get("delta")
+                if isinstance(delta, int) and delta != 0:
+                    sign = "+" if delta > 0 else ""
+                    lines.append(f"{label} ({sign}{delta})")
+                else:
+                    lines.append(label)
             continue
 
         if kind == "damage":
@@ -295,14 +650,21 @@ def resolution_change_lines(resolution: dict[str, Any] | None) -> list[str]:
             amount = abs(int(effect.get("applied", effect.get("amount", 0))))
             if amount <= 0:
                 continue
+            impact_kind = str(effect.get("impact_kind", "damage")).strip() or "damage"
             target = str(effect.get("target", "player"))
             target_label = str(effect.get("target_label", "")).strip()
             damage_type = str(effect.get("damage_type", "")).strip()
             type_suffix = f"（{damage_type}）" if damage_type else ""
-            if target and target != "player" and target_label:
-                lines.append(f"{target_label}{type_suffix} {label} -{amount}")
+            if impact_kind == "healing":
+                if target and target != "player" and target_label:
+                    lines.append(f"{target_label}{type_suffix} {label} +{amount}")
+                else:
+                    lines.append(f"{label}{type_suffix} +{amount}")
             else:
-                lines.append(f"{label}{type_suffix} -{amount}")
+                if target and target != "player" and target_label:
+                    lines.append(f"{target_label}{type_suffix} {label} -{amount}")
+                else:
+                    lines.append(f"{label}{type_suffix} -{amount}")
             continue
 
     # Deduplicate while preserving order so repeat effects do not spam the UI.
@@ -313,7 +675,7 @@ def resolution_change_lines(resolution: dict[str, Any] | None) -> list[str]:
     return unique_lines
 
 
-def merge_change_lines(explicit_changes: list[str] | None, resolution: dict[str, Any] | None) -> list[str]:
+def merge_change_lines(explicit_changes: list[str] | None, resolution: ResolutionPayload | None) -> list[str]:
     """Merge manual change text with normalized effect-derived lines."""
     merged = [str(item) for item in (explicit_changes or []) if str(item)]
     for line in resolution_change_lines(resolution):
@@ -322,7 +684,7 @@ def merge_change_lines(explicit_changes: list[str] | None, resolution: dict[str,
     return merged
 
 
-def legacy_roll_payload(resolution: dict[str, Any] | None) -> dict[str, Any] | None:
+def legacy_roll_payload(resolution: ResolutionPayload | None) -> dict[str, Any] | None:
     """Expose the old roll shape while the frontend migrates to `resolution`."""
     active = ensure_resolution(resolution)
     if active is None or str(active.get("kind", "")) != "check":

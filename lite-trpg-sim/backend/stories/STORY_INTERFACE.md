@@ -1,113 +1,372 @@
-# Story Interface (v1)
+# Story Interface Reference (v1.1)
 
-这个文件定义“故事包如何无缝接入系统”的统一接口约定。
+Audience: story authors and system developers who need a compact contract reference.  
+Not a full writing guide; for workflow, authoring advice, and common mistakes, read `backend/stories/README.md`.
 
-更详细的写作指南见：
+## Purpose
 
-- `backend/stories/README.md`
+Use this file when you need to answer:
 
-维护要求：
+- Which top-level fields are expected?
+- Which action kinds are supported?
+- Which effect ops are supported?
+- Which encounter fields are recognized?
 
-- 每次 story DSL 或运行时接口调整后，都必须同步更新本文件
-- 本文件偏字段清单，语义解释应补充到 `backend/stories/README.md`
+## Validation
 
-## 目标
+Run this after changing any story file:
 
-- 新故事应尽量只改 `backend/stories/<story_id>/story.json|yaml`
-- `backend/game/*` 不应再写入具体题材的地名、角色、结局 ID
-- 引擎通过统一 `StoryRuntime` 接口运行故事
+```bash
+python3 backend/tools/story_cli.py validate
+```
 
-## 必需顶层字段
+Validate one specific story pack:
 
-- `id`: 故事唯一标识
-- `world`: 世界元数据与系统规则
-- `stat_meta`: 属性定义
-- `professions`: 职业模板列表
-- `items`: 物品字典
-- `statuses`: 状态字典
-- `endings`: 结局字典
-- `nodes`: 剧情节点字典
-- `encounters`: 遭遇模板字典（可选）
+```bash
+python3 backend/tools/story_cli.py validate --story-id your_story_id
+```
 
-## world 关键字段
+## 1. Top-Level Story Shape
 
-- `id`, `title`, `chapter_title`, `intro`
-- `start_node`, `start_log`
-- `default_shillings`, `corruption_limit`
-- `doom_texts`: 根据 doom 显示文本
-- `corruption_penalties`: 腐化惩罚段
-- `default_ending_id`: 通用回退结局
-- `fatal_rules`:
-  - `on_hp_zero`: `{ ending, summary }`
-  - `on_corruption_limit`: `{ ending, summary }`
-- `resolve_victory`:
-  - `default`: `{ ending, summary }`
-  - `rules`: 条件规则数组
+```text
+story
+  id
+  story_interface_version
+  capabilities
+  world
+  stat_meta
+  professions
+  items
+  statuses
+  endings
+  nodes
+  encounters?    # optional
+```
 
-## 节点模型
+Required top-level fields:
 
-`nodes.<node_id>`:
+- `id`
+- `world`
+- `stat_meta`
+- `professions`
+- `items`
+- `statuses`
+- `endings`
+- `nodes`
+
+Recommended for new packs:
+
+- `story_interface_version: "1.1"`
+- `capabilities`
+- `encounters`
+
+Supported interface versions:
+
+- `1.0`
+- `1.1`
+
+## 2. Capabilities
+
+Recognized `capabilities` keys:
+
+- `checks`
+- `saves`
+- `contests`
+- `damage`
+- `healing`
+- `drain`
+- `encounters`
+- `encounter_action_economy`
+- `encounter_enemy_behaviors`
+- `encounter_environment`
+- `debug_trace`
+
+Notes:
+
+- `capabilities` is descriptive, not a runtime toggle.
+- If omitted, the backend can infer it from actual story content.
+
+## 3. Core Content Blocks
+
+### `world`
+
+Common fields:
+
+- `id`
+- `title`
+- `chapter_title`
+- `tone`
+- `intro`
+- `start_node`
+- `start_log`
+- `default_shillings`
+- `corruption_limit`
+- `debug_trace_enabled`
+- `debug_trace_limit`
+- `doom_texts`
+- `corruption_penalties`
+- `default_ending_id`
+- `fatal_rules`
+- `resolve_victory`
+
+Reference rules:
+
+- `start_node` must exist in `nodes`
+- `default_ending_id` must exist in `endings`
+
+### `stat_meta`
+
+Purpose:
+
+- defines the player-facing stat set and labels
+
+Typical shape:
+
+```json
+{
+  "strength": { "label": "力量" },
+  "agility": { "label": "敏捷" },
+  "insight": { "label": "洞察" }
+}
+```
+
+### `professions`
+
+Common fields per profession:
+
+- `id`
+- `name`
+- `summary`
+- `stats`
+- `max_hp`
+- `starting_items`
+- `perks`
+- `check_bonus`
+- `damage_resistances`
+- `trigger_effects`
+
+### `items`
+
+Common fields per item:
+
+- `id`
+- `name`
+- `type`
+- `description`
+- `check_bonus`
+- `use_effects`
+- `trigger_effects`
+- `damage_resistances`
+
+### `statuses`
+
+Common fields per status:
+
+- `id`
+- `name`
+- `description`
+- `check_bonus`
+- `trigger_effects`
+- `damage_resistances`
+
+Compatibility fields still recognized:
+
+- `per_turn_effects`
+- `consume_on_check`
+
+### `endings`
+
+Common fields:
+
+- `id`
+- `title`
+- `summary`
+- `detail`
+- `tone`
+
+### `nodes`
+
+Each node usually contains:
 
 - `title`
-- `text`（支持 `{{player.xxx}}`、`{{progress.xxx}}`、`{{doom_text}}`）
-- `actions`: 行动列表
+- `text`
+- `actions`
 
-## 行动模型
+Supported text templates:
 
-通用字段：
+- `{{player.xxx}}`
+- `{{progress.xxx}}`
+- `{{encounter.xxx}}`
+- `{{world.xxx}}`
+- `{{doom_text}}`
 
-- `id`, `label`, `hint`, `kind`
-- `requires`（可选）
-- `on_unavailable`（可选）
+## 4. Action Model
 
-`kind=check` 时：
+Common action fields:
 
-- `check`: 检定配置
+- `id`
+- `label`
+- `hint`
+- `kind`
+- `requires`
+- `on_unavailable`
+- `cost`
+- `turn_flow`
+
+Supported `kind` values:
+
+- `move`
+- `story`
+- `check`
+- `save`
+- `contest`
+- `damage`
+- `healing`
+- `drain`
+- `utility`
+
+Kinds that require a config object:
+
+- `check` -> `check`
+- `save` -> `save`
+- `contest` -> `contest`
+- `damage` -> `damage`
+- `healing` -> `healing`
+- `drain` -> `drain`
+
+## 5. Resolution Config Blocks
+
+### `check` / `save`
+
+Common fields:
+
+- `stat`
+- `dc`
+- `label`
+- `tags`
+- `modifier`
+- `breakdown`
+- `environment_bonus_rules`
+
+Expected branch locations:
+
 - `on_success.effects`
 - `on_failure.effects`
 
-`kind=save` 时：
+### `contest`
 
-- `save`: 豁免配置（字段结构与 `check` 基本一致）
+Common fields:
+
+- `stat`
+- `label`
+- `opponent_label`
+- `opponent_modifier`
+- `active_side`
+- `tie_policy`
+- `failure_cost`
+- `environment_bonus_rules`
+
+Expected branch locations:
+
 - `on_success.effects`
 - `on_failure.effects`
 
-`kind=contest` 时：
+### `damage`
 
-- `contest`: 对抗配置
-  - 常用字段：`stat`, `label`, `opponent_label`, `opponent_modifier`
-- `on_success.effects`
-- `on_failure.effects`
+Common fields:
 
-`kind=damage` 时：
+- `target`
+- `resource`
+- `damage_type`
+- `amount`
+- `roll`
+- `penetration`
+- `ignore_resistance`
+- `ignore_vulnerability`
+- `ignore_shield`
+- `source`
+- `environment_impact_rules`
 
-- `damage`: 伤害配置
-  - 常用字段：`target`, `resource`, `damage_type`, `amount`, `roll`, `penetration`, `ignore_resistance`, `source`
-- `on_success.effects`（可选）
-- `on_failure.effects`（可选）
+### `healing`
 
-`kind=story/move` 时：
+Common fields:
 
-- `effects`
+- `target`
+- `resource`
+- `amount`
+- `roll`
+- `damage_type`
+- `source`
+- `environment_impact_rules`
 
-遭遇激活时：
+### `drain`
 
-- `encounters.<id>.actions` 会与当前节点动作一起展示
+Damage side:
 
-## 条件表达式（requires / if）
+- same main fields as `damage`
 
-支持：
+Recovery side:
 
-- `all: [cond...]`
-- `any: [cond...]`
-- 原子条件：
-  - `path + op + value`
-  - `ctx + op + value`
-  - `item + op + value`
+- `recover_target`
+- `recover_resource`
+- `recover_percent`
+- `recover_flat`
+- `recover_cap`
+- `recover_source`
 
-`op` 当前支持：`== != >= <= > <`
+## 6. Conditions
 
-## effects DSL（当前支持）
+Used by:
+
+- `requires`
+- `if`
+- related rule blocks
+
+Supported condition forms:
+
+- `all: [ ... ]`
+- `any: [ ... ]`
+- atomic condition
+
+Atomic condition fields:
+
+- `path`
+- `ctx`
+- `item`
+- `op`
+- `value`
+
+Supported operators:
+
+- `==`
+- `!=`
+- `>=`
+- `<=`
+- `>`
+- `<`
+
+## 7. Passive Triggers
+
+Current trigger timings:
+
+- `before_check`
+- `after_check`
+- `turn_end`
+
+Used in:
+
+- `professions[*].trigger_effects`
+- `items[*].trigger_effects`
+- `statuses[*].trigger_effects`
+
+Special helper op:
+
+- `remove_self`
+  - mainly useful for passive status cleanup after one trigger
+
+## 8. Effect Ops
+
+Supported `effect.op` values:
 
 - `goto`
 - `set_flag`
@@ -116,6 +375,7 @@
 - `remove_first_item`
 - `add_status`
 - `remove_status`
+- `remove_self`
 - `outcome`
 - `log`
 - `finish`
@@ -128,91 +388,108 @@
 - `clear_encounter_flag`
 - `adjust_enemy_hp`
 - `adjust_objective`
+- `adjust_environment`
 - `sync_encounter_phase`
 - `damage`
+- `healing`
+- `drain`
 
-## 遭遇模板（encounters）扩展字段
+Notes:
 
-`encounters.<id>` 目前常用字段：
+- Unknown `effect.op` values are rejected by validation.
+- Canonical system truth lives in `backend/game/story_contract.py`.
 
-- `id`, `title`, `type`, `summary`, `goal`
-- `pressure_label`, `pressure_max`, `start_pressure`
-- `enemy`: `{name, intent, hp, max_hp}`
-- `enemy.resistances`: 抗性规则（可选）
-- `objective`: `{label, start, target}`
-- `actions`: 全局遭遇动作
-- `phases`: 阶段字典，`phases.<phase_id>` 可含：
-  - `label`, `intent`, `summary`, `goal`, `actions`
+## 9. Encounter Template
+
+Encounters are optional, but recommended for high-risk scenes.
+
+Common `encounters.<id>` fields:
+
+- `id`
+- `title`
+- `type`
+- `summary`
+- `goal`
+- `pressure_label`
+- `pressure_max`
+- `start_pressure`
+- `enemy`
+- `objective`
+- `environment`
+- `environment_rules`
+- `environment_impact_rules`
+- `actions`
+- `phases`
 - `start_phase`
-- `phase_rules`: 条件触发的阶段切换规则
-- `turn_rules`: 每回合推进时执行的 effect 列表规则
+- `phase_rules`
+- `turn_rules`
+- `action_economy`
+- `enemy_behaviors`
+- `enemy_behavior_selection`
+- `exit_strategies`
 
-说明：
+### `enemy`
 
-- 当前遭遇动作会合并 `encounters.<id>.actions` 与 `phases.<phase_id>.actions`
-- 动作可通过 `phase` / `phase_in` / `phase_not_in` 控制显示
+Common fields:
 
-## 伤害抗性规则（damage_resistances / resistances）
+- `name`
+- `intent`
+- `hp`
+- `max_hp`
+- `shield`
+- `resistances`
+- `vulnerabilities`
 
-支持在这些位置定义抗性规则：
+### `objective`
 
-- `professions[].damage_resistances`
-- `items.<id>.damage_resistances`
-- `statuses.<id>.damage_resistances`
-- `encounters.<id>.enemy.resistances`
+Common fields:
 
-规则对象常用字段：
+- `label`
+- `start`
+- `target`
 
-- `type`: 伤害类型（如 `physical`, `fire`, `poison`；`any` 表示通用）
-- `type_in`: 类型列表（可选）
-- `reduce`: 平减伤
-- `percent`: 百分比减伤（总和会被系统限制）
-- `source`: 解释文本（可选）
+### `action_economy`
 
-## 被动效果生命周期（新增约定）
+Common fields:
 
-以下对象可定义 `trigger_effects`：
+- `budget`
+- `default_cost`
+- `max_actions`
 
-- `professions`
-- `items`
-- `statuses`
+### `phases.<phase_id>`
 
-每个 `trigger_effects` 元素是一个 effect 对象，额外包含：
+Common fields:
 
-- `trigger`
-- `match`（可选）
+- `label`
+- `intent`
+- `summary`
+- `goal`
+- `actions`
+- `enemy_behaviors`
 
-当前已接入的触发时机：
+### `exit_strategies`
 
-- `before_check`
-- `after_check`
-- `turn_end`
+Supported `mode` values:
 
-`match` 当前常用字段：
+- `defeat`
+- `escape`
+- `negotiate`
+- `delay`
 
-- `stat`
-- `stat_in`
-- `success`
-- `tags_any`
-- `tags_all`
+## 10. Minimum Story-Pack Checklist
 
-被动 effect 当前建议使用的 op：
+Before calling a pack ready:
 
-- `adjust`
-- `set_flag`
-- `add_item`
-- `remove_first_item`
-- `add_status`
-- `remove_status`
-- `log`
+- [ ] top-level required fields exist
+- [ ] all references resolve
+- [ ] every action `id` is unique
+- [ ] every action kind has its required config block
+- [ ] every ending reference exists
+- [ ] validation passes
 
-兼容字段：
+## 11. If You Need More Than This File
 
-- `statuses.<id>.per_turn_effects` 仍兼容，等价于 `trigger=turn_end`
-- `statuses.<id>.consume_on_check` 仍兼容，等价于 `trigger=after_check` 的自移除效果
+Read next:
 
-## 兼容性建议
-
-- 新增字段尽量“只增不改”
-- 避免删除现有字段语义
-- 新增机制优先扩展 DSL，再改引擎
+1. `backend/stories/README.md`
+2. `backend/stories/demo/story.json`

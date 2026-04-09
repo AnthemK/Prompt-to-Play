@@ -11,7 +11,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .story_interface import StoryRuntime
+from .story_interface import (
+    STORY_CAPABILITY_KEYS,
+    STORY_INTERFACE_VERSION,
+    SUPPORTED_INTERFACE_VERSIONS,
+    StoryRuntime,
+)
 from .story_runtime import StoryPackRuntime
 
 
@@ -64,7 +69,9 @@ class StoryRepository:
 
         self._stories = stories
         self._runtimes = runtimes
-        self._default_story_id = sorted(stories.keys())[0]
+        sorted_ids = sorted(stories.keys())
+        non_demo_ids = [story_id for story_id in sorted_ids if not bool(stories[story_id].get("world", {}).get("is_demo", False))]
+        self._default_story_id = non_demo_ids[0] if non_demo_ids else sorted_ids[0]
 
     def _find_story_file(self, pack_dir: Path) -> Path | None:
         """Return the canonical story file for one pack directory."""
@@ -122,6 +129,9 @@ class StoryRepository:
         if not isinstance(encounters, dict):
             raise ContentError(f"story[{story_id}] encounters must be object")
 
+        story_interface_version = self._normalize_story_interface_version(data, story_id)
+        capabilities = self._normalize_story_capabilities(data, world, encounters)
+
         world.setdefault("id", story_id)
         world.setdefault("title", story_id)
         world.setdefault("chapter_title", "")
@@ -130,8 +140,11 @@ class StoryRepository:
         world.setdefault("start_log", "你开始了冒险。")
         world.setdefault("default_shillings", 0)
         world.setdefault("corruption_limit", 10)
+        world.setdefault("is_demo", False)
         world.setdefault("doom_texts", [])
         world.setdefault("corruption_penalties", [])
+        world.setdefault("debug_trace_enabled", True)
+        world.setdefault("debug_trace_limit", 400)
 
         start_node = world["start_node"]
         if start_node not in nodes:
@@ -178,6 +191,8 @@ class StoryRepository:
 
         return {
             "id": story_id,
+            "story_interface_version": story_interface_version,
+            "capabilities": capabilities,
             "world": world,
             "stat_meta": stat_meta,
             "professions": normalized_professions,
@@ -187,6 +202,73 @@ class StoryRepository:
             "nodes": nodes,
             "encounters": encounters,
         }
+
+    def _normalize_story_interface_version(self, data: dict[str, Any], story_id: str) -> str:
+        """Validate and normalize the declared story-interface version."""
+        raw_version = str(data.get("story_interface_version", STORY_INTERFACE_VERSION)).strip() or STORY_INTERFACE_VERSION
+        normalized = raw_version.removeprefix("v")
+        if normalized not in SUPPORTED_INTERFACE_VERSIONS:
+            allowed = ", ".join(SUPPORTED_INTERFACE_VERSIONS)
+            raise ContentError(
+                f"story[{story_id}] unsupported story_interface_version={raw_version!r}; supported: {allowed}"
+            )
+        return normalized
+
+    def _infer_default_capabilities(self, world: dict[str, Any], encounters: dict[str, Any]) -> dict[str, bool]:
+        """Infer default capability flags from the story's declared content."""
+        has_action_economy = False
+        has_enemy_behaviors = False
+        has_environment = False
+
+        for encounter in encounters.values():
+            if not isinstance(encounter, dict):
+                continue
+            if isinstance(encounter.get("action_economy"), dict):
+                has_action_economy = True
+            if isinstance(encounter.get("environment"), dict) or isinstance(encounter.get("environment_rules"), list) or isinstance(
+                encounter.get("environment_impact_rules"), list
+            ):
+                has_environment = True
+
+            if isinstance(encounter.get("enemy_behaviors"), list) and encounter.get("enemy_behaviors"):
+                has_enemy_behaviors = True
+            phases = encounter.get("phases", {})
+            if isinstance(phases, dict):
+                for phase in phases.values():
+                    if isinstance(phase, dict) and isinstance(phase.get("enemy_behaviors"), list) and phase.get("enemy_behaviors"):
+                        has_enemy_behaviors = True
+
+        return {
+            "checks": True,
+            "saves": True,
+            "contests": True,
+            "damage": True,
+            "healing": True,
+            "drain": True,
+            "encounters": bool(encounters),
+            "encounter_action_economy": has_action_economy,
+            "encounter_enemy_behaviors": has_enemy_behaviors,
+            "encounter_environment": has_environment,
+            "debug_trace": bool(world.get("debug_trace_enabled", True)),
+        }
+
+    def _normalize_story_capabilities(
+        self,
+        data: dict[str, Any],
+        world: dict[str, Any],
+        encounters: dict[str, Any],
+    ) -> dict[str, bool]:
+        """Merge inferred defaults with optional pack-declared capability overrides."""
+        inferred = self._infer_default_capabilities(world, encounters)
+        declared = data.get("capabilities")
+        if not isinstance(declared, dict):
+            return inferred
+
+        normalized = dict(inferred)
+        for key in STORY_CAPABILITY_KEYS:
+            if key in declared:
+                normalized[key] = bool(declared.get(key))
+        return normalized
 
     def default_story_id(self) -> str:
         """Return the default story id used when callers omit one."""

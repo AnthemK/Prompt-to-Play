@@ -10,6 +10,25 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
+STORY_INTERFACE_VERSION = "1.1"
+SUPPORTED_INTERFACE_VERSIONS = ("1.0", "1.1")
+
+# Capability flags let story packs explicitly declare which system modules they
+# rely on. This keeps "engine capability vs. content dependency" auditable.
+STORY_CAPABILITY_KEYS = (
+    "checks",
+    "saves",
+    "contests",
+    "damage",
+    "healing",
+    "drain",
+    "encounters",
+    "encounter_action_economy",
+    "encounter_enemy_behaviors",
+    "encounter_environment",
+    "debug_trace",
+)
+
 
 class StoryRuntime(ABC):
     """Minimal runtime surface required by `GameEngine`."""

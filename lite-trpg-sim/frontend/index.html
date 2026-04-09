@@ -8,6 +8,24 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <!-- Failsafe panel shown only when the page is opened via file:// URL. -->
+    <div id="file-mode-warning" class="file-mode-warning" hidden>
+      <div class="file-mode-card">
+        <h2>检测到错误启动方式</h2>
+        <p>
+          当前页面使用了 <code>file://</code> 打开，这会导致脚本和后端接口无法正常协作，
+          因而出现“剧本列表为空”“按钮无反应”等问题。
+        </p>
+        <p>请改用以下 HTTP 地址：</p>
+        <ul>
+          <li><a id="file-mode-link-localhost" href="#">http://localhost:5173/index.html</a></li>
+          <li><a id="file-mode-link-loopback" href="#">http://127.0.0.1:5173/index.html</a></li>
+        </ul>
+        <p id="file-mode-runtime" class="hint"></p>
+        <p class="hint">建议通过 <code>launch_game.command</code> 启动，并保持启动终端窗口打开。</p>
+      </div>
+    </div>
+
     <div class="app-shell">
       <!-- Top toolbar: title, save-slot selector, and run controls. -->
       <header class="topbar">
@@ -116,6 +134,59 @@
       </div>
     </div>
 
-    <script type="module" src="./app.js"></script>
+    <script>
+      (function bootstrapFrontend() {
+        // Guardrail: this app must be served over HTTP; file:// mode is read-only shell.
+        const warning = document.getElementById("file-mode-warning");
+        const appShell = document.querySelector(".app-shell");
+        const setupOverlay = document.getElementById("setup-overlay");
+        const localhostUrl = "http://localhost:5173/index.html";
+        const loopbackUrl = "http://127.0.0.1:5173/index.html";
+        const localhostLink = document.getElementById("file-mode-link-localhost");
+        const loopbackLink = document.getElementById("file-mode-link-loopback");
+        const runtimeHint = document.getElementById("file-mode-runtime");
+        const launchContext = {
+          href: window.location.href,
+          protocol: window.location.protocol,
+          referrer: document.referrer || "(empty)",
+        };
+
+        if (window.location.protocol === "file:") {
+          warning.hidden = false;
+          if (appShell) {
+            appShell.hidden = true;
+          }
+          if (setupOverlay) {
+            setupOverlay.hidden = true;
+          }
+          localhostLink.href = localhostUrl;
+          loopbackLink.href = loopbackUrl;
+          if (runtimeHint) {
+            runtimeHint.textContent = `调试信息：protocol=${launchContext.protocol} · href=${launchContext.href}`;
+          }
+          console.warn("[LiteTRPGSim] file-mode guard triggered", launchContext);
+          window.setTimeout(() => {
+            window.location.href = localhostUrl;
+          }, 120);
+          return;
+        }
+
+        // Safari may restore a stale DOM snapshot after a prior file:// fallback.
+        // Force the normal shell back into view whenever we are on HTTP(S).
+        warning.hidden = true;
+        if (appShell) {
+          appShell.hidden = false;
+        }
+        if (setupOverlay) {
+          setupOverlay.hidden = false;
+        }
+        console.info("[LiteTRPGSim] frontend bootstrap", launchContext);
+
+        const appModule = document.createElement("script");
+        appModule.type = "module";
+        appModule.src = "./app.js";
+        document.body.appendChild(appModule);
+      })();
+    </script>
   </body>
 </html>

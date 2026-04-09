@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Lite TRPG Sim Launcher Icon Variant B</title>
+  <desc id="desc">Medieval oak-table adventure icon with compass rose, parchment map ring, and tabletop dice motif.</desc>
+
+  <defs>
+    <!-- Oak tabletop palette -->
+    <linearGradient id="oakBase" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5f3f27"/>
+      <stop offset="48%" stop-color="#6d4a2f"/>
+      <stop offset="100%" stop-color="#4d3221"/>
+    </linearGradient>
+    <linearGradient id="oakDark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3f281c"/>
+      <stop offset="100%" stop-color="#5d3c28"/>
+    </linearGradient>
+
+    <!-- Parchment and brass accents -->
+    <radialGradient id="parchment" cx="50%" cy="44%" r="65%">
+      <stop offset="0%" stop-color="#f3e4c8"/>
+      <stop offset="70%" stop-color="#e2cda6"/>
+      <stop offset="100%" stop-color="#c8aa7f"/>
+    </radialGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4ddb0"/>
+      <stop offset="55%" stop-color="#b7834f"/>
+      <stop offset="100%" stop-color="#f7e7c4"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#213033"/>
+      <stop offset="100%" stop-color="#141c1f"/>
+    </linearGradient>
+    <linearGradient id="northNeedle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cb5b3d"/>
+      <stop offset="100%" stop-color="#6e2618"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded oak board -->
+  <rect width="1024" height="1024" rx="180" fill="url(#oakBase)"/>
+
+  <!-- Oak grain lines to emphasize wooden desk feel -->
+  <g stroke="url(#oakDark)" stroke-width="7" opacity="0.33" fill="none">
+    <path d="M80 210C220 175 360 255 500 220C650 185 760 135 940 198"/>
+    <path d="M64 320C230 278 350 360 520 328C665 300 792 246 958 308"/>
+    <path d="M50 436C210 398 350 470 530 446C680 426 818 372 970 430"/>
+    <path d="M56 560C210 526 360 612 542 586C694 564 824 514 968 565"/>
+    <path d="M66 690C238 654 368 740 560 714C724 692 840 640 960 692"/>
+    <path d="M90 820C248 786 404 876 588 848C744 824 854 784 934 818"/>
+  </g>
+
+  <!-- Adventure parchment disk -->
+  <g filter="url(#shadow)">
+    <circle cx="512" cy="494" r="338" fill="url(#parchment)"/>
+    <circle cx="512" cy="494" r="338" fill="none" stroke="#8e6643" stroke-width="8" opacity="0.7"/>
+    <circle cx="512" cy="494" r="304" fill="none" stroke="url(#brass)" stroke-width="18"/>
+  </g>
+
+  <!-- Compass ring ticks -->
+  <g stroke="url(#brass)" stroke-linecap="round" opacity="0.95">
+    <path d="M512 180V232" stroke-width="13"/>
+    <path d="M512 756V808" stroke-width="13"/>
+    <path d="M198 494H250" stroke-width="13"/>
+    <path d="M774 494H826" stroke-width="13"/>
+    <path d="M289 271L325 307" stroke-width="10"/>
+    <path d="M699 681L735 717" stroke-width="10"/>
+    <path d="M289 717L325 681" stroke-width="10"/>
+    <path d="M699 307L735 271" stroke-width="10"/>
+  </g>
+
+  <!-- Stylized map routes + X mark (adventure flavor) -->
+  <g fill="none" stroke="#76563a" stroke-width="6" stroke-linecap="round" stroke-dasharray="9 12" opacity="0.58">
+    <path d="M336 560C402 488 442 578 510 512C582 444 622 506 694 442"/>
+    <path d="M352 402C420 358 460 432 524 398C588 364 626 412 688 376"/>
+  </g>
+  <g stroke="#7e4f35" stroke-width="10" stroke-linecap="round" opacity="0.75">
+    <path d="M680 614L730 664"/>
+    <path d="M730 614L680 664"/>
+  </g>
+
+  <!-- Central d20 / tabletop core -->
+  <g filter="url(#shadow)">
+    <polygon points="512,302 670,416 610,626 414,626 354,416" fill="url(#ink)" stroke="url(#brass)" stroke-width="13"/>
+    <polygon points="512,344 632,430 586,595 438,595 392,430" fill="#203135" stroke="#4a5c60" stroke-width="5"/>
+    <path d="M512 344V595M392 430H632M438 595L512 430L586 595" stroke="#93a6ab" stroke-opacity="0.6" stroke-width="4" fill="none"/>
+    <text x="512" y="520" text-anchor="middle" fill="#f5e8cf" font-size="148" font-family="Georgia, 'Times New Roman', serif" font-weight="700">20</text>
+  </g>
+
+  <!-- Compass rose overlaid to strengthen adventure symbolism -->
+  <g filter="url(#shadow)">
+    <path d="M512 230L536 384L512 540L488 384Z" fill="url(#northNeedle)"/>
+    <path d="M512 758L534 620L512 538L490 620Z" fill="#2d4044"/>
+    <path d="M248 494L408 518L512 494L408 470Z" fill="#2d4044"/>
+    <path d="M776 494L618 518L512 494L618 470Z" fill="#2d4044"/>
+    <circle cx="512" cy="494" r="26" fill="#f1dfbd" stroke="#7f5c3e" stroke-width="6"/>
+  </g>
+
+  <!-- Tabletop dice marker near bottom-right -->
+  <g filter="url(#shadow)">
+    <rect x="700" y="700" width="102" height="102" rx="16" fill="#172225" stroke="#9f7b55" stroke-width="7" transform="rotate(11 751 751)"/>
+    <circle cx="736" cy="732" r="8" fill="#e8d8bb"/>
+    <circle cx="778" cy="747" r="8" fill="#e8d8bb"/>
+    <circle cx="724" cy="774" r="8" fill="#e8d8bb"/>
+    <circle cx="766" cy="789" r="8" fill="#e8d8bb"/>
+  </g>
+
+  <text x="512" y="914" text-anchor="middle" fill="#f1dfbc" font-size="56" letter-spacing="6" font-family="Palatino, Georgia, serif">LITE TRPG</text>
+</svg>

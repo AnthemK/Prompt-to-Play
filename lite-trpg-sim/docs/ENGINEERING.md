@@ -1,106 +1,181 @@
 # Engineering Standards
 
-本文档记录当前仓库的工程约束，用于减少技术债和 review 成本。
+Audience: developers changing code, system interfaces, tooling, or review practices.  
+Not for players; player-facing instructions live in the project root `README.md`.
 
-## 1. 核心原则
+## Purpose
 
-- 先搭好系统，再堆故事内容
-- 代码改动必须同步更新描述
-- 系统能力优先做成通用抽象，不写题材特判
-- 文件名、函数名、变量名必须表达真实语义
-- 保持仓库可 review、可定位、可追踪
+This document records long-lived engineering rules for the repository.
 
-## 2. 文档维护纪律
+Use it to answer:
 
-每次改动至少同步检查这些层级：
+- What coding discipline does this project require?
+- What must stay documented and commented?
+- What naming patterns should we preserve?
+- What should be checked before code is considered reviewable?
 
-### 代码层
+Do not use this file as a stage report or milestone checklist.  
+Stage-specific acceptance belongs in `STAGE_DELIVERY.md`.
 
-- 模块说明
-- 关键函数/类的 docstring 或注释
-- 复杂分支或状态变更的解释性注释
+## Core Engineering Principles
 
-### 接口层
+- Build reusable system capability before scaling content.
+- Keep story logic out of the frontend.
+- Keep setting-specific hacks out of the engine.
+- Update explanations when code changes.
+- Prefer readable abstractions over clever shortcuts.
+- Keep the codebase easy to review, trace, and hand off.
 
-- 如果影响 story pack 字段，更新：
-  - `backend/stories/README.md`
-  - `backend/stories/STORY_INTERFACE.md`
+## Documentation Discipline
 
-### 项目层
+Every meaningful system change should trigger a documentation sweep.
 
-- `README.md`：面向使用者与贡献者
-- `Memory.md`：面向当前迭代的工作记忆
-- `Memory.md` 需包含关键目录内容快照，随主要改动及时同步
-- `TODO.md`：面向后续路线
-- `docs/*.md`：面向中长期维护的技术说明
+### Code-level documentation
 
-## 3. 注释标准
+Keep these synchronized:
 
-### 什么时候必须写注释
+- module docstrings
+- public function docstrings
+- comments around complex state transitions
+- comments around compatibility or migration logic
+- comments at frontend/backend boundaries
 
-- 模块入口文件
-- 公共函数
-- 状态结构修改点
-- 复杂 effect / 结算 / 分支逻辑
-- 兼容层与迁移逻辑
-- 前端与后端交界处
+### Interface-level documentation
 
-### 好注释的要求
+If a change affects story-pack authoring, update:
 
-- 解释“为什么”与“约束”
-- 说明输入输出语义
-- 说明这个抽象的责任边界
+- `backend/stories/README.md`
+- `backend/stories/STORY_INTERFACE.md`
 
-### 坏注释示例
+### Project-level documentation
 
-- “给变量赋值”
-- “循环数组”
-- 与代码字面含义完全重复
+Check the correct audience-specific file:
 
-## 4. 命名标准
+- `README.md`
+  - player and normal-user guide
+- `MEMORY.md`
+  - current handoff snapshot
+- `TODO.md`
+  - forward roadmap only
+- `docs/TECHNICAL_OVERVIEW.md`
+  - technical doc index
+- `docs/*.md`
+  - long-lived technical reference
 
-- `story_id`：故事包标识
-- `world_id`：世界视图或存档映射标识
-- `state`：运行态快照
-- `view`：返回给前端的只读投影视图
-- `resolution`：统一结算结果
-- `encounter`：遭遇运行态，不要混用为模板定义
-- `template`：故事包中的静态模板
+## Commenting Standard
 
-如果一个名字不能明确区分“运行态”和“配置态”，应优先重命名。
+### Comments are required for
 
-## 5. 新功能提交流程
+- module entry files
+- public functions
+- state-shape mutation points
+- complex resolution and effect flows
+- compatibility bridges and migration logic
+- backend/frontend integration points
 
-新增系统能力时建议按下面顺序：
+### Good comments should explain
 
-1. 明确抽象边界
-2. 明确 state/save/view 是否需要扩展
-3. 明确 story DSL 是否需要扩展
-4. 修改运行时代码
-5. 补注释与技术文档
-6. 补最小测试
-7. 更新 README / Memory / TODO
+- why this logic exists
+- what constraint it is preserving
+- what the input/output contract means
+- where the responsibility boundary ends
 
-## 6. 技术债处理策略
+### Frontend state and visibility rule
 
-- 不累计到“最后一起清理”
-- 每做一个系统块，至少顺手处理相邻模块的命名、注释、文档、测试
-- 如果旧兼容层明显阻碍新架构，应优先记录并计划移除
-- 如果一个抽象已经失真，应重构，不要继续在上面打补丁
+- If a component uses the HTML `hidden` attribute for visibility, CSS must preserve that semantic.
+- If the component also declares its own `display` mode, add an explicit selector such as:
+  - `[hidden] { display: none; }`
+  - or `.component[hidden] { display: none; }`
+- Do not patch around hidden-state bugs with extra JavaScript until CSS semantics have been checked first.
 
-## 7. Review 关注点
+### Bad comments to avoid
 
-review 时优先看：
+- comments that repeat the literal code
+- comments that only narrate syntax
+- stale comments that describe removed behavior
 
-1. 这个改动是不是在系统层写了题材特判
-2. state/save/view 是否仍然清晰一致
-3. 结果是否可解释
-4. story DSL 是否被无意义地复杂化
-5. 注释和文档是否和实现一致
+## Naming Standard
 
-## 8. 当前特别要求
+Prefer names that distinguish runtime data from static configuration.
 
-- 所有核心代码文件都应有模块说明
-- 公共函数与核心内部函数都应有 docstring 或等价说明
-- `backend/stories/README.md` 需要持续维护，不能过期
-- `Memory.md` 只保留工作记忆，不承担全部技术文档职责
+Stable vocabulary:
+
+- `story_id`
+  - story-pack identifier
+- `world_id`
+  - world/save mapping identifier
+- `state`
+  - authoritative runtime snapshot
+- `view`
+  - frontend-facing read-only projection
+- `resolution`
+  - structured outcome payload
+- `encounter_runtime`
+  - active runtime encounter block
+- `encounter_template`
+  - static story-defined encounter template
+
+Avoid these mistakes:
+
+- using `encounter` for both runtime and template in the same scope
+- mutating `view` as if it were authoritative state
+- naming story content as if it were engine-owned system data
+
+## Change Workflow
+
+Recommended order for non-trivial system changes:
+
+1. define the boundary
+2. decide whether `state`, `view`, or `save_data` changes
+3. decide whether the story contract changes
+4. update runtime code
+5. update comments and technical docs
+6. add or refresh tests
+7. update `MEMORY.md` and `TODO.md` if priorities or project shape changed
+
+## Review Checklist
+
+Before calling a change ready for review, verify:
+
+1. no setting-specific logic leaked into system modules
+2. `state`, `view`, and `save_data` still tell a coherent story
+3. player-visible results remain explainable
+4. story DSL complexity did not grow without clear value
+5. comments and docs match implementation
+6. important bugs can still be traced through `debug_trace`
+
+## Tooling Check
+
+Run this before wrapping a meaningful code change:
+
+```bash
+python3 backend/tools/review_guard.py --doc-sync
+```
+
+Use this check to enforce that code changes are accompanied by the right documentation updates.
+
+## Technical Debt Rule
+
+Do not postpone all cleanup to a later "polish" pass.
+
+Instead:
+
+- clean nearby naming issues while touching a module
+- add missing comments while context is fresh
+- remove misleading compatibility leftovers when safe
+- record real future work in `TODO.md`, not as hidden debt in code
+
+## When Updating This Document
+
+Update this file when you change:
+
+- repository-wide review standards
+- comment or naming rules
+- documentation sync rules
+- long-lived development workflow expectations
+
+Do not put here:
+
+- player instructions
+- stage acceptance results
+- one-off milestone conclusions

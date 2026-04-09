@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from .content import StoryRepository
+from .rules import debug_event, ensure_debug_trace
 from .story_interface import StoryRuntime
 
 SAVE_SCHEMA_VERSION = 3
@@ -81,23 +82,34 @@ class GameEngine:
 
         session_id = self._create_session_id()
         state = runtime.create_new_state(session_id, player_name, profession_id, SAVE_SCHEMA_VERSION)
+        ensure_debug_trace(state)
+        debug_event(
+            state,
+            event="session.created",
+            message="Created new game session.",
+            payload={
+                "session_id": session_id,
+                "story_id": chosen_story_id,
+                "profession_id": profession_id,
+            },
+        )
         self.sessions[session_id] = state
         return self.view(session_id)
 
     def view(self, session_id: str) -> dict[str, Any]:
         """Project one session state into the frontend's view model."""
-        state = self._state_or_error(session_id)
-        story_id = str(state.get("story_id") or self.repository.default_story_id())
+        runtime_state = self._state_or_error(session_id)
+        story_id = str(runtime_state.get("story_id") or self.repository.default_story_id())
         runtime = self._runtime_for_story(story_id)
 
-        scene = runtime.scene_view(state)
+        scene_view = runtime.scene_view(runtime_state)
 
-        player = state["player"]
+        player = runtime_state["player"]
         return {
             "session_id": session_id,
             "story_id": story_id,
             "world": runtime.world_view(),
-            "scene": scene,
+            "scene": scene_view,
             "player": {
                 "name": player["name"],
                 "profession_id": player["profession_id"],
@@ -105,22 +117,23 @@ class GameEngine:
                 "stats": player["stats"],
                 "hp": player["hp"],
                 "max_hp": player["max_hp"],
+                "shield": int(player.get("shield", 0)),
                 "corruption": player["corruption"],
                 "corruption_limit": runtime.corruption_limit(),
                 "shillings": player["shillings"],
             },
-            "inventory": runtime.inventory_view(state),
-            "statuses": runtime.statuses_view(state),
-            "encounter": copy.deepcopy(state.get("encounter")),
+            "inventory": runtime.inventory_view(runtime_state),
+            "statuses": runtime.statuses_view(runtime_state),
+            "encounter": copy.deepcopy(runtime_state.get("encounter")),
             "progress": {
-                "doom": state["progress"]["doom"],
-                "turns": state["progress"]["turns"],
-                "node_id": state["progress"]["node_id"],
+                "doom": runtime_state["progress"]["doom"],
+                "turns": runtime_state["progress"]["turns"],
+                "node_id": runtime_state["progress"]["node_id"],
             },
-            "recent_log": state["log"][-12:],
-            "last_outcome": state.get("last_outcome"),
-            "game_over": state.get("game_over", False),
-            "ending": state.get("ending"),
+            "recent_log": runtime_state["log"][-12:],
+            "last_outcome": runtime_state.get("last_outcome"),
+            "game_over": runtime_state.get("game_over", False),
+            "ending": runtime_state.get("ending"),
         }
 
     def act(self, session_id: str, action_id: str) -> dict[str, Any]:
@@ -128,6 +141,12 @@ class GameEngine:
         state = self._state_or_error(session_id)
         story_id = str(state.get("story_id") or self.repository.default_story_id())
         runtime = self._runtime_for_story(story_id)
+        debug_event(
+            state,
+            event="action.received",
+            message="Engine received one action request.",
+            payload={"session_id": session_id, "action_id": action_id},
+        )
         runtime.apply_action(state, action_id)
         return self.view(session_id)
 
@@ -166,9 +185,31 @@ class GameEngine:
         state["session_id"] = session_id
         state["story_id"] = story_id
         runtime.repair_loaded_state(state, SAVE_SCHEMA_VERSION)
+        ensure_debug_trace(state)
+        debug_event(
+            state,
+            event="session.loaded",
+            message="Loaded save into a new in-memory session.",
+            payload={"session_id": session_id, "story_id": story_id},
+        )
 
         self.sessions[session_id] = state
         return self.view(session_id)
+
+    def debug_trace(self, session_id: str, limit: int = 200) -> dict[str, Any]:
+        """Return backend-only debug trace entries for diagnostics."""
+        state = self._state_or_error(session_id)
+        trace = ensure_debug_trace(state)
+        safe_limit = max(1, min(2000, int(limit)))
+        entries = [entry for entry in trace.get("entries", []) if isinstance(entry, dict)]
+        return {
+            "session_id": session_id,
+            "story_id": str(state.get("story_id") or self.repository.default_story_id()),
+            "node_id": str(state.get("progress", {}).get("node_id", "")),
+            "turns": int(state.get("progress", {}).get("turns", 0)),
+            "total_entries": len(entries),
+            "entries": entries[-safe_limit:],
+        }
 
     def delete(self, session_id: str) -> None:
         """Delete a session if it exists."""

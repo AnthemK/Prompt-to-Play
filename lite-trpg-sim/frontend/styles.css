@@ -45,6 +45,50 @@ select {
   font: inherit;
 }
 
+/* File-mode guard panel for accidental file:// opening. */
+.file-mode-warning {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+/* Preserve native hidden semantics even when the component has an explicit display mode. */
+.file-mode-warning[hidden] {
+  display: none;
+}
+
+.file-mode-card {
+  width: min(760px, 100%);
+  background: linear-gradient(180deg, rgba(31, 36, 34, 0.96), rgba(25, 29, 27, 0.98));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  line-height: 1.65;
+}
+
+.file-mode-card h2 {
+  margin-bottom: 10px;
+}
+
+.file-mode-card p {
+  margin-bottom: 8px;
+}
+
+.file-mode-card ul {
+  margin: 8px 0 12px;
+  padding-left: 18px;
+}
+
+.file-mode-card a {
+  color: #f1c4ac;
+}
+
+.file-mode-card .hint {
+  color: var(--text-muted);
+}
+
 .app-shell {
   max-width: 1320px;
   margin: 0 auto;

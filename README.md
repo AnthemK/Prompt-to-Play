@@ -48,6 +48,10 @@ Some projects may be highly polished prototypes, while others may be rough exper
 
 Each game should live in its own subdirectory with its own local documentation when needed.
 
+Cross-project agent collaboration notes should live in:
+
+- `Skills/` (shared playbooks, stage updates, and reusable practices)
+
 Typical contents may include:
 
 - source code
@@ -56,6 +60,7 @@ Typical contents may include:
 - project-specific README files
 - AI memory / working notes
 - screenshots or demo notes
+- shared multi-agent skill notes under `Skills/`
 
 The top-level repository serves as the umbrella archive for all such projects.
 

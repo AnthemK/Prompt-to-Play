@@ -38,6 +38,8 @@ class StoryPackRuntime(StoryRuntime):
             "chapter_title": world.get("chapter_title", ""),
             "intro": world.get("intro", ""),
             "tone": world.get("tone", ""),
+            "story_interface_version": str(self.content.get("story_interface_version", "1.1")),
+            "capabilities": copy.deepcopy(self.content.get("capabilities", {})),
         }
 
     def meta_payload(self) -> dict[str, Any]:
@@ -47,6 +49,8 @@ class StoryPackRuntime(StoryRuntime):
             "stats": self.content["stat_meta"],
             "professions": self.content["professions"],
             "items": self.content["items"],
+            "story_interface_version": str(self.content.get("story_interface_version", "1.1")),
+            "capabilities": copy.deepcopy(self.content.get("capabilities", {})),
         }
 
     def _initial_inventory(self, profession: dict[str, Any]) -> dict[str, int]:
@@ -84,6 +88,7 @@ class StoryPackRuntime(StoryRuntime):
                 "stats": copy.deepcopy(profession.get("stats", {})),
                 "max_hp": max_hp,
                 "hp": max_hp,
+                "shield": 0,
                 "corruption": 0,
                 "shillings": int(world.get("default_shillings", 0)),
                 "inventory": self._initial_inventory(profession),
@@ -101,6 +106,11 @@ class StoryPackRuntime(StoryRuntime):
             "last_outcome": None,
             "game_over": False,
             "ending": None,
+            "debug_trace": {
+                "enabled": bool(world.get("debug_trace_enabled", True)),
+                "max_entries": max(50, int(world.get("debug_trace_limit", 400))),
+                "entries": [],
+            },
         }
 
     def repair_loaded_state(self, state: dict[str, Any], schema_version: int) -> None:
@@ -117,6 +127,7 @@ class StoryPackRuntime(StoryRuntime):
         player.setdefault("stats", {})
         player.setdefault("max_hp", 10)
         player.setdefault("hp", player.get("max_hp", 10))
+        player.setdefault("shield", 0)
         player.setdefault("corruption", 0)
         player.setdefault("shillings", int(self.content.get("world", {}).get("default_shillings", 0)))
         player.setdefault("inventory", {})
@@ -133,6 +144,14 @@ class StoryPackRuntime(StoryRuntime):
         state.setdefault("last_outcome", None)
         state.setdefault("game_over", False)
         state.setdefault("ending", None)
+        state.setdefault(
+            "debug_trace",
+            {
+                "enabled": bool(self.content.get("world", {}).get("debug_trace_enabled", True)),
+                "max_entries": max(50, int(self.content.get("world", {}).get("debug_trace_limit", 400))),
+                "entries": [],
+            },
+        )
 
     def world_view(self) -> dict[str, Any]:
         """Return the frontend header fields for the current world."""

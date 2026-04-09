@@ -1,10 +1,38 @@
 # Runtime State And Save Model
 
-本文档记录当前系统层最重要的数据模型，方便 review、调试和后续扩展。
+Audience: developers debugging runtime behavior, save compatibility, and frontend payload shape.  
+Not for players; player-facing instructions live in the project root `README.md`.
 
-## 1. 运行态 `state`
+## Purpose
 
-运行态由后端持有，前端不会直接修改。
+This document is the data-model reference for the live game session.
+
+Use it to answer:
+
+- What does backend runtime `state` contain?
+- What does the frontend `view` contain?
+- What does a canonical save payload contain?
+- Which fields are runtime-only, saveable, or presentation-only?
+
+If you need module ownership and feature-placement guidance, read `ARCHITECTURE.md`.
+
+## Data Model Overview
+
+There are three main shapes:
+
+1. `state`
+   - authoritative backend runtime
+2. `view`
+   - frontend-facing projection returned by the engine
+3. `save_data`
+   - canonical import/export payload
+
+The frontend should render `view` and persist `save_data`.  
+The frontend should not mutate `state` directly.
+
+## 1. Runtime State `state`
+
+Top-level shape:
 
 ```text
 state
@@ -16,12 +44,30 @@ state
   progress
   log
   encounter
+  debug_trace
   last_outcome
   game_over
   ending
 ```
 
-## 2. `player`
+Field notes:
+
+- `schema_version`
+  - backend-owned migration version for runtime/save compatibility
+- `session_id`
+  - local runtime id used by API paths
+- `story_id`
+  - active story pack id
+- `log`
+  - rolling narrative/event history
+- `encounter`
+  - active encounter runtime, or `None`
+- `last_outcome`
+  - latest structured result summary shown after one action
+- `ending`
+  - ending payload after game over, or `None`
+
+## 2. Player Block `player`
 
 ```text
 player
@@ -31,19 +77,25 @@ player
   stats
   max_hp
   hp
+  shield
   corruption
   shillings
   inventory
   statuses
 ```
 
-说明：
+Field notes:
 
-- `stats` 是当前的基础属性字典
-- `inventory` 是 `{item_id: qty}`
-- `statuses` 目前是 `status_id[]`
+- `stats`
+  - current stat dictionary used by checks and contests
+- `shield`
+  - temporary buffer that absorbs compatible damage before `hp`
+- `inventory`
+  - authoritative storage, currently `{item_id: qty}`
+- `statuses`
+  - currently `status_id[]`; story/runtime lookup resolves their details
 
-## 3. `progress`
+## 3. Progress Block `progress`
 
 ```text
 progress
@@ -54,16 +106,20 @@ progress
   flags
 ```
 
-说明：
+Field notes:
 
-- `node_id` 是当前剧情节点
-- `doom` 是全局压力值
-- `turns` 是统一回合计数
-- `flags` 是临时的轻量全局事实记录
+- `node_id`
+  - current narrative node id
+- `doom`
+  - global pressure/campaign stress value
+- `turns`
+  - coarse global turn counter
+- `flags`
+  - lightweight persistent facts used for branching
 
-## 4. `encounter`
+## 4. Encounter Runtime `encounter`
 
-当前遭遇态已经是正式字段：
+`encounter` is runtime state, not the original story template.
 
 ```text
 encounter
@@ -81,17 +137,70 @@ encounter
   pressure_max
   enemy
   objective
+  environment
+  environment_meta
+  environment_rules
+  environment_impact_rules
   flags
+  economy
+  last_enemy_behavior
+  enemy_behavior_cooldowns
 ```
 
-说明：
+Key runtime meanings:
 
-- 这是运行态，不是故事模板
-- 遭遇模板来自 `story.json` 顶层 `encounters`
-- 当前关键动态字段：`round / pressure / phase / enemy.hp / objective.progress`
-- 当前敌方支持：`enemy.resistances`（伤害抗性规则）
+- `round`
+  - current encounter round counter
+- `phase`
+  - current phase id
+- `pressure`
+  - shared encounter pressure meter when configured
+- `enemy`
+  - active enemy runtime block
+- `objective`
+  - progress data for non-kill goals
+- `environment`
+  - current mutable environment values
+- `economy`
+  - action-spend data for the player turn
 
-## 5. `last_outcome`
+### `enemy`
+
+Common runtime fields:
+
+```text
+enemy
+  id
+  name
+  hp
+  max_hp
+  shield
+  resistances
+  vulnerabilities
+  intent
+```
+
+Notes:
+
+- `resistances` and `vulnerabilities` are consulted by the unified damage pipeline.
+- `shield` follows the same absorb-first pattern as player shield.
+
+### `economy`
+
+```text
+economy
+  budget
+  spent
+  actions_taken
+```
+
+Notes:
+
+- `budget` tracks available action resources for the round.
+- `spent` tracks what the player has already consumed.
+- `actions_taken` supports turn-flow and cap logic.
+
+## 5. Last Outcome `last_outcome`
 
 ```text
 last_outcome
@@ -102,15 +211,44 @@ last_outcome
   changes
 ```
 
-说明：
+Field notes:
 
-- `roll` 是旧前端兼容字段
-- `resolution` 是统一结算结构，未来会逐步成为主字段
-- `changes` 是展示层的短摘要列表
+- `summary`
+  - short outcome line for the main panel
+- `detail`
+  - longer explanation text
+- `roll`
+  - legacy compatibility field for older frontend rendering
+- `resolution`
+  - canonical structured result payload
+- `changes`
+  - compact human-readable change list for quick scanning
 
-## 6. `resolution`
+## 6. Debug Trace `debug_trace`
 
-统一结算结构当前关键字段：
+Backend-only diagnostics:
+
+```text
+debug_trace
+  enabled
+  max_entries
+  entries[]
+    ts
+    level
+    event
+    message
+    payload
+```
+
+Notes:
+
+- Not intended for the player UI.
+- Used to diagnose rule execution, state drift, and encounter bugs.
+- Exposed through `GET /api/game/{session_id}/debug?limit=200`.
+
+## 7. Unified Resolution `resolution`
+
+Current canonical fields:
 
 ```text
 resolution
@@ -127,6 +265,12 @@ resolution
   amount
   applied
   mitigated
+  amplified
+  shield_absorbed
+  shield_before
+  shield_after
+  impact_kind
+  drain_recovered
   damage_type
   target
   target_label
@@ -137,12 +281,47 @@ resolution
   opponent_roll
   opponent_modifier
   opponent_total
+  active_side
+  passive_side
+  tie
+  tie_policy
+  margin
+  explain
+  system
   effects
 ```
 
+This structure is shared by:
+
+- `check`
+- `save`
+- `contest`
+- `damage`
+- `healing`
+- `drain`
+- system-generated encounter transitions
+
+### `explain`
+
+```text
+explain
+  summary
+  fragments[]
+    code
+    text
+    data
+```
+
+Notes:
+
+- `summary`
+  - one-line readable explanation
+- `fragments`
+  - explanation atoms suitable for debug or richer frontend rendering later
+
 ### `effects`
 
-当前已支持的 effect kind：
+Current common effect kinds pushed into `resolution.effects`:
 
 - `resource`
 - `status`
@@ -151,9 +330,53 @@ resolution
 - `encounter`
 - `damage`
 
-## 7. 存档结构
+### Damage pipeline order
 
-后端导出的 canonical save payload：
+Current damage application order:
+
+1. declare raw damage
+2. apply resistance mitigation
+3. apply vulnerability amplification
+4. absorb with shield
+5. apply remaining loss to the target resource
+
+## 8. Frontend View `view`
+
+The engine projects runtime `state` into one frontend-facing payload:
+
+```text
+view
+  session_id
+  story_id
+  world
+  scene
+  player
+  inventory
+  statuses
+  encounter
+  progress
+  recent_log
+  last_outcome
+  game_over
+  ending
+```
+
+Important distinction:
+
+- `view.player`
+  - presentation-safe subset of player state
+- `view.scene`
+  - current node text and actions after runtime interpretation
+- `view.encounter`
+  - copied runtime block safe for rendering
+- `view.recent_log`
+  - truncated recent history, not the full backend log
+
+The frontend should treat `view` as read-only render input.
+
+## 9. Canonical Save Payload `save_data`
+
+Backend-generated save shape:
 
 ```text
 save_data
@@ -164,15 +387,15 @@ save_data
   state
 ```
 
-说明：
+Notes:
 
-- 前端只存取整个 `save_data`
-- 前端不应自行拼装 `state`
-- 兼容迁移应该在后端完成
+- `state` is the authoritative snapshot.
+- `schema_version` belongs to backend migration logic.
+- Story selection during load should be inferred from `story_id`, then `state.story_id`, then `world_id`.
 
-## 8. 前端本地槽位结构
+## 10. Frontend Local Save Store
 
-前端 `localStorage` 中保存：
+The browser stores save slots separately from the backend runtime:
 
 ```text
 saveStore
@@ -181,12 +404,24 @@ saveStore
   autosave
 ```
 
-槽位条目除了 `save_data` 之外，还缓存标题、角色名、回合数等展示信息，便于 setup overlay 快速显示。
+Notes:
 
-## 9. 后续扩展建议
+- Each slot caches display metadata for fast setup-screen rendering.
+- The authoritative imported/exported content is still the backend `save_data`.
+- Frontend-local save layout may change without changing backend runtime shape, as long as `save_data` stays intact.
 
-如果继续扩 encounter / growth / faction 等系统，建议优先：
+## 11. Update Rules
 
-1. 先在本文件登记 state/save/view 的目标形态
-2. 再修改代码和 story DSL
-3. 最后补测试与作者文档
+Update this document when you change:
+
+- runtime field names
+- save payload shape
+- view payload shape
+- resolution fields
+- debug trace contract
+
+Do not use this document as:
+
+- a feature roadmap
+- a system-boundary guide
+- a player rules reference

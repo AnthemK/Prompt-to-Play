@@ -20,6 +20,7 @@ PORT = 8787
 ENGINE = GameEngine()
 
 GAME_VIEW_RE = re.compile(r"^/api/game/([a-zA-Z0-9]+)/view$")
+GAME_DEBUG_RE = re.compile(r"^/api/game/([a-zA-Z0-9]+)/debug$")
 GAME_ACTION_RE = re.compile(r"^/api/game/([a-zA-Z0-9]+)/action$")
 GAME_SAVE_RE = re.compile(r"^/api/game/([a-zA-Z0-9]+)/save$")
 GAME_DELETE_RE = re.compile(r"^/api/game/([a-zA-Z0-9]+)$")
@@ -28,7 +29,7 @@ GAME_DELETE_RE = re.compile(r"^/api/game/([a-zA-Z0-9]+)$")
 class Handler(BaseHTTPRequestHandler):
     """Serve the small JSON API consumed by the browser frontend."""
 
-    server_version = "LiteTRPGSimServer/1.1"
+    server_version = "LiteTRPGSimServer/1.2"
 
     def log_message(self, format: str, *args: Any) -> None:
         """Silence the default access log to keep local output readable."""
@@ -95,6 +96,22 @@ class Handler(BaseHTTPRequestHandler):
                 self._json_response({"ok": False, "error": "session_not_found"}, status=404)
                 return
             self._json_response({"ok": True, "data": view})
+            return
+
+        match = GAME_DEBUG_RE.match(path)
+        if match:
+            session_id = match.group(1)
+            limit_raw = query.get("limit", ["200"])[0]
+            try:
+                limit = int(limit_raw)
+            except (TypeError, ValueError):
+                limit = 200
+            try:
+                debug_data = ENGINE.debug_trace(session_id, limit=limit)
+            except KeyError:
+                self._json_response({"ok": False, "error": "session_not_found"}, status=404)
+                return
+            self._json_response({"ok": True, "data": debug_data})
             return
 
         self._json_response({"ok": False, "error": "not_found"}, status=404)

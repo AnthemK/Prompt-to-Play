@@ -7,6 +7,7 @@
 const API_BASE = "http://127.0.0.1:8787";
 const SAVE_STORE_KEY = "lite_trpg_sim_save_store_v2";
 const ACTIVE_SLOT_KEY = "lite_trpg_sim_active_slot_v2";
+const FRONTEND_DEBUG_KEY = "lite_trpg_sim_frontend_debug_v1";
 const SLOT_IDS = ["1", "2", "3", "4", "5"];
 
 let meta = null;
@@ -48,6 +49,34 @@ const els = {
   continueBtn: document.getElementById("continue-btn"),
   setupStatus: document.getElementById("setup-status"),
 };
+
+/** Persist a small rolling frontend debug buffer for later bug reports. */
+function pushFrontendDebug(label, payload = {}) {
+  const entry = {
+    label,
+    payload,
+    timestamp: new Date().toISOString(),
+  };
+  let buffer = [];
+  try {
+    const raw = localStorage.getItem(FRONTEND_DEBUG_KEY);
+    buffer = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(buffer)) {
+      buffer = [];
+    }
+  } catch {
+    buffer = [];
+  }
+
+  buffer.push(entry);
+  buffer = buffer.slice(-30);
+  try {
+    localStorage.setItem(FRONTEND_DEBUG_KEY, JSON.stringify(buffer));
+  } catch {
+    // Debug buffering must stay best-effort and never block play.
+  }
+  console.info(`[LiteTRPGSim] ${label}`, payload);
+}
 
 /** Render setup-screen status text without throwing alerts. */
 function setSetupStatus(message, isError = false) {
@@ -390,7 +419,10 @@ function renderOutcome(outcome) {
   } else if (resolution?.label) {
     const statusText =
       resolution.success === true ? "成功" : resolution.success === false ? "失败" : "完成";
-    blocks.push(`<div class="roll-line">结算：${escapeHtml(resolution.label)} (${statusText})</div>`);
+    const explainSummary =
+      typeof resolution?.explain?.summary === "string" ? resolution.explain.summary.trim() : "";
+    const titleLine = explainSummary || `结算：${resolution.label} (${statusText})`;
+    blocks.push(`<div class="roll-line">${escapeHtml(titleLine)}</div>`);
 
     if ((resolution.kind === "save" || resolution.kind === "check") && Number.isFinite(resolution.roll)) {
       blocks.push(
@@ -404,19 +436,39 @@ function renderOutcome(outcome) {
       const opponentLine = `${escapeHtml(opponentLabel)}：d20=${resolution.opponent_roll} + 修正${resolution.opponent_modifier >= 0 ? "+" : ""}${resolution.opponent_modifier} = ${resolution.opponent_total}`;
       blocks.push(`<div class="roll-line">${playerLine}</div>`);
       blocks.push(`<div class="roll-line">${opponentLine}</div>`);
+      if (resolution.active_side) {
+        const activeLabel = resolution.active_side === "player" ? "你" : escapeHtml(opponentLabel);
+        blocks.push(`<div class="roll-line">主动方：${activeLabel}</div>`);
+      }
+      if (resolution.tie === true) {
+        blocks.push(
+          `<div class="roll-line">平局判定：${escapeHtml(resolution.tie_policy || "player_wins")} · 结果边际 ${Number(
+            resolution.margin || 0
+          )}</div>`
+        );
+      }
     }
 
-    if (resolution.kind === "damage") {
+    if (["damage", "healing", "drain"].includes(resolution.kind)) {
       const amount = Number(resolution.amount || 0);
       const mitigated = Number(resolution.mitigated || 0);
+      const amplified = Number(resolution.amplified || 0);
+      const shieldAbsorbed = Number(resolution.shield_absorbed || 0);
       const applied = Number(resolution.applied || 0);
+      const impactKind = resolution.impact_kind || resolution.kind || "damage";
       const damageType = resolution.damage_type || "physical";
       const targetLabel = resolution.target === "enemy" ? resolution.target_label || "敌方" : "你";
+      const titleMap = { damage: "伤害", healing: "治疗", drain: "吸取" };
       blocks.push(
-        `<div class="roll-line">伤害类型：${escapeHtml(damageType)} · 目标：${escapeHtml(
+        `<div class="roll-line">${escapeHtml(titleMap[impactKind] || "结算")}类型：${escapeHtml(
+          damageType
+        )} · 目标：${escapeHtml(
           targetLabel
-        )} · 宣告：${amount} · 减伤：${mitigated} · 生效：${applied}</div>`
+        )} · 宣告：${amount} · 减伤：${mitigated} · 易伤增幅：${amplified} · 护盾吸收：${shieldAbsorbed} · 生效：${applied}</div>`
       );
+      if (resolution.kind === "drain") {
+        blocks.push(`<div class="roll-line">吸取回复：${Number(resolution.drain_recovered || 0)}</div>`);
+      }
     }
 
     if (Array.isArray(resolution.breakdown) && resolution.breakdown.length) {
@@ -450,9 +502,37 @@ function renderActions(view) {
     const button = document.createElement("button");
     button.className = "action-btn";
     button.disabled = view.game_over;
+    const hintParts = [];
+    if (action.hint) {
+      hintParts.push(action.hint);
+    }
+    if (action.cost && typeof action.cost === "object") {
+      const parts = [];
+      const main = Number(action.cost.main || 0);
+      const bonus = Number(action.cost.bonus || 0);
+      const move = Number(action.cost.move || 0);
+      if (main > 0) {
+        parts.push(`主${main}`);
+      }
+      if (bonus > 0) {
+        parts.push(`副${bonus}`);
+      }
+      if (move > 0) {
+        parts.push(`移${move}`);
+      }
+      if (parts.length) {
+        hintParts.push(`消耗 ${parts.join("/")}`);
+      }
+    }
+    if (action.turn_flow === "continue") {
+      hintParts.push("可继续行动");
+    } else if (action.turn_flow === "end") {
+      hintParts.push("将结束回合");
+    }
+    const mergedHint = hintParts.join(" · ");
     button.innerHTML = `
       <div class="action-label">${escapeHtml(action.label)}</div>
-      <div class="action-hint">${escapeHtml(action.hint || "")}</div>
+      <div class="action-hint">${escapeHtml(mergedHint)}</div>
     `;
     button.addEventListener("click", async () => {
       try {
@@ -506,6 +586,19 @@ function renderEncounter(view) {
     blocks.push(`<div>${escapeHtml(pressureLabel)}：${escapeHtml(pressureValue)}</div>`);
   }
 
+  if (encounter.economy && typeof encounter.economy === "object") {
+    const budget = encounter.economy.budget || {};
+    const spent = encounter.economy.spent || {};
+    const remMain = Math.max(0, Number(budget.main || 0) - Number(spent.main || 0));
+    const remBonus = Math.max(0, Number(budget.bonus || 0) - Number(spent.bonus || 0));
+    const remMove = Math.max(0, Number(budget.move || 0) - Number(spent.move || 0));
+    blocks.push(
+      `<div>行动预算：主 ${remMain}/${Number(budget.main || 0)} · 副 ${remBonus}/${Number(
+        budget.bonus || 0
+      )} · 位移 ${remMove}/${Number(budget.move || 0)}</div>`
+    );
+  }
+
   if (encounter.enemy && typeof encounter.enemy === "object") {
     const enemyParts = [];
     if (encounter.enemy.name) {
@@ -520,6 +613,9 @@ function renderEncounter(view) {
           ? `${encounter.enemy.hp}/${encounter.enemy.max_hp}`
           : `${encounter.enemy.hp}`;
       enemyParts.push(`敌方生命：${escapeHtml(hpText)}`);
+    }
+    if (Number.isFinite(encounter.enemy.shield) && Number(encounter.enemy.shield) > 0) {
+      enemyParts.push(`敌方护盾：${escapeHtml(String(encounter.enemy.shield))}`);
     }
     if (enemyParts.length) {
       blocks.push(`<div>${enemyParts.join(" · ")}</div>`);
@@ -537,6 +633,24 @@ function renderEncounter(view) {
 
   if (encounter.intent) {
     blocks.push(`<div>遭遇意图：${escapeHtml(encounter.intent)}</div>`);
+  }
+
+  if (encounter.environment && typeof encounter.environment === "object") {
+    const envMeta = encounter.environment_meta && typeof encounter.environment_meta === "object" ? encounter.environment_meta : {};
+    const envParts = Object.entries(encounter.environment)
+      .map(([field, value]) => {
+        const metaEntry = envMeta[field] && typeof envMeta[field] === "object" ? envMeta[field] : {};
+        const label = metaEntry.label || field;
+        return `${escapeHtml(label)}：${escapeHtml(String(value))}`;
+      })
+      .filter(Boolean);
+    if (envParts.length) {
+      blocks.push(`<div>环境：${envParts.join(" · ")}</div>`);
+    }
+  }
+
+  if (encounter.last_enemy_behavior && typeof encounter.last_enemy_behavior === "object") {
+    blocks.push(`<div>敌方最近行动：${escapeHtml(encounter.last_enemy_behavior.label || "未知")}</div>`);
   }
 
   els.encounterBox.hidden = false;
@@ -567,6 +681,10 @@ function renderPlayer(view) {
     <div class="resource-item">
       <div class="resource-name">生命</div>
       <div class="resource-value">${player.hp}/${player.max_hp}</div>
+    </div>
+    <div class="resource-item">
+      <div class="resource-name">护盾</div>
+      <div class="resource-value">${Number(player.shield || 0)}</div>
     </div>
     <div class="resource-item">
       <div class="resource-name">腐化</div>
@@ -657,11 +775,23 @@ async function autoSave() {
 async function startNewGame() {
   const playerName = els.nameInput.value.trim();
   const professionId = els.professionSelect.value;
+  pushFrontendDebug("start-new-game-clicked", {
+    href: window.location.href,
+    protocol: window.location.protocol,
+    storyId: currentStoryId,
+    professionId,
+    playerNameLength: playerName.length,
+  });
 
   try {
     const view = await api("/api/game/new", {
       method: "POST",
       body: JSON.stringify({ player_name: playerName, profession_id: professionId, story_id: currentStoryId }),
+    });
+    pushFrontendDebug("start-new-game-success", {
+      sessionId: view.session_id,
+      sceneId: view.scene?.id || null,
+      storyId: view.world?.story_id || currentStoryId,
     });
     currentView = view;
     await syncMetaForView(view);
@@ -669,6 +799,11 @@ async function startNewGame() {
     render();
     await autoSave();
   } catch (error) {
+    pushFrontendDebug("start-new-game-failed", {
+      message: error.message,
+      href: window.location.href,
+      protocol: window.location.protocol,
+    });
     setSetupStatus(`创建失败：${error.message}`, true);
   }
 }
@@ -855,6 +990,10 @@ function escapeHtml(value) {
 
 /** Boot the frontend, fetch initial metadata, and bind UI events. */
 async function init() {
+  pushFrontendDebug("frontend-init", {
+    href: window.location.href,
+    protocol: window.location.protocol,
+  });
   setToolbarEnabled(false);
   els.actions.innerHTML = "";
 

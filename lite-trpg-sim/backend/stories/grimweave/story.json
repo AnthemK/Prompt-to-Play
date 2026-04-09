@@ -1,5 +1,6 @@
 {
   "id": "grimweave",
+  "story_interface_version": "1.1",
   "world": {
     "id": "grimweave-borderland",
     "title": "灰织边陲：腐月下的誓言",
