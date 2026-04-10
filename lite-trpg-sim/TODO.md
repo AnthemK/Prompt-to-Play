@@ -31,7 +31,7 @@ Before adding a new task, test it against these filters:
 
 If the answer is mostly "no", it should not enter the near-term roadmap.
 
-## Current Product Read
+## V2.0 Baseline Read
 
 ### Strong enough to build on
 
@@ -43,17 +43,16 @@ If the answer is mostly "no", it should not enter the near-term roadmap.
 - Story author tooling and validation exist
 - Demo story already serves as a regression pack
 
-### Still limiting quality
+### Non-blocking future improvement areas
 
-- Checks are still too attribute-heavy
-- Effect/status lifecycle is not coherent enough yet
-- Story-driven UI labels are not flexible enough everywhere
-- Encounter readability can improve without adding more combat bulk
-- Some frontend feedback remains functional but not elegant
+- partial success / advantage-style variants are still absent by design
+- encounter readability can still be refined further without adding combat bulk
+- story-pack browsing metadata could become richer in a later milestone
+- the launcher remains compatibility-focused rather than HTTPS-native
 
-## Active Milestone: Lite Core Polish
+## Active Milestone: V2.0 - Lite Core Polish
 
-This is the current highest-priority milestone.
+This milestone is now implemented and under release-stabilization only.
 
 Success means:
 
@@ -62,17 +61,43 @@ Success means:
 - the UI explains results more clearly
 - the project stays lite
 
+Implementation rule for this milestone:
+
+- each step should land as a small, testable slice
+- each new system should enter through a stable story-facing interface
+- frontend changes should remain generic and reusable across settings
+- code should prefer clear extension points over clever shortcuts
+
+Current release note:
+
+- `V2.0` has reached its planned scope
+- do not start a larger new milestone until the current build is treated as the stable `V2.0` baseline
+- remaining work should be limited to:
+  - bug fixes
+  - acceptance cleanup
+  - documentation hygiene
+
 ## Priority 1: Small Skill Layer
 
 Goal: improve character differentiation and check expression without turning the simulator into a spreadsheet game.
 
+Phase intent:
+
+- keep attributes as the base layer
+- add a small optional `skill` layer on top
+- let stories opt in gradually instead of forcing a full rewrite
+- make the rule readable as `attribute + skill + situational modifiers`
+
 Tasks:
 
-- [ ] Introduce a small reusable skill list above raw attributes
-- [ ] Let checks read `attribute + optional skill`
-- [ ] Allow professions and content to reference the same skill vocabulary
-- [ ] Surface the tested skill clearly in frontend result panels
-- [ ] Keep the total skill count intentionally small
+- [x] Add optional top-level `skill_meta` to the story contract
+- [x] Let professions define lightweight `skills` ranks
+- [x] Let `check` / `save` / `contest` read `stat + optional skill`
+- [x] Expose skill metadata in backend meta payloads and player view payloads
+- [x] Surface the tested skill clearly in frontend result panels
+- [x] Keep the total skill count intentionally small
+- [x] Update Demo with at least one skill-driven route
+- [x] Add rule and validation coverage for skill references
 
 Why now:
 
@@ -84,6 +109,7 @@ Done when:
 
 - Authors can define checks with attribute plus skill
 - Players can see what kind of competence was tested
+- Story validation catches broken skill references
 - Demo story covers at least one skill-driven route
 
 ## Priority 2: Effect Lifecycle Cleanup
@@ -92,11 +118,11 @@ Goal: make statuses, passives, and encounter-driven effects follow one readable 
 
 Tasks:
 
-- [ ] Define a concise trigger vocabulary for ongoing effects
-- [ ] Add lightweight duration/expiry support where it clearly helps play
-- [ ] Reduce reliance on loose flags for effect behavior
-- [ ] Make resolution output explain effect-driven modifiers consistently
-- [ ] Update story author docs with the lifecycle model
+- [x] Define a concise trigger vocabulary for ongoing effects
+- [x] Add lightweight duration/expiry support where it clearly helps play
+- [x] Reduce reliance on loose flags for effect behavior
+- [x] Make resolution output explain effect-driven modifiers consistently
+- [x] Update story author docs with the lifecycle model
 
 Why now:
 
@@ -116,10 +142,11 @@ Goal: make new settings feel more native without requiring frontend rewrites.
 
 Tasks:
 
-- [ ] Allow story packs to configure visible resource labels
-- [ ] Improve story selection metadata shown at setup
-- [ ] Audit hardcoded generic labels that should be story-driven
-- [ ] Tighten validation around missing metadata and inconsistent labels
+- [x] Allow story packs to configure visible resource labels
+- [x] Improve story selection metadata shown at setup
+- [x] Audit hardcoded generic labels that should be story-driven
+- [x] Tighten validation around missing metadata and inconsistent labels
+- [x] Keep metadata purely presentational, not rules-bearing
 
 Why now:
 
@@ -128,8 +155,9 @@ Why now:
 
 Done when:
 
-- At least one story can rename visible resources cleanly
+- At least two non-demo stories can rename visible resources cleanly
 - Setup screen metadata feels specific rather than placeholder-generic
+- Story-facing metadata stays presentational and does not carry rule logic
 
 ## Priority 4: UX Readability Pass
 
@@ -137,11 +165,11 @@ Goal: improve the feel of play without increasing rules weight.
 
 Tasks:
 
-- [ ] Make action outcomes easier to scan
-- [ ] Make encounter state easier to read at a glance
-- [ ] Improve save-slot feedback and confidence
-- [ ] Improve import/export error clarity
-- [ ] Review whether recent log and last outcome are visually distinct enough
+- [x] Make action outcomes easier to scan
+- [x] Make encounter state easier to read at a glance
+- [x] Improve save-slot feedback and confidence
+- [x] Improve import/export error clarity
+- [x] Review whether recent log and last outcome are visually distinct enough
 
 Why now:
 

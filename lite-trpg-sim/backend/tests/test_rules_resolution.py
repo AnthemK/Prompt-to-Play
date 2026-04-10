@@ -8,6 +8,7 @@ from unittest.mock import patch
 from backend.game.resolution import build_resolution, resolution_change_lines
 from backend.game.rules import (
     advance_turn,
+    add_status,
     perform_check,
     perform_contest,
     perform_damage,
@@ -37,6 +38,7 @@ def make_state() -> dict:
             "shield": 0,
             "corruption": 0,
             "shillings": 3,
+            "skills": {"ritual": 2, "grit": 1},
             "inventory": {"medkit": 1},
             "statuses": [],
         },
@@ -55,11 +57,23 @@ def make_content() -> dict:
     """Build a minimal content fixture that exercises rules behavior."""
     return {
         "world": {"corruption_limit": 10},
+        "stat_meta": {
+            "might": {"label": "力量"},
+            "agility": {"label": "敏捷"},
+            "insight": {"label": "洞察"},
+            "will": {"label": "意志"},
+            "fellowship": {"label": "交涉"},
+        },
+        "skill_meta": {
+            "ritual": {"label": "仪式"},
+            "grit": {"label": "坚忍"},
+        },
         "professions": [
             {
                 "id": "ritualist",
                 "name": "仪式学徒",
                 "stats": {"will": 4},
+                "skills": {"ritual": 2, "grit": 1},
                 "check_bonus": [],
                 "trigger_effects": [],
             }
@@ -147,6 +161,19 @@ class RulesResolutionTests(unittest.TestCase):
         self.assertEqual(state["progress"]["turns"], 1)
         self.assertIn("生命 -2", resolution_change_lines(resolution))
 
+    def test_advance_turn_expires_timed_status_after_effects(self) -> None:
+        """Finite-duration statuses should apply this turn, then expire cleanly."""
+        state = make_state()
+        content = make_content()
+        add_status(state, "poisoned", duration_turns=1)
+        resolution = build_resolution(kind="story", label="等待")
+
+        advance_turn(state, content, resolution=resolution)
+
+        self.assertEqual(state["player"]["hp"], 6)
+        self.assertFalse(any(entry.get("id") == "poisoned" for entry in state["player"]["statuses"]))
+        self.assertIn("移除状态：中毒（持续结束）", resolution_change_lines(resolution))
+
     def test_use_utility_item_returns_resolution_and_item_spend(self) -> None:
         """Using an item should spend it and emit unified effect lines."""
         state = make_state()
@@ -177,6 +204,85 @@ class RulesResolutionTests(unittest.TestCase):
         self.assertEqual(result["dc"], 12)
         self.assertEqual(result["roll"], 11)
         self.assertTrue(result["success"])
+
+    def test_status_condition_can_add_contextual_save_bonus(self) -> None:
+        """Status-aware save config should add bonuses without a broad global status modifier."""
+        state = make_state()
+        content = make_content()
+        add_status(state, "blessed", duration_turns=2)
+
+        with patch("backend.game.rules.random.randint", return_value=8):
+            result = perform_save(
+                state,
+                content,
+                {
+                    "stat": "will",
+                    "skill": "grit",
+                    "dc": 13,
+                    "label": "顶住诅咒低语",
+                    "extra_bonus_if_statuses": [
+                        {"status": "blessed", "bonus": 2, "source": "状态：受祝"},
+                    ],
+                },
+            )
+
+        self.assertTrue(result["success"])
+        self.assertEqual(result["modifier"], 5)
+        self.assertIn(
+            "状态：受祝",
+            [str(entry.get("source", "")) for entry in result.get("breakdown", []) if isinstance(entry, dict)],
+        )
+
+    def test_status_condition_can_raise_dc_when_penalty_status_is_active(self) -> None:
+        """Status-aware DC adjustments should only apply while the status is active."""
+        state = make_state()
+        content = make_content()
+        add_status(state, "poisoned", duration_turns=2)
+
+        with patch("backend.game.rules.random.randint", return_value=8):
+            result = perform_check(
+                state,
+                content,
+                {
+                    "stat": "insight",
+                    "dc": 11,
+                    "label": "辨认毒雾流向",
+                    "dc_adjust_if_statuses": [
+                        {"status": "poisoned", "delta": 2},
+                    ],
+                },
+            )
+
+        self.assertEqual(result["dc"], 13)
+        self.assertFalse(result["success"])
+        self.assertIn(
+            "DC修正：状态：poisoned +2",
+            [str(entry.get("text", "")) for entry in result.get("explain", {}).get("fragments", []) if isinstance(entry, dict)],
+        )
+
+    def test_perform_check_adds_optional_skill_bonus_and_payload_fields(self) -> None:
+        """Checks should expose the tested skill and add its flat rank bonus."""
+        state = make_state()
+        content = make_content()
+        with patch("backend.game.rules.random.randint", return_value=8):
+            result = perform_check(
+                state,
+                content,
+                {"stat": "will", "skill": "ritual", "dc": 12, "label": "稳固仪式"},
+            )
+
+        self.assertEqual(result["skill"], "ritual")
+        self.assertEqual(result["stat_label"], "意志")
+        self.assertEqual(result["skill_label"], "仪式")
+        self.assertEqual(result["modifier"], 4)
+        self.assertEqual(result.get("explain", {}).get("summary"), "稳固仪式（意志 + 仪式）：成功")
+        self.assertTrue(
+            any(
+                str(entry.get("source", "")).startswith("技能修正：仪式")
+                for entry in result.get("breakdown", [])
+                if isinstance(entry, dict)
+            )
+        )
 
     def test_perform_check_applies_environment_bonus_rules(self) -> None:
         """Checks should include configured encounter environment modifiers."""

@@ -30,6 +30,11 @@ There are three main shapes:
 The frontend should render `view` and persist `save_data`.  
 The frontend should not mutate `state` directly.
 
+Story-facing UI note:
+
+- `meta.world.ui` may include setup summary/detail chips plus story-specific resource labels
+- `view.world.ui` mirrors that subset so the frontend can stay generic while still rendering story-specific terms
+
 ## 1. Runtime State `state`
 
 Top-level shape:
@@ -75,6 +80,7 @@ player
   profession_id
   profession_name
   stats
+  skills
   max_hp
   hp
   shield
@@ -88,12 +94,17 @@ Field notes:
 
 - `stats`
   - current stat dictionary used by checks and contests
+- `skills`
+  - optional flat-rank skill dictionary used by skill-aware checks
 - `shield`
   - temporary buffer that absorbs compatible damage before `hp`
 - `inventory`
   - authoritative storage, currently `{item_id: qty}`
 - `statuses`
-  - currently `status_id[]`; story/runtime lookup resolves their details
+  - authoritative runtime status list
+  - legacy saves may still contain `status_id[]`
+  - current runtime may also use objects such as `{id, duration_turns}`
+  - prefer this block for temporary tactical or mental conditions that should affect a small number of future checks
 
 ## 3. Progress Block `progress`
 
@@ -116,6 +127,11 @@ Field notes:
   - coarse global turn counter
 - `flags`
   - lightweight persistent facts used for branching
+
+Boundary note:
+
+- `progress.flags` is for persistent narrative facts such as clues learned, allies contacted, or route knowledge unlocked
+- temporary gameplay conditions should prefer `player.statuses` or encounter runtime fields instead
 
 ## 4. Encounter Runtime `encounter`
 
@@ -256,6 +272,9 @@ resolution
   label
   success
   stat
+  stat_label
+  skill
+  skill_label
   dc
   roll
   modifier
@@ -290,6 +309,15 @@ resolution
   system
   effects
 ```
+
+Status-related payload notes:
+
+- `resolution.effects[*].kind = "status"` may now include `duration_turns`
+- this lets the frontend explain when a newly gained status is finite
+- roll-like resolutions may include:
+  - `stat_label`
+  - `skill_label`
+  so explain/output layers do not need to guess player-facing names later
 
 This structure is shared by:
 
@@ -367,6 +395,8 @@ Important distinction:
   - presentation-safe subset of player state
 - `view.scene`
   - current node text and actions after runtime interpretation
+  - each action may now include `available` and `unavailable_detail` so the frontend can explain blocked choices without guessing
+  - synthetic actions can carry backend-only requirement context so availability and execution stay consistent
 - `view.encounter`
   - copied runtime block safe for rendering
 - `view.recent_log`

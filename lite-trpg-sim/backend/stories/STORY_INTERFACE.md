@@ -35,6 +35,7 @@ story
   capabilities
   world
   stat_meta
+  skill_meta?     # optional
   professions
   items
   statuses
@@ -108,11 +109,37 @@ Common fields:
 - `default_ending_id`
 - `fatal_rules`
 - `resolve_victory`
+- `ui` (optional)
 
 Reference rules:
 
 - `start_node` must exist in `nodes`
 - `default_ending_id` must exist in `endings`
+
+Typical `world.ui` shape:
+
+```json
+{
+  "setup_summary": "短小但覆盖面广的演示任务。",
+  "setup_details": [
+    { "label": "时长", "value": "8-12 分钟" },
+    { "label": "风格", "value": "潜入 / 多出口" }
+  ],
+  "resource_labels": {
+    "hp": "体力",
+    "shillings": "摩拉",
+    "doom": "潮汐压力"
+  }
+}
+```
+
+Supported `resource_labels` keys:
+
+- `hp`
+- `shield`
+- `corruption`
+- `shillings`
+- `doom`
 
 ### `stat_meta`
 
@@ -130,6 +157,22 @@ Typical shape:
 }
 ```
 
+### `skill_meta` (optional)
+
+Purpose:
+
+- defines the shared skill vocabulary used by professions and optional skill-aware checks
+
+Typical shape:
+
+```json
+{
+  "stealth": { "label": "潜行" },
+  "awareness": { "label": "警觉" },
+  "grit": { "label": "坚忍" }
+}
+```
+
 ### `professions`
 
 Common fields per profession:
@@ -138,6 +181,7 @@ Common fields per profession:
 - `name`
 - `summary`
 - `stats`
+- `skills`
 - `max_hp`
 - `starting_items`
 - `perks`
@@ -165,6 +209,7 @@ Common fields per status:
 - `id`
 - `name`
 - `description`
+- `default_duration_turns`
 - `check_bonus`
 - `trigger_effects`
 - `damage_resistances`
@@ -241,23 +286,40 @@ Kinds that require a config object:
 Common fields:
 
 - `stat`
+- `skill`
 - `dc`
 - `label`
 - `tags`
 - `modifier`
 - `breakdown`
 - `environment_bonus_rules`
+- `extra_bonus_if_flags`
+- `extra_bonus_if_statuses`
+- `dc_adjust_if_flags`
+- `dc_adjust_if_statuses`
+
+Authoring note:
+
+- `dc_adjust_if_flags` and `dc_adjust_if_statuses` may also include an optional `source`
+- if omitted, the engine will synthesize one for explain/debug output
 
 Expected branch locations:
 
 - `on_success.effects`
 - `on_failure.effects`
 
+Lifecycle note:
+
+- `add_status` may include `duration_turns`
+- if omitted, the engine can fall back to `statuses.*.default_duration_turns`
+- timed statuses tick down at `turn_end`
+
 ### `contest`
 
 Common fields:
 
 - `stat`
+- `skill`
 - `label`
 - `opponent_label`
 - `opponent_modifier`
@@ -333,8 +395,18 @@ Atomic condition fields:
 - `path`
 - `ctx`
 - `item`
+- `status`
 - `op`
 - `value`
+
+Notes:
+
+- `status` is a lightweight shortcut for "the player currently has this status"
+- recommended forms:
+  - `{"status": "guarded", "op": "==", "value": true}`
+  - `{"status": "ash_choked", "op": "==", "value": false}`
+- use `status` when the gate should follow a temporary player condition
+- use `path` or progress flags for long-lived narrative facts
 
 Supported operators:
 
@@ -352,6 +424,8 @@ Current trigger timings:
 - `before_check`
 - `after_check`
 - `turn_end`
+
+These trigger names are validated as a closed set.
 
 Used in:
 
@@ -475,6 +549,16 @@ Supported `mode` values:
 - `escape`
 - `negotiate`
 - `delay`
+
+Runtime note:
+
+- when one configured exit window becomes available for the first time, the
+  engine now emits one player-facing unlock outcome and one log entry
+- example: when `defeat` first becomes true because enemy HP reaches `0`, the
+  player gets immediate feedback that the encounter can now be finished via the
+  defeat route
+- unlock feedback does not auto-finish the encounter; the player still chooses
+  the exit action
 
 ## 10. Minimum Story-Pack Checklist
 

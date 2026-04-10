@@ -20,6 +20,11 @@ def minimal_story_payload(*, interface_version: str | None = None) -> dict:
             "chapter_title": "测试章节",
             "intro": "测试 intro",
             "start_node": "start",
+            "ui": {
+                "setup_summary": "测试开场摘要",
+                "setup_details": [{"label": "时长", "value": "10 分钟"}],
+                "resource_labels": {"hp": "体力", "doom": "压力"},
+            },
         },
         "stat_meta": {"will": {"label": "意志"}},
         "professions": [
@@ -79,7 +84,28 @@ class ContentRepositoryTests(unittest.TestCase):
             with self.assertRaises(ContentError):
                 StoryRepository(root=root)
 
+    def test_repository_normalizes_world_ui_metadata(self) -> None:
+        """Optional story-facing UI metadata should be normalized into the story payload."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self._write_story(root, minimal_story_payload())
+            repository = StoryRepository(root=root)
+            story = repository.get("test_story")
+            ui = story.get("world", {}).get("ui", {})
+            self.assertEqual(ui.get("setup_summary"), "测试开场摘要")
+            self.assertEqual(ui.get("setup_details"), [{"label": "时长", "value": "10 分钟"}])
+            self.assertEqual(ui.get("resource_labels"), {"hp": "体力", "doom": "压力"})
+
+    def test_repository_rejects_invalid_world_ui_resource_labels(self) -> None:
+        """Story-facing UI metadata should fail fast when resource_labels is malformed."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            payload = minimal_story_payload()
+            payload["world"]["ui"]["resource_labels"] = ["hp"]
+            self._write_story(root, payload)
+            with self.assertRaises(ContentError):
+                StoryRepository(root=root)
+
 
 if __name__ == "__main__":
     unittest.main()
-

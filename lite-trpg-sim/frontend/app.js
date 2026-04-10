@@ -22,11 +22,13 @@ const els = {
   sceneMeta: document.getElementById("scene-meta"),
   sceneText: document.getElementById("scene-text"),
   actions: document.getElementById("actions"),
+  runtimeStatus: document.getElementById("runtime-status"),
   outcomeContent: document.getElementById("outcome-content"),
   encounterBox: document.getElementById("encounter-box"),
   encounterContent: document.getElementById("encounter-content"),
   playerSummary: document.getElementById("player-summary"),
   statsGrid: document.getElementById("stats-grid"),
+  skillGrid: document.getElementById("skill-grid"),
   resourceGrid: document.getElementById("resource-grid"),
   statusList: document.getElementById("status-list"),
   inventoryList: document.getElementById("inventory-list"),
@@ -41,6 +43,8 @@ const els = {
   slotStatus: document.getElementById("slot-status"),
   overlay: document.getElementById("setup-overlay"),
   worldIntro: document.getElementById("world-intro"),
+  storySetupSummary: document.getElementById("story-setup-summary"),
+  storySetupDetails: document.getElementById("story-setup-details"),
   storySelect: document.getElementById("story-select"),
   nameInput: document.getElementById("name-input"),
   professionSelect: document.getElementById("profession-select"),
@@ -82,6 +86,34 @@ function pushFrontendDebug(label, payload = {}) {
 function setSetupStatus(message, isError = false) {
   els.setupStatus.textContent = message || "";
   els.setupStatus.style.color = isError ? "#efb7a7" : "#b7d6be";
+}
+
+/** Render compact toolbar feedback for slot/save/import/export operations. */
+function setSlotStatusMessage(message, tone = "neutral") {
+  els.slotStatus.textContent = message || "";
+  els.slotStatus.dataset.tone = tone;
+}
+
+/** Render non-modal runtime feedback near the action list. */
+function setRuntimeStatusMessage(message, tone = "neutral") {
+  const text = String(message || "").trim();
+  els.runtimeStatus.hidden = !text;
+  els.runtimeStatus.textContent = text;
+  els.runtimeStatus.dataset.tone = tone;
+}
+
+/** Render one labeled line used by outcome and encounter summary sections. */
+function renderInfoLine(label, content) {
+  return `<div class="info-line"><span class="info-label">${escapeHtml(label)}</span><span>${content}</span></div>`;
+}
+
+/** Render one compact information section used by outcome and encounter panels. */
+function renderInfoSection(title, rows) {
+  const validRows = rows.filter(Boolean).join("");
+  if (!validRows) {
+    return "";
+  }
+  return `<div class="info-section"><div class="info-section-title">${escapeHtml(title)}</div>${validRows}</div>`;
 }
 
 /** Enable or disable the top toolbar based on whether a run is active. */
@@ -177,7 +209,7 @@ function refreshSlotStatus() {
   const selectedSlot = els.slotSelect.value || getActiveSlotId();
   const entry = slotEntry(selectedSlot);
   if (!entry) {
-    els.slotStatus.textContent = `槽位 ${selectedSlot}：空`;
+    setSlotStatusMessage(`槽位 ${selectedSlot}：空`, "neutral");
     return;
   }
   const parts = [
@@ -186,7 +218,7 @@ function refreshSlotStatus() {
     `回合 ${entry.turns ?? 0}`,
     formatTime(entry.saved_at),
   ];
-  els.slotStatus.textContent = parts.join(" · ");
+  setSlotStatusMessage(parts.join(" · "), "neutral");
 }
 
 /** Insert or update one manual/imported save slot entry. */
@@ -294,6 +326,40 @@ function itemName(itemId) {
   return meta?.items?.[itemId]?.name || itemId;
 }
 
+/** Resolve one skill id into the current story's label. */
+function skillLabel(skillId) {
+  return meta?.skill_meta?.[skillId]?.label || skillId;
+}
+
+/** Resolve one resource id into a story-configured player-facing label. */
+function resourceLabel(resourceId, fallback) {
+  const labels = meta?.world?.ui?.resource_labels;
+  if (labels && typeof labels === "object" && typeof labels[resourceId] === "string" && labels[resourceId].trim()) {
+    return labels[resourceId].trim();
+  }
+  return fallback;
+}
+
+/** Render optional setup summary/details from the selected story pack. */
+function renderStorySetupMeta() {
+  const story = storyBriefById(currentStoryId || meta?.active_story_id || meta?.default_story_id || "");
+  const setupSummary = story?.setup_summary || "";
+  const setupDetails = Array.isArray(story?.setup_details) ? story.setup_details : [];
+
+  els.storySetupSummary.hidden = !setupSummary;
+  els.storySetupSummary.textContent = setupSummary;
+
+  const detailHtml = setupDetails
+    .filter((entry) => entry && entry.label && entry.value)
+    .map(
+      (entry) =>
+        `<span class="setup-detail-chip">${escapeHtml(String(entry.label))}：${escapeHtml(String(entry.value))}</span>`
+    )
+    .join("");
+  els.storySetupDetails.hidden = !detailHtml;
+  els.storySetupDetails.innerHTML = detailHtml;
+}
+
 /** Populate the story selector with installed story packs. */
 function renderStoryOptions() {
   if (!meta) {
@@ -340,6 +406,15 @@ function statLine(stats) {
     .join(" / ");
 }
 
+/** Convert a skills object into one concise preview line. */
+function skillLine(skills) {
+  const entries = Object.entries(skills || {}).filter(([, value]) => Number(value) > 0);
+  if (!entries.length) {
+    return "无";
+  }
+  return entries.map(([key, value]) => `${skillLabel(key)} ${value}`).join(" / ");
+}
+
 /** Render the selected profession preview block in the setup overlay. */
 function renderProfessionPreview() {
   const profession = professionById(els.professionSelect.value);
@@ -353,6 +428,7 @@ function renderProfessionPreview() {
   els.professionPreview.textContent = [
     profession.summary,
     `\n属性：${statLine(profession.stats)}`,
+    `\n技能：${skillLine(profession.skills)}`,
     `\n初始物品：${itemNames || "无"}`,
     `\n特性：\n${perks || "• 无"}`,
   ].join("\n");
@@ -367,6 +443,7 @@ async function loadMetaForStory(storyId) {
 
   renderStoryOptions();
   els.worldIntro.textContent = meta.world.intro || "";
+  renderStorySetupMeta();
   renderProfessionOptions();
 
   if (!currentView) {
@@ -401,13 +478,23 @@ function renderOutcome(outcome) {
 
   const blocks = [];
   const resolution = outcome.resolution || null;
-  blocks.push(`<div><strong>${escapeHtml(outcome.summary)}</strong></div>`);
-  blocks.push(`<div>${escapeHtml(outcome.detail || "")}</div>`);
+  blocks.push(
+    renderInfoSection("摘要", [
+      `<div class="outcome-summary">${escapeHtml(outcome.summary)}</div>`,
+      outcome.detail ? `<div class="outcome-detail">${escapeHtml(outcome.detail || "")}</div>` : "",
+    ])
+  );
 
   if (outcome.roll) {
     const roll = outcome.roll;
     blocks.push(
-      `<div class="roll-line">检定：${escapeHtml(roll.label)} | d20=${roll.roll} + 修正${roll.modifier >= 0 ? "+" : ""}${roll.modifier} = ${roll.total} / DC ${roll.dc} (${roll.success ? "成功" : "失败"})</div>`
+      renderInfoSection("检定", [
+        renderInfoLine("项目", escapeHtml(roll.label)),
+        renderInfoLine(
+          "结果",
+          `d20=${roll.roll} + 修正${roll.modifier >= 0 ? "+" : ""}${roll.modifier} = ${roll.total} / DC ${roll.dc} (${roll.success ? "成功" : "失败"})`
+        ),
+      ])
     );
 
     if (Array.isArray(roll.breakdown) && roll.breakdown.length) {
@@ -422,29 +509,41 @@ function renderOutcome(outcome) {
     const explainSummary =
       typeof resolution?.explain?.summary === "string" ? resolution.explain.summary.trim() : "";
     const titleLine = explainSummary || `结算：${resolution.label} (${statusText})`;
-    blocks.push(`<div class="roll-line">${escapeHtml(titleLine)}</div>`);
+    const resolutionRows = [renderInfoLine("结算", escapeHtml(titleLine))];
 
     if ((resolution.kind === "save" || resolution.kind === "check") && Number.isFinite(resolution.roll)) {
-      blocks.push(
-        `<div class="roll-line">d20=${resolution.roll} + 修正${resolution.modifier >= 0 ? "+" : ""}${resolution.modifier} = ${resolution.total} / DC ${resolution.dc}</div>`
+      const skillText = resolution.skill_label ? ` + ${escapeHtml(resolution.skill_label)}` : "";
+      const statText = resolution.stat ? escapeHtml(meta?.stats?.[resolution.stat]?.label || resolution.stat) : "属性";
+      resolutionRows.push(renderInfoLine("检定类型", `${statText}${skillText}`));
+      resolutionRows.push(
+        renderInfoLine(
+          "结果",
+          `d20=${resolution.roll} + 修正${resolution.modifier >= 0 ? "+" : ""}${resolution.modifier} = ${resolution.total} / DC ${resolution.dc}`
+        )
       );
     }
 
     if (resolution.kind === "contest" && Number.isFinite(resolution.roll)) {
+      if (resolution.stat) {
+        const contestStat = escapeHtml(meta?.stats?.[resolution.stat]?.label || resolution.stat);
+        const contestSkill = resolution.skill_label ? ` + ${escapeHtml(resolution.skill_label)}` : "";
+        resolutionRows.push(renderInfoLine("对抗类型", `${contestStat}${contestSkill}`));
+      }
       const opponentLabel = resolution.opponent_label || "对手";
       const playerLine = `你：d20=${resolution.roll} + 修正${resolution.modifier >= 0 ? "+" : ""}${resolution.modifier} = ${resolution.total}`;
       const opponentLine = `${escapeHtml(opponentLabel)}：d20=${resolution.opponent_roll} + 修正${resolution.opponent_modifier >= 0 ? "+" : ""}${resolution.opponent_modifier} = ${resolution.opponent_total}`;
-      blocks.push(`<div class="roll-line">${playerLine}</div>`);
-      blocks.push(`<div class="roll-line">${opponentLine}</div>`);
+      resolutionRows.push(renderInfoLine("你", playerLine));
+      resolutionRows.push(renderInfoLine(opponentLabel, opponentLine));
       if (resolution.active_side) {
         const activeLabel = resolution.active_side === "player" ? "你" : escapeHtml(opponentLabel);
-        blocks.push(`<div class="roll-line">主动方：${activeLabel}</div>`);
+        resolutionRows.push(renderInfoLine("主动方", activeLabel));
       }
       if (resolution.tie === true) {
-        blocks.push(
-          `<div class="roll-line">平局判定：${escapeHtml(resolution.tie_policy || "player_wins")} · 结果边际 ${Number(
-            resolution.margin || 0
-          )}</div>`
+        resolutionRows.push(
+          renderInfoLine(
+            "平局判定",
+            `${escapeHtml(resolution.tie_policy || "player_wins")} · 结果边际 ${Number(resolution.margin || 0)}`
+          )
         );
       }
     }
@@ -455,21 +554,25 @@ function renderOutcome(outcome) {
       const amplified = Number(resolution.amplified || 0);
       const shieldAbsorbed = Number(resolution.shield_absorbed || 0);
       const applied = Number(resolution.applied || 0);
+      const shieldLabel = resourceLabel("shield", "护盾");
       const impactKind = resolution.impact_kind || resolution.kind || "damage";
       const damageType = resolution.damage_type || "physical";
       const targetLabel = resolution.target === "enemy" ? resolution.target_label || "敌方" : "你";
       const titleMap = { damage: "伤害", healing: "治疗", drain: "吸取" };
-      blocks.push(
-        `<div class="roll-line">${escapeHtml(titleMap[impactKind] || "结算")}类型：${escapeHtml(
-          damageType
-        )} · 目标：${escapeHtml(
-          targetLabel
-        )} · 宣告：${amount} · 减伤：${mitigated} · 易伤增幅：${amplified} · 护盾吸收：${shieldAbsorbed} · 生效：${applied}</div>`
+      resolutionRows.push(renderInfoLine("类型", escapeHtml(titleMap[impactKind] || "结算")));
+      resolutionRows.push(renderInfoLine("伤害属性", escapeHtml(damageType)));
+      resolutionRows.push(renderInfoLine("目标", escapeHtml(targetLabel)));
+      resolutionRows.push(
+        renderInfoLine(
+          "影响",
+          `宣告：${amount} · 减伤：${mitigated} · 易伤增幅：${amplified} · ${escapeHtml(shieldLabel)}吸收：${shieldAbsorbed} · 生效：${applied}`
+        )
       );
       if (resolution.kind === "drain") {
-        blocks.push(`<div class="roll-line">吸取回复：${Number(resolution.drain_recovered || 0)}</div>`);
+        resolutionRows.push(renderInfoLine("吸取回复", String(Number(resolution.drain_recovered || 0))));
       }
     }
+    blocks.push(renderInfoSection("结算明细", resolutionRows));
 
     if (Array.isArray(resolution.breakdown) && resolution.breakdown.length) {
       const entries = resolution.breakdown
@@ -480,13 +583,18 @@ function renderOutcome(outcome) {
   }
 
   if (Array.isArray(outcome.changes) && outcome.changes.length) {
-    blocks.push(`<div>变化：${outcome.changes.map((entry) => escapeHtml(entry)).join("，")}</div>`);
+    blocks.push(
+      renderInfoSection(
+        "变化",
+        outcome.changes.map((entry) => `<div class="change-pill">${escapeHtml(entry)}</div>`)
+      )
+    );
   }
 
   els.outcomeContent.innerHTML = blocks.join("");
 }
 
-/** Render all currently available player actions as buttons. */
+/** Render current player actions and surface availability from the backend view. */
 function renderActions(view) {
   els.actions.innerHTML = "";
   const actions = view.scene.actions || [];
@@ -501,7 +609,8 @@ function renderActions(view) {
   actions.forEach((action) => {
     const button = document.createElement("button");
     button.className = "action-btn";
-    button.disabled = view.game_over;
+    const available = action.available !== false;
+    button.disabled = view.game_over || !available;
     const hintParts = [];
     if (action.hint) {
       hintParts.push(action.hint);
@@ -529,6 +638,10 @@ function renderActions(view) {
     } else if (action.turn_flow === "end") {
       hintParts.push("将结束回合");
     }
+    if (!available) {
+      hintParts.push(action.unavailable_detail || "当前不可执行");
+      button.classList.add("is-unavailable");
+    }
     const mergedHint = hintParts.join(" · ");
     button.innerHTML = `
       <div class="action-label">${escapeHtml(action.label)}</div>
@@ -541,10 +654,11 @@ function renderActions(view) {
           body: JSON.stringify({ action_id: action.id }),
         });
         currentView = next;
+        setRuntimeStatusMessage("", "neutral");
         render();
         await autoSave();
       } catch (error) {
-        alert(`行动失败：${error.message}`);
+        setRuntimeStatusMessage(`行动失败：${error.message}`, "error");
       }
     });
     els.actions.appendChild(button);
@@ -561,7 +675,7 @@ function renderEncounter(view) {
   }
 
   const blocks = [];
-  blocks.push(`<div><strong>${escapeHtml(encounter.title || "遭遇")}</strong> · ${escapeHtml(encounter.type || "encounter")}</div>`);
+  const overviewRows = [`<div class="outcome-summary">${escapeHtml(encounter.title || "遭遇")}</div>`];
 
   const encounterMeta = [];
   encounterMeta.push(`第 ${Number(encounter.round || 1)} 轮`);
@@ -571,11 +685,12 @@ function renderEncounter(view) {
   if (encounter.goal) {
     encounterMeta.push(`目标：${escapeHtml(encounter.goal)}`);
   }
-  blocks.push(`<div>${encounterMeta.join(" · ")}</div>`);
+  overviewRows.push(`<div class="outcome-detail">${encounterMeta.join(" · ")}</div>`);
 
   if (encounter.summary) {
-    blocks.push(`<div>${escapeHtml(encounter.summary)}</div>`);
+    overviewRows.push(`<div>${escapeHtml(encounter.summary)}</div>`);
   }
+  blocks.push(renderInfoSection("战况", overviewRows));
 
   if (typeof encounter.pressure === "number") {
     const pressureLabel = encounter.pressure_label || "压力";
@@ -583,7 +698,7 @@ function renderEncounter(view) {
       Number(encounter.pressure_max || 0) > 0
         ? `${encounter.pressure}/${encounter.pressure_max}`
         : String(encounter.pressure);
-    blocks.push(`<div>${escapeHtml(pressureLabel)}：${escapeHtml(pressureValue)}</div>`);
+    blocks.push(renderInfoSection("压力", [renderInfoLine(pressureLabel, escapeHtml(pressureValue))]));
   }
 
   if (encounter.economy && typeof encounter.economy === "object") {
@@ -593,14 +708,19 @@ function renderEncounter(view) {
     const remBonus = Math.max(0, Number(budget.bonus || 0) - Number(spent.bonus || 0));
     const remMove = Math.max(0, Number(budget.move || 0) - Number(spent.move || 0));
     blocks.push(
-      `<div>行动预算：主 ${remMain}/${Number(budget.main || 0)} · 副 ${remBonus}/${Number(
-        budget.bonus || 0
-      )} · 位移 ${remMove}/${Number(budget.move || 0)}</div>`
+      renderInfoSection("行动预算", [
+        renderInfoLine(
+          "预算",
+          `主 ${remMain}/${Number(budget.main || 0)} · 副 ${remBonus}/${Number(budget.bonus || 0)} · 位移 ${remMove}/${Number(budget.move || 0)}`
+        ),
+      ])
     );
   }
 
   if (encounter.enemy && typeof encounter.enemy === "object") {
     const enemyParts = [];
+    const hpLabel = resourceLabel("hp", "生命");
+    const shieldLabel = resourceLabel("shield", "护盾");
     if (encounter.enemy.name) {
       enemyParts.push(`目标：${escapeHtml(encounter.enemy.name)}`);
     }
@@ -612,13 +732,13 @@ function renderEncounter(view) {
         Number.isFinite(encounter.enemy.max_hp) && encounter.enemy.max_hp > 0
           ? `${encounter.enemy.hp}/${encounter.enemy.max_hp}`
           : `${encounter.enemy.hp}`;
-      enemyParts.push(`敌方生命：${escapeHtml(hpText)}`);
+      enemyParts.push(`敌方${escapeHtml(hpLabel)}：${escapeHtml(hpText)}`);
     }
     if (Number.isFinite(encounter.enemy.shield) && Number(encounter.enemy.shield) > 0) {
-      enemyParts.push(`敌方护盾：${escapeHtml(String(encounter.enemy.shield))}`);
+      enemyParts.push(`敌方${escapeHtml(shieldLabel)}：${escapeHtml(String(encounter.enemy.shield))}`);
     }
     if (enemyParts.length) {
-      blocks.push(`<div>${enemyParts.join(" · ")}</div>`);
+      blocks.push(renderInfoSection("敌方", [renderInfoLine("状态", enemyParts.join(" · "))]));
     }
   }
 
@@ -628,11 +748,11 @@ function renderEncounter(view) {
       Number.isFinite(encounter.objective.target) && encounter.objective.target > 0
         ? `${Number(encounter.objective.progress || 0)}/${Number(encounter.objective.target)}`
         : `${Number(encounter.objective.progress || 0)}`;
-    blocks.push(`<div>${escapeHtml(objectiveLabel)}：${escapeHtml(objectiveValue)}</div>`);
+    blocks.push(renderInfoSection("目标进度", [renderInfoLine(objectiveLabel, escapeHtml(objectiveValue))]));
   }
 
   if (encounter.intent) {
-    blocks.push(`<div>遭遇意图：${escapeHtml(encounter.intent)}</div>`);
+    blocks.push(renderInfoSection("遭遇意图", [renderInfoLine("当前意图", escapeHtml(encounter.intent))]));
   }
 
   if (encounter.environment && typeof encounter.environment === "object") {
@@ -645,12 +765,12 @@ function renderEncounter(view) {
       })
       .filter(Boolean);
     if (envParts.length) {
-      blocks.push(`<div>环境：${envParts.join(" · ")}</div>`);
+      blocks.push(renderInfoSection("环境", [renderInfoLine("环境值", envParts.join(" · "))]));
     }
   }
 
   if (encounter.last_enemy_behavior && typeof encounter.last_enemy_behavior === "object") {
-    blocks.push(`<div>敌方最近行动：${escapeHtml(encounter.last_enemy_behavior.label || "未知")}</div>`);
+    blocks.push(renderInfoSection("敌方最近行动", [renderInfoLine("最近动作", escapeHtml(encounter.last_enemy_behavior.label || "未知"))]));
   }
 
   els.encounterBox.hidden = false;
@@ -675,27 +795,52 @@ function renderPlayer(view) {
     .join("");
   els.statsGrid.innerHTML = statEntries;
 
+  const skillEntries = Object.entries(player.skills || {})
+    .filter(([, value]) => Number(value) > 0)
+    .map(
+      ([id, value]) => `
+        <div class="stat-item">
+          <div class="stat-name">${escapeHtml(skillLabel(id))}</div>
+          <div class="stat-value">${value}</div>
+        </div>
+      `
+    )
+    .join("");
+  els.skillGrid.innerHTML =
+    skillEntries ||
+    `
+      <div class="stat-item">
+        <div class="stat-name">技能</div>
+        <div class="stat-value">无</div>
+      </div>
+    `;
+
   const corruptionLimit = Number.isFinite(player.corruption_limit) ? player.corruption_limit : 10;
+  const hpLabel = resourceLabel("hp", "生命");
+  const shieldLabel = resourceLabel("shield", "护盾");
+  const corruptionLabel = resourceLabel("corruption", "腐化");
+  const shillingsLabel = resourceLabel("shillings", "先令");
+  const doomLabel = resourceLabel("doom", "末日进度");
 
   els.resourceGrid.innerHTML = `
     <div class="resource-item">
-      <div class="resource-name">生命</div>
+      <div class="resource-name">${escapeHtml(hpLabel)}</div>
       <div class="resource-value">${player.hp}/${player.max_hp}</div>
     </div>
     <div class="resource-item">
-      <div class="resource-name">护盾</div>
+      <div class="resource-name">${escapeHtml(shieldLabel)}</div>
       <div class="resource-value">${Number(player.shield || 0)}</div>
     </div>
     <div class="resource-item">
-      <div class="resource-name">腐化</div>
+      <div class="resource-name">${escapeHtml(corruptionLabel)}</div>
       <div class="resource-value">${player.corruption}/${corruptionLimit}</div>
     </div>
     <div class="resource-item">
-      <div class="resource-name">先令</div>
+      <div class="resource-name">${escapeHtml(shillingsLabel)}</div>
       <div class="resource-value">${player.shillings}</div>
     </div>
     <div class="resource-item">
-      <div class="resource-name">末日进度</div>
+      <div class="resource-name">${escapeHtml(doomLabel)}</div>
       <div class="resource-value">${view.progress.doom}</div>
     </div>
   `;
@@ -704,7 +849,15 @@ function renderPlayer(view) {
     els.statusList.innerHTML = `<span class="chip empty">暂无状态</span>`;
   } else {
     els.statusList.innerHTML = view.statuses
-      .map((status) => `<span class="chip" title="${escapeHtml(status.description)}">${escapeHtml(status.name)}</span>`)
+      .map((status) => {
+        const duration =
+          Number.isInteger(status.duration_turns) && Number(status.duration_turns) > 0
+            ? ` · 剩余 ${status.duration_turns} 回合`
+            : "";
+        return `<span class="chip" title="${escapeHtml(`${status.description || ""}${duration}`)}">${escapeHtml(
+          `${status.name}${duration}`
+        )}</span>`;
+      })
       .join("");
   }
 
@@ -840,9 +993,9 @@ async function handleManualSave() {
   try {
     const saveData = await fetchCurrentSaveData();
     upsertSlot(slotId, saveData, currentView, "manual");
-    alert(`已保存到槽位 ${slotId}。`);
+    setSlotStatusMessage(`槽位 ${slotId} 已保存 · ${formatTime(saveData.saved_at)}`, "success");
   } catch (error) {
-    alert(`存档失败：${error.message}`);
+    setSlotStatusMessage(`槽位 ${slotId} 存档失败：${error.message}`, "error");
   }
 }
 
@@ -851,7 +1004,7 @@ async function handleManualLoad() {
   const slotId = els.slotSelect.value;
   const entry = slotEntry(slotId);
   if (!entry?.save_data) {
-    alert(`槽位 ${slotId} 为空。`);
+    setSlotStatusMessage(`槽位 ${slotId} 为空，无法读取。`, "error");
     return;
   }
 
@@ -864,8 +1017,9 @@ async function handleManualLoad() {
     await syncMetaForView(view);
     render();
     await autoSave();
+    setSlotStatusMessage(`已读取槽位 ${slotId} · ${entry.player_name || "未知角色"} · 回合 ${entry.turns ?? 0}`, "success");
   } catch (error) {
-    alert(`读档失败：${error.message}`);
+    setSlotStatusMessage(`槽位 ${slotId} 读档失败：${error.message}`, "error");
   }
 }
 
@@ -894,19 +1048,20 @@ async function handleImportFile(event) {
   if (!file) {
     return;
   }
+  const fileName = file.name || "未知文件";
 
   let parsed = null;
   try {
     const text = await file.text();
     parsed = JSON.parse(text);
   } catch {
-    alert("导入失败：文件不是有效 JSON。");
+    setSlotStatusMessage(`导入失败：${fileName} 不是有效 JSON。`, "error");
     return;
   }
 
   const saveData = extractImportedSaveData(parsed);
   if (!saveData) {
-    alert("导入失败：未识别到有效存档结构。");
+    setSlotStatusMessage(`导入失败：${fileName} 中未识别到有效存档结构。`, "error");
     return;
   }
 
@@ -923,10 +1078,9 @@ async function handleImportFile(event) {
     const slotId = els.slotSelect.value;
     upsertSlot(slotId, refreshed, currentView, "import");
     writeAutosave(refreshed, currentView);
-
-    alert(`导入成功，已写入槽位 ${slotId}。`);
+    setSlotStatusMessage(`导入成功：${fileName} -> 槽位 ${slotId}。`, "success");
   } catch (error) {
-    alert(`导入失败：${error.message}`);
+    setSlotStatusMessage(`导入失败：${fileName} · ${error.message}`, "error");
   }
 }
 
@@ -935,7 +1089,7 @@ function handleExport() {
   const slotId = els.slotSelect.value;
   const entry = slotEntry(slotId);
   if (!entry?.save_data) {
-    alert(`槽位 ${slotId} 为空，无法导出。`);
+    setSlotStatusMessage(`槽位 ${slotId} 为空，无法导出。`, "error");
     return;
   }
 
@@ -957,6 +1111,7 @@ function handleExport() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  setSlotStatusMessage(`已导出槽位 ${slotId} -> ${a.download}`, "success");
 }
 
 /** Reset the active run and reopen the setup overlay. */

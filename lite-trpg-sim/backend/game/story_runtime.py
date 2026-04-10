@@ -31,6 +31,7 @@ class StoryPackRuntime(StoryRuntime):
     def story_brief(self) -> dict[str, Any]:
         """Return the short descriptor used by the setup overlay."""
         world = self.content.get("world", {})
+        ui = world.get("ui", {}) if isinstance(world.get("ui", {}), dict) else {}
         return {
             "id": self.story_id,
             "world_id": self.world_id,
@@ -38,6 +39,8 @@ class StoryPackRuntime(StoryRuntime):
             "chapter_title": world.get("chapter_title", ""),
             "intro": world.get("intro", ""),
             "tone": world.get("tone", ""),
+            "setup_summary": str(ui.get("setup_summary", "")),
+            "setup_details": copy.deepcopy(ui.get("setup_details", [])),
             "story_interface_version": str(self.content.get("story_interface_version", "1.1")),
             "capabilities": copy.deepcopy(self.content.get("capabilities", {})),
         }
@@ -47,6 +50,7 @@ class StoryPackRuntime(StoryRuntime):
         return {
             "world": self.content["world"],
             "stats": self.content["stat_meta"],
+            "skill_meta": self.content.get("skill_meta", {}),
             "professions": self.content["professions"],
             "items": self.content["items"],
             "story_interface_version": str(self.content.get("story_interface_version", "1.1")),
@@ -86,6 +90,9 @@ class StoryPackRuntime(StoryRuntime):
                 "profession_id": profession["id"],
                 "profession_name": profession["name"],
                 "stats": copy.deepcopy(profession.get("stats", {})),
+                # Skills are optional per story pack, so the state always keeps
+                # a normalized dictionary even when a story does not use them.
+                "skills": copy.deepcopy(profession.get("skills", {})),
                 "max_hp": max_hp,
                 "hp": max_hp,
                 "shield": 0,
@@ -125,6 +132,7 @@ class StoryPackRuntime(StoryRuntime):
         player.setdefault("profession_id", "")
         player.setdefault("profession_name", "")
         player.setdefault("stats", {})
+        player.setdefault("skills", {})
         player.setdefault("max_hp", 10)
         player.setdefault("hp", player.get("max_hp", 10))
         player.setdefault("shield", 0)
@@ -162,6 +170,7 @@ class StoryPackRuntime(StoryRuntime):
             "chapter_title": world.get("chapter_title", ""),
             "intro": world.get("intro", ""),
             "tone": world.get("tone", ""),
+            "ui": copy.deepcopy(world.get("ui", {})),
         }
 
     def corruption_limit(self) -> int:

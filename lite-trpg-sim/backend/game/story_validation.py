@@ -13,6 +13,7 @@ from .story_contract import (
     ACTION_KIND_SET,
     ACTION_KIND_CONFIG_KEYS,
     effect_op_supported,
+    passive_trigger_supported,
 )
 
 
@@ -190,6 +191,20 @@ def _iter_effect_lists(story: dict[str, Any]) -> list[tuple[list[Any], str]]:
     return blocks
 
 
+def _iter_trigger_effect_entries(story: dict[str, Any]) -> list[tuple[dict[str, Any], str]]:
+    """Return configured passive trigger effects with stable paths."""
+    entries: list[tuple[dict[str, Any], str]] = []
+
+    for effect_list, list_path in _iter_effect_lists(story):
+        if not list_path.endswith("trigger_effects"):
+            continue
+        for index, effect in enumerate(effect_list):
+            if isinstance(effect, dict):
+                entries.append((effect, f"{list_path}[{index}]"))
+
+    return entries
+
+
 def _validate_action_shapes(story: dict[str, Any], story_id: str) -> list[dict[str, str]]:
     """Validate action-kind correctness and required config object presence."""
     issues: list[dict[str, str]] = []
@@ -239,6 +254,173 @@ def _validate_action_shapes(story: dict[str, Any], story_id: str) -> list[dict[s
                         f"requires 引用了不存在的 item: {item_id!r}",
                     )
                 )
+            status_id = req.get("status")
+            if isinstance(status_id, str) and status_id and status_id not in story.get("statuses", {}):
+                issues.append(
+                    _issue(
+                        story_id,
+                        req_path,
+                        "REQUIRE_STATUS_MISSING",
+                        f"requires 引用了不存在的 status: {status_id!r}",
+                    )
+                )
+
+    return issues
+
+
+def _iter_skill_configs(action: dict[str, Any], action_path: str) -> list[tuple[str, dict[str, Any]]]:
+    """Return every action config block that may legally declare a skill."""
+    entries: list[tuple[str, dict[str, Any]]] = []
+    for key in ("check", "save", "contest"):
+        cfg = action.get(key)
+        if isinstance(cfg, dict):
+            entries.append((f"{action_path}.{key}", cfg))
+    return entries
+
+
+def _validate_skill_references(story: dict[str, Any], story_id: str) -> list[dict[str, str]]:
+    """Validate optional skill-layer declarations without forcing story adoption."""
+    issues: list[dict[str, str]] = []
+    skill_meta = story.get("skill_meta", {})
+    if not isinstance(skill_meta, dict):
+        issues.append(_issue(story_id, "skill_meta", "SKILL_META_INVALID", "skill_meta 必须是对象"))
+        return issues
+
+    known_skills = {str(skill_id) for skill_id in skill_meta.keys()}
+
+    for profession_index, profession in enumerate(story.get("professions", [])):
+        if not isinstance(profession, dict):
+            continue
+        skills = profession.get("skills", {})
+        if skills is None:
+            continue
+        if not isinstance(skills, dict):
+            issues.append(
+                _issue(
+                    story_id,
+                    f"professions[{profession_index}].skills",
+                    "PROFESSION_SKILLS_INVALID",
+                    "profession.skills 必须是对象",
+                )
+            )
+            continue
+        for skill_id in skills.keys():
+            if str(skill_id) not in known_skills:
+                issues.append(
+                    _issue(
+                        story_id,
+                        f"professions[{profession_index}].skills.{skill_id}",
+                        "SKILL_MISSING",
+                        f"profession.skills 引用了不存在的 skill: {skill_id!r}",
+                    )
+                )
+
+    for action, action_path in _iter_action_entries(story):
+        for cfg_path, cfg in _iter_skill_configs(action, action_path):
+            skill_id = str(cfg.get("skill", "")).strip()
+            if skill_id and skill_id not in known_skills:
+                issues.append(
+                    _issue(
+                        story_id,
+                        f"{cfg_path}.skill",
+                        "SKILL_MISSING",
+                        f"action skill 引用了不存在的 skill: {skill_id!r}",
+                    )
+                )
+
+    return issues
+
+
+def _validate_status_condition_references(story: dict[str, Any], story_id: str) -> list[dict[str, str]]:
+    """Validate status-aware check/save/contest config references."""
+    issues: list[dict[str, str]] = []
+    statuses = story.get("statuses", {})
+
+    for action, action_path in _iter_action_entries(story):
+        for cfg_path, cfg in _iter_skill_configs(action, action_path):
+            for field_name in ("extra_bonus_if_statuses", "dc_adjust_if_statuses"):
+                entries = cfg.get(field_name)
+                if not isinstance(entries, list):
+                    continue
+                for index, entry in enumerate(entries):
+                    if not isinstance(entry, dict):
+                        continue
+                    status_id = str(entry.get("status", "")).strip()
+                    if status_id and status_id not in statuses:
+                        issues.append(
+                            _issue(
+                                story_id,
+                                f"{cfg_path}.{field_name}[{index}].status",
+                                "STATUS_MISSING",
+                                f"{field_name} 引用了不存在的 status: {status_id!r}",
+                            )
+                        )
+
+    return issues
+
+
+def _validate_effect_lifecycle_fields(story: dict[str, Any], story_id: str) -> list[dict[str, str]]:
+    """Validate lightweight duration fields for story-defined status flows."""
+    issues: list[dict[str, str]] = []
+
+    statuses = story.get("statuses", {})
+    if isinstance(statuses, dict):
+        for status_id, status in statuses.items():
+            if not isinstance(status, dict):
+                continue
+            default_duration = status.get("default_duration_turns")
+            if default_duration is None:
+                continue
+            if not isinstance(default_duration, int) or int(default_duration) <= 0:
+                issues.append(
+                    _issue(
+                        story_id,
+                        f"statuses.{status_id}.default_duration_turns",
+                        "STATUS_DURATION_INVALID",
+                        "default_duration_turns 必须是正整数",
+                    )
+                )
+
+    for effect_list, list_path in _iter_effect_lists(story):
+        for index, effect in enumerate(effect_list):
+            if not isinstance(effect, dict):
+                continue
+            if str(effect.get("op", "")).strip() != "add_status":
+                continue
+            duration_turns = effect.get("duration_turns")
+            if duration_turns is None:
+                continue
+            if not isinstance(duration_turns, int) or int(duration_turns) <= 0:
+                issues.append(
+                    _issue(
+                        story_id,
+                        f"{list_path}[{index}].duration_turns",
+                        "STATUS_DURATION_INVALID",
+                        "add_status.duration_turns 必须是正整数",
+                    )
+                )
+
+    for effect, effect_path in _iter_trigger_effect_entries(story):
+        trigger = str(effect.get("trigger", "")).strip()
+        if not trigger:
+            issues.append(
+                _issue(
+                    story_id,
+                    f"{effect_path}.trigger",
+                    "TRIGGER_MISSING",
+                    "trigger_effects[*].trigger 不能为空",
+                )
+            )
+            continue
+        if not passive_trigger_supported(trigger):
+            issues.append(
+                _issue(
+                    story_id,
+                    f"{effect_path}.trigger",
+                    "TRIGGER_INVALID",
+                    f"未知 passive trigger: {trigger!r}",
+                )
+            )
 
     return issues
 
@@ -427,6 +609,9 @@ def validate_story(story: dict[str, Any]) -> list[dict[str, str]]:
     story_id = str(story.get("id", "unknown_story"))
     issues: list[dict[str, str]] = []
     issues.extend(_validate_action_shapes(story, story_id))
+    issues.extend(_validate_skill_references(story, story_id))
+    issues.extend(_validate_status_condition_references(story, story_id))
+    issues.extend(_validate_effect_lifecycle_fields(story, story_id))
     issues.extend(_validate_core_references(story, story_id))
     return issues
 

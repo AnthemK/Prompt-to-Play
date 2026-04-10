@@ -149,6 +149,30 @@ class StoryValidationTests(unittest.TestCase):
             issues = validate_repository(repository, story_id="new_story_case")
             self.assertEqual(issues, [])
 
+    def test_validation_reports_missing_status_in_status_aware_check_config(self) -> None:
+        """Validator should reject status-aware config that points at a missing status."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            payload = make_story_payload()
+            payload["nodes"]["start"]["actions"][0] = {
+                "id": "brace",
+                "label": "稳住",
+                "kind": "save",
+                "save": {
+                    "stat": "will",
+                    "dc": 10,
+                    "extra_bonus_if_statuses": [
+                        {"status": "missing_guard", "bonus": 2, "source": "状态：未知加成"}
+                    ],
+                },
+                "on_success": {"effects": []},
+                "on_failure": {"effects": []},
+            }
+            self._write_story(root, payload)
+            repository = StoryRepository(root=root)
+            issues = validate_repository(repository)
+            self.assertTrue(any(issue.get("code") == "STATUS_MISSING" for issue in issues))
+
 
 if __name__ == "__main__":
     unittest.main()

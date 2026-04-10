@@ -135,6 +135,30 @@
         "ending": "chaos_thrall",
         "summary": "腐化吞没了你的意志。"
       }
+    },
+    "ui": {
+      "setup_summary": "一场偏调查、偏压迫感的黑暗奇幻单章，重点在资源消耗、腐化压力与道德抉择。",
+      "setup_details": [
+        {
+          "label": "时长",
+          "value": "15-30 分钟"
+        },
+        {
+          "label": "风格",
+          "value": "调查 / 邪教 / 墓穴探险"
+        },
+        {
+          "label": "节奏",
+          "value": "中高压"
+        }
+      ],
+      "resource_labels": {
+        "hp": "伤势",
+        "shield": "格挡",
+        "corruption": "腐化",
+        "shillings": "先令",
+        "doom": "厄兆"
+      }
     }
   },
   "stat_meta": {

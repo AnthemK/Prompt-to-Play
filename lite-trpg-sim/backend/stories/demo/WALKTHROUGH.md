@@ -39,7 +39,7 @@ Recommended ending target:
 ### Core idea
 
 The scout wins by making `light` drop early and then repeatedly converting
-high `agility` into safe objective progress.
+high `agility + 潜行` into safe objective progress.
 
 ### Suggested sequence
 
@@ -53,14 +53,18 @@ high `agility` into safe objective progress.
    - now `light` should be very low or zero
 4. `沿阴影贴近封匣`
    - this is your main profession-aligned action
-5. repeat `沿阴影贴近封匣` if the board still looks safe
-6. choose one finish:
+5. if you already have `借掩警戒`, look for `借掩突进`
+   - this is the clearest Demo-only example of a status-gated action
+   - it also shows that an active状态 can lower the DC of a later check
+6. repeat `沿阴影贴近封匣` if the board still looks safe
+7. choose one finish:
    - `立即带匣撤离`
    - or another visible exit if you already have comfortable control
 
 ### Why this works
 
 - the scout has strong `agility`
+- the scout also has the strongest `潜行` rank in Demo
 - the profession bonus favors `stealth` and `analysis`
 - low `light` grants extra help to `agility` / `insight`
 - this route often clears the Demo in very few turns
@@ -94,7 +98,7 @@ Recommended ending target:
 ### Core idea
 
 The warden wins by absorbing pressure better than the scout, then using
-`contest`, `damage`, healing, and cover management to survive long enough for
+`力量 + 压制`, `contest`, `damage`, healing, and cover management to survive long enough for
 a heavier finish.
 
 ### Suggested sequence
@@ -111,16 +115,21 @@ a heavier finish.
 4. then start taking ground:
    - `正面夺匣`
    - `斩断守卫阵线`
-5. if your HP dips, use:
+5. if you gained `借掩警戒`, consider `借掩突进`
+   - this is a good way to see one of the clearest `V2.0` additions in action:
+   - the move is unavailable before the status exists
+   - then becomes available and easier while the status is active
+6. if your HP dips, use:
    - `贴墙包扎`
    - `使用急救包`
-6. finish according to board state:
+7. finish according to board state:
    - choose `拖到窗口完全打开` if the fight is messy but under control
    - choose `击溃守卫带走封匣` if enemy HP and objective pressure are already favorable
 
 ### Why this works
 
 - the warden has better `might`
+- the warden also brings stronger `坚忍` and `压制`
 - the profession bonus helps `contest`
 - higher max HP makes prolonged pressure less punishing
 - smoke, cover, and healing let the warden convert a rough entry into a stable win
@@ -140,6 +149,14 @@ a heavier finish.
 - either a delay finish or a hard victory finish
 
 ## Common Mistakes
+
+### Skipping the skill-test segment when you want to validate the build
+
+The new pre-mission skill segment is there for a reason.
+
+- it lets you explicitly test all four Demo skills before the main encounter
+- it grants small but real setup advantages
+- it is the fastest manual way to confirm `attribute + skill` resolution is rendering correctly
 
 ### Repeating `借月光复核路线` too many times
 

@@ -45,6 +45,33 @@ def _assert_action_available(view: dict[str, Any], action_id: str, route_name: s
     raise RuntimeError(f"[{route_name}] missing action `{action_id}`; available actions: {available}")
 
 
+def _action_entry(view: dict[str, Any], action_id: str) -> dict[str, Any] | None:
+    """Return one action payload from the current scene view when present."""
+    actions = view.get("scene", {}).get("actions", [])
+    if not isinstance(actions, list):
+        return None
+    for action in actions:
+        if isinstance(action, dict) and str(action.get("id", "")) == action_id:
+            return action
+    return None
+
+
+def _assert_action_enabled(view: dict[str, Any], action_id: str, route_name: str) -> None:
+    """Verify one action is currently available for execution."""
+    action = _action_entry(view, action_id)
+    if isinstance(action, dict) and action.get("available") is not False:
+        return
+    raise RuntimeError(f"[{route_name}] expected action `{action_id}` to be enabled")
+
+
+def _assert_action_disabled(view: dict[str, Any], action_id: str, route_name: str) -> None:
+    """Verify one action is visible but currently blocked by requirements."""
+    action = _action_entry(view, action_id)
+    if isinstance(action, dict) and action.get("available") is False:
+        return
+    raise RuntimeError(f"[{route_name}] expected action `{action_id}` to be disabled")
+
+
 def _run_action(
     engine: GameEngine,
     *,
@@ -76,6 +103,17 @@ def _profession_ids(engine: GameEngine) -> dict[str, str]:
     if "warden" not in mapping or "scout" not in mapping:
         raise RuntimeError(f"[bootstrap] expected demo professions `warden` and `scout`, got {sorted(mapping)}")
     return mapping
+
+
+def _demo_resource_label(engine: GameEngine, resource_id: str, fallback: str) -> str:
+    """Resolve one visible resource label from the Demo story metadata."""
+    meta = engine.meta(story_id=DEMO_STORY_ID)
+    labels = meta.get("world", {}).get("ui", {}).get("resource_labels", {})
+    if isinstance(labels, dict):
+        custom = labels.get(resource_id)
+        if isinstance(custom, str) and custom.strip():
+            return custom.strip()
+    return fallback
 
 
 def _new_demo_session(
@@ -200,7 +238,6 @@ def _route_delay_with_load(engine: GameEngine, profession_id: str) -> dict[str, 
     route_name = "delay_load"
     session_id, view = _new_demo_session(engine, route_name, profession_id)
     view = _run_action(engine, session_id=session_id, view=view, action_id="force_breach", route_name=route_name)
-    view = _run_action(engine, session_id=session_id, view=view, action_id="demo_cut_down", route_name=route_name)
 
     save_data = engine.save(session_id)
     loaded_view = engine.load(save_data)
@@ -208,14 +245,10 @@ def _route_delay_with_load(engine: GameEngine, profession_id: str) -> dict[str, 
     if not loaded_session_id:
         raise RuntimeError(f"[{route_name}] load returned empty session id")
 
-    view = _run_action(
-        engine,
-        session_id=loaded_session_id,
-        view=loaded_view,
-        action_id="demo_cut_down",
-        route_name=route_name,
-    )
-    for follow_up in ["demo_cut_down", "demo_shadow_step", "demo_hold_nerve", "encounter_end_turn"]:
+    view = loaded_view
+    # Keep the guard alive on this route so the delay window reflects the
+    # intended "stabilize and control the board" finish instead of a hard kill.
+    for follow_up in ["demo_shadow_step", "demo_hold_nerve", "demo_guarded_push", "demo_wrest_seal", "encounter_end_turn"]:
         if "encounter_exit_delay_finish" in _action_ids(view):
             break
         if follow_up not in _action_ids(view):
@@ -291,6 +324,46 @@ def _route_prepared_entry(engine: GameEngine, profession_id: str) -> dict[str, A
     return {"route": route_name, "session_id": session_id, "ending_id": "ending_escape"}
 
 
+def _route_skill_trials(engine: GameEngine, profession_id: str) -> dict[str, Any]:
+    """Verify the pre-mission skill test node covers all configured Demo skills."""
+    route_name = "skill_trials"
+    session_id, view = _new_demo_session(engine, route_name, profession_id)
+
+    view = _run_action(
+        engine,
+        session_id=session_id,
+        view=view,
+        action_id="open_skill_trials",
+        route_name=route_name,
+    )
+
+    for action_id, expected_kind, expected_label in [
+        ("skill_trial_awareness", "check", "警觉"),
+        ("skill_trial_stealth", "check", "潜行"),
+        ("skill_trial_grit", "save", "坚忍"),
+        ("skill_trial_brawl", "contest", "压制"),
+    ]:
+        view = _run_action(
+            engine,
+            session_id=session_id,
+            view=view,
+            action_id=action_id,
+            route_name=route_name,
+        )
+        _assert_resolution_kind(view, expected_kind, route_name)
+        _assert_resolution_mentions(view, expected_label, route_name)
+
+    view = _run_action(
+        engine,
+        session_id=session_id,
+        view=view,
+        action_id="skill_trial_return",
+        route_name=route_name,
+    )
+    _assert_action_available(view, "force_breach", route_name)
+    return {"route": route_name, "session_id": session_id, "ending_id": None}
+
+
 def _route_mechanics_mix(engine: GameEngine, profession_id: str) -> dict[str, Any]:
     """Touch the main encounter action kinds in one compact but stable route."""
     route_name = "mechanics_mix"
@@ -307,7 +380,8 @@ def _route_mechanics_mix(engine: GameEngine, profession_id: str) -> dict[str, An
 
     view = _run_action(engine, session_id=session_id, view=view, action_id="demo_hold_nerve", route_name=route_name)
     _assert_resolution_kind(view, "save", route_name)
-    _assert_resolution_mentions(view, "生命 -1", route_name)
+    hp_label = _demo_resource_label(engine, "hp", "生命")
+    _assert_resolution_mentions(view, f"{hp_label} -1", route_name)
 
     view = _run_action(engine, session_id=session_id, view=view, action_id="demo_field_dress", route_name=route_name)
     _assert_resolution_kind(view, "healing", route_name)
@@ -339,6 +413,43 @@ def _route_mechanics_mix(engine: GameEngine, profession_id: str) -> dict[str, An
     return {"route": route_name, "session_id": session_id, "ending_id": expected}
 
 
+def _route_guarded_window(engine: GameEngine, profession_id: str) -> dict[str, Any]:
+    """Verify status-gated action visibility plus DC adjustments from active statuses."""
+    route_name = "guarded_window"
+    session_id, view = _new_demo_session(engine, route_name, profession_id)
+
+    view = _run_action(engine, session_id=session_id, view=view, action_id="force_breach", route_name=route_name)
+    _assert_action_disabled(view, "demo_guarded_push", route_name)
+
+    view = _run_action(
+        engine,
+        session_id=session_id,
+        view=view,
+        action_id="utility_use_smoke_bomb",
+        route_name=route_name,
+    )
+    _assert_status_present(view, "guarded", route_name)
+    _assert_action_enabled(view, "demo_guarded_push", route_name)
+
+    view = _run_action(engine, session_id=session_id, view=view, action_id="demo_guarded_push", route_name=route_name)
+    _assert_resolution_kind(view, "check", route_name)
+    _assert_resolution_mentions(view, "DC修正：状态：借掩警戒 -2", route_name)
+
+    if "encounter_end_turn" in _action_ids(view):
+        view = _run_action(engine, session_id=session_id, view=view, action_id="encounter_end_turn", route_name=route_name)
+    _assert_action_disabled(view, "demo_guarded_push", route_name)
+
+    view = _run_action(
+        engine,
+        session_id=session_id,
+        view=view,
+        action_id="encounter_exit_escape_finish",
+        route_name=route_name,
+    )
+    _assert_ending(view, "ending_escape", route_name)
+    return {"route": route_name, "session_id": session_id, "ending_id": "ending_escape"}
+
+
 def _route_fatal_death(engine: GameEngine, profession_id: str) -> dict[str, Any]:
     """Trigger explicit HP-zero fatal handling from the setup node."""
     route_name = "fatal_death"
@@ -361,13 +472,18 @@ def run_acceptance() -> list[dict[str, Any]]:
     """Execute all configured acceptance routes and return compact summaries."""
     engine = GameEngine()
     professions = _profession_ids(engine)
+    # Acceptance routes may use the Demo cheat role when a route is meant to
+    # prove system coverage rather than profession balance.
+    validator_profession = professions.get("cheat_overseer", professions["warden"])
     results = [
         _route_escape(engine, professions["warden"]),
         _route_negotiate(engine, professions["warden"]),
-        _route_delay_with_load(engine, professions["warden"]),
-        _route_defeat(engine, professions["warden"]),
+        _route_delay_with_load(engine, validator_profession),
+        _route_defeat(engine, validator_profession),
         _route_prepared_entry(engine, professions["scout"]),
-        _route_mechanics_mix(engine, professions["warden"]),
+        _route_skill_trials(engine, validator_profession),
+        _route_mechanics_mix(engine, validator_profession),
+        _route_guarded_window(engine, validator_profession),
         _route_fatal_death(engine, professions["warden"]),
         _route_fatal_corrupt(engine, professions["warden"]),
     ]

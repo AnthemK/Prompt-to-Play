@@ -43,6 +43,7 @@ class ResolutionEffect(TypedDict, total=False):
     mode: str
     status_id: str
     name: str
+    duration_turns: int
     item_id: str
     qty: int
     flag: str
@@ -71,12 +72,16 @@ class ResolutionPayload(TypedDict, total=False):
     label: str
     success: bool | None
     stat: str | None
+    stat_label: str | None
+    skill: str | None
+    skill_label: str | None
     dc: int | None
     roll: int | None
     modifier: int | None
     total: int | None
     tags: list[str]
     breakdown: list[BreakdownEntry]
+    dc_breakdown: list[BreakdownEntry]
     amount: int | None
     applied: int | None
     mitigated: int | None
@@ -114,6 +119,11 @@ _RESOURCE_LABELS = {
 }
 
 
+def default_resource_label(resource: str) -> str:
+    """Return the generic fallback label for one resource identifier."""
+    return _RESOURCE_LABELS.get(resource, resource)
+
+
 def _safe_int(value: Any, default: int = 0) -> int:
     """Convert unknown values to int without raising on None/invalid input."""
     try:
@@ -128,6 +138,9 @@ def build_resolution(
     label: str,
     success: bool | None = None,
     stat: str | None = None,
+    stat_label: str | None = None,
+    skill: str | None = None,
+    skill_label: str | None = None,
     dc: int | None = None,
     roll: int | None = None,
     modifier: int | None = None,
@@ -141,12 +154,16 @@ def build_resolution(
         "label": label,
         "success": success,
         "stat": stat,
+        "stat_label": stat_label,
+        "skill": skill,
+        "skill_label": skill_label,
         "dc": dc,
         "roll": roll,
         "modifier": modifier,
         "total": total,
         "tags": list(tags or []),
         "breakdown": list(breakdown or []),
+        "dc_breakdown": [],
         "amount": None,
         "applied": None,
         "mitigated": None,
@@ -184,12 +201,16 @@ def ensure_resolution(resolution: ResolutionPayload | None) -> ResolutionPayload
     resolution.setdefault("label", "")
     resolution.setdefault("success", None)
     resolution.setdefault("stat", None)
+    resolution.setdefault("stat_label", None)
+    resolution.setdefault("skill", None)
+    resolution.setdefault("skill_label", None)
     resolution.setdefault("dc", None)
     resolution.setdefault("roll", None)
     resolution.setdefault("modifier", None)
     resolution.setdefault("total", None)
     resolution.setdefault("tags", [])
     resolution.setdefault("breakdown", [])
+    resolution.setdefault("dc_breakdown", [])
     resolution.setdefault("amount", None)
     resolution.setdefault("applied", None)
     resolution.setdefault("mitigated", None)
@@ -237,7 +258,14 @@ def push_resolution_effect(resolution: ResolutionPayload | None, payload: Resolu
     active["effects"].append(payload)
 
 
-def add_resource_effect(resolution: ResolutionPayload | None, resource: str, delta: int, source: str) -> None:
+def add_resource_effect(
+    resolution: ResolutionPayload | None,
+    resource: str,
+    delta: int,
+    source: str,
+    *,
+    label: str | None = None,
+) -> None:
     """Record a resource delta such as HP, corruption, or currency."""
     if int(delta) == 0:
         return
@@ -246,7 +274,7 @@ def add_resource_effect(resolution: ResolutionPayload | None, resource: str, del
         {
             "kind": "resource",
             "resource": resource,
-            "label": _RESOURCE_LABELS.get(resource, resource),
+            "label": str(label or default_resource_label(resource)),
             "delta": int(delta),
             "source": source,
         },
@@ -289,6 +317,14 @@ def push_explain_fragment(
 def _build_status_summary(active: ResolutionPayload) -> str:
     """Build a concise status summary for the top of explanation output."""
     label = str(active.get("label", "")).strip() or "结算"
+    kind = str(active.get("kind", "")).strip().lower()
+    stat_label = str(active.get("stat_label", "")).strip()
+    skill_label = str(active.get("skill_label", "")).strip()
+    roll_context = ""
+    if skill_label:
+        roll_context = " + ".join([part for part in (stat_label, skill_label) if part])
+    if roll_context and kind in {"check", "save", "contest"}:
+        label = f"{label}（{roll_context}）"
     success = active.get("success")
     if success is True:
         return f"{label}：成功"
@@ -311,6 +347,28 @@ def _append_breakdown_fragments(active: ResolutionPayload) -> None:
             active,
             code="breakdown",
             text=f"{source} {sign}{value}",
+            data={"source": source, "value": value},
+        )
+
+
+def _append_dc_breakdown_fragments(active: ResolutionPayload) -> None:
+    """Mirror DC-building entries into explain fragments for debugging and review."""
+    for entry in active.get("dc_breakdown", []):
+        if not isinstance(entry, dict):
+            continue
+        source = str(entry.get("source", "")).strip()
+        value = _safe_int(entry.get("value", 0))
+        if not source:
+            continue
+        if source == "基础DC":
+            text = f"{source} {value}"
+        else:
+            sign = "+" if value >= 0 else ""
+            text = f"DC修正：{source} {sign}{value}"
+        push_explain_fragment(
+            active,
+            code="dc.breakdown",
+            text=text,
             data={"source": source, "value": value},
         )
 
@@ -440,6 +498,7 @@ def refresh_resolution_explain(resolution: ResolutionPayload | None) -> Resoluti
 
     push_explain_fragment(active, code="summary", text=str(explain["summary"]))
     _append_resolution_specific_fragments(active)
+    _append_dc_breakdown_fragments(active)
     _append_breakdown_fragments(active)
 
     for line in resolution_change_lines(active):
@@ -455,17 +514,21 @@ def add_status_effect(
     status_id: str,
     name: str,
     source: str,
+    duration_turns: int | None = None,
 ) -> None:
     """Record a status add/remove event."""
+    payload: ResolutionEffect = {
+        "kind": "status",
+        "mode": mode,
+        "status_id": status_id,
+        "name": name,
+        "source": source,
+    }
+    if duration_turns is not None:
+        payload["duration_turns"] = int(duration_turns)
     push_resolution_effect(
         resolution,
-        {
-            "kind": "status",
-            "mode": mode,
-            "status_id": status_id,
-            "name": name,
-            "source": source,
-        },
+        payload,
     )
 
 
@@ -547,6 +610,7 @@ def add_damage_effect(
     resistance_flat: int,
     resistance_percent: int,
     source: str,
+    label: str | None = None,
 ) -> None:
     """Record one normalized impact effect (damage/healing/drain)."""
     push_resolution_effect(
@@ -554,7 +618,7 @@ def add_damage_effect(
         {
             "kind": "damage",
             "resource": resource,
-            "label": _RESOURCE_LABELS.get(resource, resource),
+            "label": str(label or default_resource_label(resource)),
             "amount": int(amount),
             "applied": int(applied),
             "mitigated": int(mitigated),
@@ -598,10 +662,16 @@ def resolution_change_lines(resolution: ResolutionPayload | None) -> list[str]:
         if kind == "status":
             mode = str(effect.get("mode", ""))
             name = str(effect.get("name", effect.get("status_id", "状态")))
+            source = str(effect.get("source", "")).strip()
+            duration_turns = effect.get("duration_turns")
+            duration_suffix = ""
+            if isinstance(duration_turns, int) and duration_turns > 0 and mode == "add":
+                duration_suffix = f"（{duration_turns} 回合）"
             if mode == "add":
-                lines.append(f"获得状态：{name}")
+                lines.append(f"获得状态：{name}{duration_suffix}")
             elif mode == "remove":
-                lines.append(f"移除状态：{name}")
+                remove_suffix = "（持续结束）" if source == "状态持续结束" else ""
+                lines.append(f"移除状态：{name}{remove_suffix}")
             continue
 
         if kind == "item":
@@ -623,6 +693,9 @@ def resolution_change_lines(resolution: ResolutionPayload | None) -> list[str]:
                 lines.append(f"进入遭遇：{title}")
             elif mode == "leave":
                 lines.append(f"离开遭遇：{title}")
+            elif mode == "exit_unlock":
+                label = str(effect.get("label", "遭遇出口已解锁"))
+                lines.append(label)
             elif mode == "phase":
                 label = str(effect.get("label", "阶段切换"))
                 lines.append(f"遭遇阶段：{label}")
@@ -692,10 +765,14 @@ def legacy_roll_payload(resolution: ResolutionPayload | None) -> dict[str, Any] 
     return {
         "label": active.get("label", ""),
         "stat": active.get("stat"),
+        "stat_label": active.get("stat_label"),
+        "skill": active.get("skill"),
+        "skill_label": active.get("skill_label"),
         "dc": active.get("dc"),
         "roll": active.get("roll"),
         "modifier": active.get("modifier"),
         "total": active.get("total"),
         "success": active.get("success"),
         "breakdown": active.get("breakdown", []),
+        "dc_breakdown": active.get("dc_breakdown", []),
     }

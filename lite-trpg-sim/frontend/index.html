@@ -72,6 +72,7 @@
           <section>
             <h3>可选行动</h3>
             <div id="actions" class="actions"></div>
+            <p id="runtime-status" class="runtime-status" hidden></p>
           </section>
         </section>
 
@@ -80,7 +81,10 @@
           <section class="card">
             <h3>角色面板</h3>
             <div id="player-summary" class="player-summary"></div>
+            <p class="panel-mini-title">属性</p>
             <div id="stats-grid" class="stats-grid"></div>
+            <p class="panel-mini-title">技能</p>
+            <div id="skill-grid" class="stats-grid"></div>
           </section>
 
           <section class="card">
@@ -96,6 +100,7 @@
 
           <section class="card">
             <h3>近期日志</h3>
+            <p class="panel-mini-title">按时间顺序记录最近发生的事件与叙事推进</p>
             <ul id="log-list" class="plain-list log-list"></ul>
           </section>
         </aside>
@@ -107,6 +112,8 @@
       <div class="setup card">
         <h2>开始新冒险</h2>
         <p id="world-intro" class="setup-intro"></p>
+        <p id="story-setup-summary" class="setup-summary" hidden></p>
+        <div id="story-setup-details" class="setup-detail-chips" hidden></div>
 
         <label class="field">
           <span>选择故事包</span>

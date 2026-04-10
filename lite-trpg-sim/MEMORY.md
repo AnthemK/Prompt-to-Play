@@ -39,6 +39,7 @@ Do not use this file as a full changelog, player guide, or deep technical spec.
   - `grimweave`
   - `teyvat_tide_lantern`
   - `demo`
+  - Demo now includes an explicit pre-mission skill-test node for manual and automated skill coverage
 
 ## What Is Already Working
 
@@ -57,6 +58,7 @@ Do not use this file as a full changelog, player guide, or deep technical spec.
   - Session and save handling
   - Generic node/action/effect interpreter
   - Unified resolution output
+  - Optional skill-aware checks layered on top of attributes
   - Encounter runtime
   - Debug trace endpoint
 - Story authoring support:
@@ -123,6 +125,9 @@ Current system is intentionally lite.
   - enemy behaviors
   - exit strategies
   - environment state
+  - exit-window unlock feedback when `defeat` / `delay` / `negotiate` first become available
+  - defeated enemies stop taking encounter turns until the player chooses a finish window
+  - story packs can further narrow encounter exits with explicit `requires`; Demo now uses this so soft finishes disappear once the enemy is dead
 
 ### Still intentionally shallow
 
@@ -144,15 +149,38 @@ Priority order:
 
 Current active milestone in `TODO.md`:
 
-- Lite Core Polish
+- `V2.0 - Lite Core Polish`
   - small skill layer
+    - implemented
   - effect lifecycle cleanup
+    - implemented at the current V2.0 target level
   - story-facing label and metadata polish
+    - implemented at the current V2.0 target level through `world.ui`
   - UX readability pass
+    - implemented at the current V2.0 target level
   - Demo story refit
     - now completed at a first useful pass
     - Demo now behaves more like a short mission showcase
     - acceptance coverage has been expanded with `before_check` and true `defeat`
+  - release state
+    - treat current codebase as the `V2.0` stabilization baseline
+    - no new major milestone should begin before this state is reviewed and accepted
+
+## Current V2.0 Design Guardrails
+
+- Keep the simulator lite:
+  - no large skill trees
+  - no secondary sub-systems just to justify the skill layer
+- Prefer additive interfaces:
+  - old story packs without skills should continue to run
+  - skill-aware stories should only need small content edits
+- Keep the frontend generic:
+  - it may render skills
+  - it should not know story-specific skill logic
+- Keep code review-friendly:
+  - small patches
+  - explicit comments where new extension points appear
+  - document changes whenever interfaces change
 
 ## Current Risks
 
@@ -161,10 +189,8 @@ Current active milestone in `TODO.md`:
 - Safari startup can still produce edge-case UI confusion when a previous `file://` fallback snapshot is restored; frontend bootstrap now force-resets the HTTP shell state and writes a small local debug buffer.
 - Launcher/frontend mitigation now also includes a project-owned no-cache static server plus a per-launch query string on `index.html` to reduce stale Safari page reuse.
 - A real root-cause bug was identified in the frontend shell: `.file-mode-warning` defined `display: grid`, which overrode the element's `hidden` state in Safari. The correct fix is semantic CSS (`.file-mode-warning[hidden] { display: none; }`), not more JS fallback logic.
-- Some UI labels are still partially system-generic rather than fully story-configurable.
 - The encounter framework is good enough for lite scenarios, but should not be overgrown without strong gameplay justification.
-- The current Demo pack is mechanically useful, but still underperforms as a showcase story:
-- The Demo refit is now in a better place, but future system changes must keep both sides alive:
+- The Demo refit is now in a good release-state place, but future system changes must keep both sides alive:
   - it must remain regression-friendly
   - it must remain a fun first-play sample
 
@@ -205,6 +231,46 @@ lite-trpg-sim/
 ## Recent Important Additions
 
 - Story/system decoupling is established.
+- The first `V2.0` rules slice is now landed:
+  - optional top-level `skill_meta`
+  - profession `skills`
+  - `check` / `save` / `contest` may now declare an optional `skill`
+  - backend meta and frontend view now expose player skills
+  - Demo now uses the skill layer in its main routes
+- The first effect-lifecycle cleanup slice is now landed:
+  - statuses may now carry optional finite turn durations
+  - `add_status` can read `duration_turns` from effects or `default_duration_turns` from the status definition
+  - turn-end now expires timed statuses after their passive effects resolve
+  - frontend status chips now show remaining turns when relevant
+  - passive lifecycle hits now write clearer debug-trace events
+  - resolution summaries for checks now carry labeled roll context such as `属性 + 技能`
+  - check/save/contest config can now react to active statuses through:
+    - `extra_bonus_if_statuses`
+    - `dc_adjust_if_statuses`
+  - action requirements can now gate on whether a status is present
+  - check/save explain output now keeps a small `dc_breakdown`, so conditional DC changes are visible in debug/review output
+  - story/docs guidance now explicitly separates long-lived `progress.flags` from short-lived `player.statuses`
+  - `view.scene.actions[*]` now surfaces action availability, so requirement-based actions can be disabled cleanly in the frontend
+  - synthetic encounter actions now preserve requirement context across both view rendering and execution
+- The first story-facing metadata slice is now landed:
+  - stories may define `world.ui.setup_summary`
+  - stories may define `world.ui.setup_details`
+  - stories may define `world.ui.resource_labels`
+  - backend meta and frontend view now expose that metadata through a generic contract
+  - non-demo stories now prove the interface is setting-agnostic
+  - metadata remains presentation-only and is validated in the content layer
+- The first UX-readability slice is now landed:
+  - outcome panels are grouped into summary / resolution / change sections
+  - encounter panels are grouped into battle-state / enemy / environment style sections
+  - toolbar save-slot feedback now carries success/error states instead of relying on modal alerts
+  - import/export feedback now includes clearer file/slot context
+  - recent log styling is now more visually distinct from the latest-outcome panel
+  - action failures now surface as non-modal runtime feedback near the action list
+- Demo now explicitly demonstrates the newer `V2.0` story-contract features too:
+  - optional skill-aware checks
+  - timed status expiry
+  - status-gated actions through `requires.status`
+  - status-aware DC changes through `dc_adjust_if_statuses`
 - Demo story exists as a regression story pack.
 - Demo now also includes a story-local cheat profession for rapid manual acceptance and feature showcasing.
 - Demo now has a separate walkthrough doc for the two normal professions, so manual QA and first-play review can follow stable human-readable routes.

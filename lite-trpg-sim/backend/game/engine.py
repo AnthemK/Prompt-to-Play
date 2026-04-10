@@ -115,6 +115,7 @@ class GameEngine:
                 "profession_id": player["profession_id"],
                 "profession_name": player["profession_name"],
                 "stats": player["stats"],
+                "skills": player.get("skills", {}),
                 "hp": player["hp"],
                 "max_hp": player["max_hp"],
                 "shield": int(player.get("shield", 0)),

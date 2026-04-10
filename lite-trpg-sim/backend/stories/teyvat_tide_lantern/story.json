@@ -131,6 +131,30 @@
           }
         }
       ]
+    },
+    "ui": {
+      "setup_summary": "提瓦特题材的港口危机冒险，偏向调查、交涉与高人气角色串场下的紧张推进。",
+      "setup_details": [
+        {
+          "label": "时长",
+          "value": "20-35 分钟"
+        },
+        {
+          "label": "风格",
+          "value": "调查 / 冒险 / 潮汐危机"
+        },
+        {
+          "label": "节奏",
+          "value": "中压"
+        }
+      ],
+      "resource_labels": {
+        "hp": "体力",
+        "shield": "护盾",
+        "corruption": "侵蚀",
+        "shillings": "摩拉",
+        "doom": "潮汐压力"
+      }
     }
   },
   "stat_meta": {

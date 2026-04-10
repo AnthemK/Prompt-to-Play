@@ -20,6 +20,7 @@ from .resolution import (
     add_resource_effect,
     add_status_effect,
     build_resolution,
+    default_resource_label,
     refresh_resolution_explain,
 )
 
@@ -81,6 +82,17 @@ def stat_modifier(value: int) -> int:
     return int(value) - 2
 
 
+def _resource_label(content: dict[str, Any], resource: str) -> str:
+    """Resolve a player-facing resource label from story UI metadata."""
+    world = content.get("world", {})
+    ui = world.get("ui", {}) if isinstance(world, dict) else {}
+    labels = ui.get("resource_labels", {}) if isinstance(ui, dict) else {}
+    custom = labels.get(resource) if isinstance(labels, dict) else None
+    if isinstance(custom, str) and custom.strip():
+        return custom.strip()
+    return default_resource_label(resource)
+
+
 def get_profession(content: dict[str, Any], profession_id: str) -> dict[str, Any] | None:
     """Look up one profession entry by id."""
     for profession in content.get("professions", []):
@@ -118,20 +130,135 @@ def remove_item(state: dict[str, Any], item_id: str, qty: int = 1) -> bool:
 
 def has_status(state: dict[str, Any], status_id: str) -> bool:
     """Return whether a status is currently active."""
-    return status_id in state["player"]["statuses"]
+    return any(entry["id"] == status_id for entry in _status_entries(state))
 
 
-def add_status(state: dict[str, Any], status_id: str) -> None:
-    """Append a status if it is not already present."""
-    statuses = state["player"]["statuses"]
-    if status_id not in statuses:
-        statuses.append(status_id)
+def _coerce_status_entry(raw_entry: Any) -> dict[str, Any] | None:
+    """Normalize one legacy or modern status entry into a runtime dictionary."""
+    if isinstance(raw_entry, str):
+        status_id = raw_entry.strip()
+        if not status_id:
+            return None
+        return {"id": status_id}
+
+    if not isinstance(raw_entry, dict):
+        return None
+
+    status_id = str(raw_entry.get("id", "")).strip()
+    if not status_id:
+        return None
+
+    normalized = {"id": status_id}
+    duration_turns = raw_entry.get("duration_turns")
+    if duration_turns is not None:
+        normalized["duration_turns"] = max(0, int(duration_turns))
+    return normalized
+
+
+def _status_entries(state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return all active statuses in one normalized runtime shape."""
+    raw_statuses = state.get("player", {}).get("statuses", [])
+    if not isinstance(raw_statuses, list):
+        return []
+
+    result: list[dict[str, Any]] = []
+    for raw_entry in raw_statuses:
+        entry = _coerce_status_entry(raw_entry)
+        if entry:
+            result.append(entry)
+    return result
+
+
+def _write_status_entries(state: dict[str, Any], entries: list[dict[str, Any]]) -> None:
+    """Persist normalized status entries back into state."""
+    state["player"]["statuses"] = entries
+
+
+def add_status(state: dict[str, Any], status_id: str, *, duration_turns: int | None = None) -> None:
+    """Append or refresh a status, optionally with a finite turn duration."""
+    status_id = str(status_id).strip()
+    if not status_id:
+        return
+
+    entries = _status_entries(state)
+    for entry in entries:
+        if entry["id"] != status_id:
+            continue
+        if duration_turns is None:
+            # An indefinite reapplication should never shorten an existing status.
+            entry.pop("duration_turns", None)
+        elif "duration_turns" in entry:
+            entry["duration_turns"] = max(int(entry.get("duration_turns", 0)), int(duration_turns))
+        else:
+            # Preserve existing indefinite statuses instead of turning them finite.
+            pass
+        _write_status_entries(state, entries)
+        return
+
+    new_entry: dict[str, Any] = {"id": status_id}
+    if duration_turns is not None:
+        new_entry["duration_turns"] = max(1, int(duration_turns))
+    entries.append(new_entry)
+    _write_status_entries(state, entries)
 
 
 def remove_status(state: dict[str, Any], status_id: str) -> None:
     """Remove all copies of one status id from the player state."""
-    statuses = state["player"]["statuses"]
-    state["player"]["statuses"] = [entry for entry in statuses if entry != status_id]
+    entries = [entry for entry in _status_entries(state) if entry["id"] != status_id]
+    _write_status_entries(state, entries)
+
+
+def _status_duration_from_effect(content: dict[str, Any], status_id: str, effect: dict[str, Any]) -> int | None:
+    """Resolve the duration for an added status from effect data or story defaults."""
+    explicit_duration = effect.get("duration_turns")
+    if explicit_duration is not None:
+        return max(1, int(explicit_duration))
+
+    status_entry = content.get("statuses", {}).get(status_id, {})
+    default_duration = status_entry.get("default_duration_turns") if isinstance(status_entry, dict) else None
+    if default_duration is not None:
+        return max(1, int(default_duration))
+    return None
+
+
+def _tick_status_durations(
+    state: dict[str, Any],
+    content: dict[str, Any],
+    *,
+    resolution: ResolutionPayload | None = None,
+) -> None:
+    """Advance finite-duration statuses after turn-end effects finish resolving."""
+    next_entries: list[dict[str, Any]] = []
+    for entry in _status_entries(state):
+        remaining = entry.get("duration_turns")
+        if not isinstance(remaining, int):
+            next_entries.append(entry)
+            continue
+
+        new_remaining = int(remaining) - 1
+        if new_remaining <= 0:
+            status_id = str(entry["id"])
+            status_name = _entry_name(content.get("statuses", {}).get(status_id, {}), status_id)
+            add_status_effect(
+                resolution,
+                mode="remove",
+                status_id=status_id,
+                name=status_name,
+                source="状态持续结束",
+            )
+            debug_event(
+                state,
+                event="status.expired",
+                message="One finite-duration status expired at turn end.",
+                payload={"status_id": status_id, "status_name": status_name},
+            )
+            continue
+
+        next_entry = dict(entry)
+        next_entry["duration_turns"] = new_remaining
+        next_entries.append(next_entry)
+
+    _write_status_entries(state, next_entries)
 
 
 def adjust_resource(state: dict[str, Any], content: dict[str, Any], resource: str, amount: int) -> int:
@@ -216,6 +343,14 @@ def _trigger_effect_matches(effect: dict[str, Any], ctx: dict[str, Any]) -> bool
         if str(ctx.get("stat", "")) not in {str(value) for value in stat_in}:
             return False
 
+    if "skill" in match and str(ctx.get("skill", "")) != str(match.get("skill", "")):
+        return False
+
+    skill_in = match.get("skill_in")
+    if isinstance(skill_in, list) and skill_in:
+        if str(ctx.get("skill", "")) not in {str(value) for value in skill_in}:
+            return False
+
     if "kind" in match and str(ctx.get("kind", "")) != str(match.get("kind", "")):
         return False
 
@@ -268,7 +403,7 @@ def apply_state_effect(
     if op == "adjust":
         resource = str(effect.get("resource", ""))
         delta = adjust_resource(state, content, resource, int(effect.get("amount", 0)))
-        add_resource_effect(resolution, resource, delta, source)
+        add_resource_effect(resolution, resource, delta, source, label=_resource_label(content, resource))
         debug_event(
             state,
             event="effect.adjust_resource",
@@ -280,15 +415,31 @@ def apply_state_effect(
     if op == "add_status":
         status_id = str(effect.get("status", "")).strip()
         if not status_id or has_status(state, status_id):
+            if status_id:
+                duration_turns = _status_duration_from_effect(content, status_id, effect)
+                add_status(state, status_id, duration_turns=duration_turns)
             return True
-        add_status(state, status_id)
+        duration_turns = _status_duration_from_effect(content, status_id, effect)
+        add_status(state, status_id, duration_turns=duration_turns)
         status_name = _entry_name(content.get("statuses", {}).get(status_id, {}), status_id)
-        add_status_effect(resolution, mode="add", status_id=status_id, name=status_name, source=source)
+        add_status_effect(
+            resolution,
+            mode="add",
+            status_id=status_id,
+            name=status_name,
+            source=source,
+            duration_turns=duration_turns,
+        )
         debug_event(
             state,
             event="effect.add_status",
             message="Added one status via effect.",
-            payload={"status_id": status_id, "status_name": status_name, "source": source},
+            payload={
+                "status_id": status_id,
+                "status_name": status_name,
+                "source": source,
+                "duration_turns": duration_turns,
+            },
         )
         return True
 
@@ -371,7 +522,8 @@ def _iter_passive_sources(state: dict[str, Any], content: dict[str, Any]) -> lis
             sources.append(("item", str(item_id), item, _effect_source_name("item", item, str(item_id))))
 
     statuses = content.get("statuses", {})
-    for status_id in state["player"].get("statuses", []):
+    for status_entry in _status_entries(state):
+        status_id = str(status_entry["id"])
         status = statuses.get(status_id)
         if isinstance(status, dict):
             sources.append(("status", str(status_id), status, _effect_source_name("status", status, str(status_id))))
@@ -444,12 +596,36 @@ def apply_passive_effects(
 
             source = str(effect.get("source", default_source))
             op = str(effect.get("op", ""))
+            debug_event(
+                state,
+                event="passive.effect_triggered",
+                message="One passive effect matched the current lifecycle trigger.",
+                payload={
+                    "trigger": trigger,
+                    "source_kind": source_kind,
+                    "source_id": source_id,
+                    "op": op,
+                    "source": source,
+                    "ctx": trigger_ctx,
+                },
+            )
 
             if op == "remove_self" and source_kind == "status":
                 if has_status(state, source_id):
                     remove_status(state, source_id)
                     status_name = _entry_name(entry, source_id)
                     add_status_effect(resolution, mode="remove", status_id=source_id, name=status_name, source=source)
+                    debug_event(
+                        state,
+                        event="passive.remove_self",
+                        message="A passive status removed itself after matching its trigger.",
+                        payload={
+                            "trigger": trigger,
+                            "status_id": source_id,
+                            "status_name": status_name,
+                            "source": source,
+                        },
+                    )
                 continue
 
             # Strip trigger metadata before forwarding to the generic effect
@@ -462,6 +638,7 @@ def _match_bonus_rule(
     rule: dict[str, Any],
     *,
     stat: str,
+    skill: str | None,
     tags: list[str],
 ) -> bool:
     """Return whether a check-bonus rule applies to the current roll."""
@@ -486,10 +663,44 @@ def _match_bonus_rule(
     if stat_equals is not None and stat != str(stat_equals):
         return False
 
+    skill_in = rule.get("skill_in")
+    if isinstance(skill_in, list) and skill_in:
+        if str(skill or "") not in {str(v) for v in skill_in}:
+            return False
+
+    skill_equals = rule.get("skill_equals")
+    if skill_equals is not None and str(skill or "") != str(skill_equals):
+        return False
+
     return True
 
 
-def _profession_bonus(state: dict[str, Any], content: dict[str, Any], stat: str, tags: list[str]) -> list[tuple[int, str]]:
+def _skill_label(content: dict[str, Any], skill: str | None) -> str:
+    """Resolve one skill id into a player-facing label."""
+    if not skill:
+        return ""
+    return str(content.get("skill_meta", {}).get(skill, {}).get("label", skill))
+
+
+def _stat_label(content: dict[str, Any], stat: str) -> str:
+    """Resolve one stat id into a player-facing label."""
+    return str(content.get("stat_meta", {}).get(stat, {}).get("label", stat))
+
+
+def _skill_rank(state: dict[str, Any], skill: str | None) -> int:
+    """Return the player's current rank for an optional skill."""
+    if not skill:
+        return 0
+    return int(state.get("player", {}).get("skills", {}).get(skill, 0))
+
+
+def _profession_bonus(
+    state: dict[str, Any],
+    content: dict[str, Any],
+    stat: str,
+    skill: str | None,
+    tags: list[str],
+) -> list[tuple[int, str]]:
     """Collect profession-based check modifiers."""
     profession = get_profession(content, state["player"].get("profession_id", ""))
     if not profession:
@@ -499,13 +710,19 @@ def _profession_bonus(state: dict[str, Any], content: dict[str, Any], stat: str,
     for rule in profession.get("check_bonus", []):
         if not isinstance(rule, dict):
             continue
-        if not _match_bonus_rule(rule, stat=stat, tags=tags):
+        if not _match_bonus_rule(rule, stat=stat, skill=skill, tags=tags):
             continue
         bonuses.append((int(rule.get("value", 0)), str(rule.get("source", "职业加成"))))
     return bonuses
 
 
-def _item_bonus(state: dict[str, Any], content: dict[str, Any], stat: str, tags: list[str]) -> list[tuple[int, str]]:
+def _item_bonus(
+    state: dict[str, Any],
+    content: dict[str, Any],
+    stat: str,
+    skill: str | None,
+    tags: list[str],
+) -> list[tuple[int, str]]:
     """Collect inventory-based check modifiers."""
     bonuses: list[tuple[int, str]] = []
     items = content.get("items", {})
@@ -516,22 +733,29 @@ def _item_bonus(state: dict[str, Any], content: dict[str, Any], stat: str, tags:
         for rule in item.get("check_bonus", []):
             if not isinstance(rule, dict):
                 continue
-            if not _match_bonus_rule(rule, stat=stat, tags=tags):
+            if not _match_bonus_rule(rule, stat=stat, skill=skill, tags=tags):
                 continue
             bonuses.append((int(rule.get("value", 0)), str(rule.get("source", f"装备：{item.get('name', item_id)}"))))
     return bonuses
 
 
-def _status_bonus(state: dict[str, Any], content: dict[str, Any], stat: str, tags: list[str]) -> list[tuple[int, str]]:
+def _status_bonus(
+    state: dict[str, Any],
+    content: dict[str, Any],
+    stat: str,
+    skill: str | None,
+    tags: list[str],
+) -> list[tuple[int, str]]:
     """Collect status-based check modifiers."""
     bonuses: list[tuple[int, str]] = []
     statuses = content.get("statuses", {})
-    for status_id in state["player"].get("statuses", []):
+    for status_entry in _status_entries(state):
+        status_id = str(status_entry["id"])
         status = statuses.get(status_id, {})
         for rule in status.get("check_bonus", []):
             if not isinstance(rule, dict):
                 continue
-            if not _match_bonus_rule(rule, stat=stat, tags=tags):
+            if not _match_bonus_rule(rule, stat=stat, skill=skill, tags=tags):
                 continue
             bonuses.append((int(rule.get("value", 0)), str(rule.get("source", f"状态：{status.get('name', status_id)}"))))
     return bonuses
@@ -580,6 +804,78 @@ def _flag_dc_delta(state: dict[str, Any], check_cfg: dict[str, Any]) -> int:
     return result
 
 
+def _status_dc_delta(state: dict[str, Any], check_cfg: dict[str, Any]) -> int:
+    """Compute a DC modifier contributed by active statuses."""
+    result = 0
+    entries = check_cfg.get("dc_adjust_if_statuses", [])
+    if not isinstance(entries, list):
+        return 0
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        status_id = str(entry.get("status", ""))
+        if status_id and has_status(state, status_id):
+            result += int(entry.get("delta", 0))
+    return result
+
+
+def _dc_adjustments_from_flags(state: dict[str, Any], check_cfg: dict[str, Any]) -> list[BreakdownEntry]:
+    """Return labeled DC adjustments unlocked by story flags."""
+    entries = check_cfg.get("dc_adjust_if_flags", [])
+    if not isinstance(entries, list):
+        return []
+
+    flags = state["progress"].get("flags", {})
+    breakdown: list[BreakdownEntry] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        flag = str(entry.get("flag", ""))
+        if flag and bool(flags.get(flag)):
+            breakdown.append(
+                {
+                    "value": int(entry.get("delta", 0)),
+                    "source": str(entry.get("source", f"旗标：{flag}") or f"旗标：{flag}"),
+                }
+            )
+    return breakdown
+
+
+def _dc_adjustments_from_statuses(state: dict[str, Any], check_cfg: dict[str, Any]) -> list[BreakdownEntry]:
+    """Return labeled DC adjustments contributed by active statuses."""
+    entries = check_cfg.get("dc_adjust_if_statuses", [])
+    if not isinstance(entries, list):
+        return []
+
+    breakdown: list[BreakdownEntry] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        status_id = str(entry.get("status", ""))
+        if status_id and has_status(state, status_id):
+            breakdown.append(
+                {
+                    "value": int(entry.get("delta", 0)),
+                    "source": str(entry.get("source", f"状态：{status_id}") or f"状态：{status_id}"),
+                }
+            )
+    return breakdown
+
+
+def _build_dc_breakdown(state: dict[str, Any], cfg: dict[str, Any]) -> list[BreakdownEntry]:
+    """Build a readable DC derivation trace for one stat test."""
+    breakdown: list[BreakdownEntry] = [{"value": int(cfg.get("dc", 10)), "source": "基础DC"}]
+
+    doom_delta = _doom_dc_delta(state, cfg)
+    if doom_delta:
+        breakdown.append({"value": doom_delta, "source": "末日压力"})
+
+    breakdown.extend(_dc_adjustments_from_flags(state, cfg))
+    breakdown.extend(_dc_adjustments_from_statuses(state, cfg))
+    return breakdown
+
+
 def _extra_bonus_from_flags(state: dict[str, Any], check_cfg: dict[str, Any]) -> list[tuple[int, str]]:
     """Collect bonus modifiers unlocked by story flags."""
     bonuses: list[tuple[int, str]] = []
@@ -594,6 +890,22 @@ def _extra_bonus_from_flags(state: dict[str, Any], check_cfg: dict[str, Any]) ->
         flag = str(entry.get("flag", ""))
         if flag and bool(flags.get(flag)):
             bonuses.append((int(entry.get("bonus", 0)), str(entry.get("source", "情境修正"))))
+    return bonuses
+
+
+def _extra_bonus_from_statuses(state: dict[str, Any], check_cfg: dict[str, Any]) -> list[tuple[int, str]]:
+    """Collect bonus modifiers unlocked by active statuses."""
+    bonuses: list[tuple[int, str]] = []
+    entries = check_cfg.get("extra_bonus_if_statuses", [])
+    if not isinstance(entries, list):
+        return bonuses
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        status_id = str(entry.get("status", ""))
+        if status_id and has_status(state, status_id):
+            bonuses.append((int(entry.get("bonus", 0)), str(entry.get("source", "状态修正"))))
     return bonuses
 
 
@@ -624,6 +936,7 @@ def _environment_bonus(
     cfg: dict[str, Any],
     *,
     stat: str,
+    skill: str | None,
     tags: list[str],
     kind: str,
 ) -> list[tuple[int, str]]:
@@ -663,7 +976,7 @@ def _environment_bonus(
         rule_for_match = dict(rule)
         if "stat" in rule_for_match and "stat_equals" not in rule_for_match:
             rule_for_match["stat_equals"] = rule_for_match.get("stat")
-        if not _match_bonus_rule(rule_for_match, stat=stat, tags=tags):
+        if not _match_bonus_rule(rule_for_match, stat=stat, skill=skill, tags=tags):
             continue
 
         op = str(rule.get("op", "==")).strip() or "=="
@@ -806,6 +1119,7 @@ def _build_modifier_breakdown(
     cfg: dict[str, Any],
     *,
     stat: str,
+    skill: str | None,
     tags: list[str],
     kind: str,
     include_doom_flag_bonus: bool,
@@ -814,13 +1128,19 @@ def _build_modifier_breakdown(
     stat_value = int(state["player"]["stats"].get(stat, 0))
     breakdown: list[BreakdownEntry] = [{"value": stat_modifier(stat_value), "source": f"属性修正({stat_value})"}]
 
-    for value, source in _profession_bonus(state, content, stat, tags):
+    skill_rank = _skill_rank(state, skill)
+    if skill and skill_rank != 0:
+        # Skill rank is intentionally flat and readable: it should differentiate
+        # characters without creating another deep sub-system.
+        breakdown.append({"value": skill_rank, "source": f"技能修正：{_skill_label(content, skill)}({skill_rank})"})
+
+    for value, source in _profession_bonus(state, content, stat, skill, tags):
         breakdown.append({"value": value, "source": source})
 
-    for value, source in _item_bonus(state, content, stat, tags):
+    for value, source in _item_bonus(state, content, stat, skill, tags):
         breakdown.append({"value": value, "source": source})
 
-    for value, source in _status_bonus(state, content, stat, tags):
+    for value, source in _status_bonus(state, content, stat, skill, tags):
         breakdown.append({"value": value, "source": source})
 
     corruption_penalty = _corruption_penalty(state, content)
@@ -830,8 +1150,10 @@ def _build_modifier_breakdown(
     if include_doom_flag_bonus:
         for value, source in _extra_bonus_from_flags(state, cfg):
             breakdown.append({"value": value, "source": source})
+        for value, source in _extra_bonus_from_statuses(state, cfg):
+            breakdown.append({"value": value, "source": source})
 
-    for value, source in _environment_bonus(state, cfg, stat=stat, tags=tags, kind=kind):
+    for value, source in _environment_bonus(state, cfg, stat=stat, skill=skill, tags=tags, kind=kind):
         breakdown.append({"value": value, "source": source})
 
     return breakdown
@@ -849,29 +1171,40 @@ def _perform_stat_test(
 ) -> ResolutionPayload:
     """Execute a generic d20 stat test used by check/save flows."""
     stat = str(cfg.get("stat", "might"))
+    skill = str(cfg.get("skill", "")).strip() or None
     tags = [str(tag) for tag in cfg.get("tags", []) if isinstance(tag, str)]
     if kind not in tags:
         tags.append(kind)
 
     label = str(cfg.get("label", default_label))
-    resolution = build_resolution(kind=kind, label=label, stat=stat, tags=tags)
+    resolution = build_resolution(
+        kind=kind,
+        label=label,
+        stat=stat,
+        stat_label=_stat_label(content, stat),
+        skill=skill,
+        skill_label=_skill_label(content, skill),
+        tags=tags,
+    )
 
     # Passive hooks can mutate resources/flags before and after the roll.
     apply_passive_effects(
         state,
         content,
         "before_check",
-        ctx={"kind": trigger_kind, "stat": stat, "tags": tags},
+        ctx={"kind": trigger_kind, "stat": stat, "skill": skill, "tags": tags},
         resolution=resolution,
     )
 
     base_dc = int(cfg.get("dc", 10))
-    dc = base_dc + _doom_dc_delta(state, cfg) + _flag_dc_delta(state, cfg)
+    dc = base_dc + _doom_dc_delta(state, cfg) + _flag_dc_delta(state, cfg) + _status_dc_delta(state, cfg)
+    dc_breakdown = _build_dc_breakdown(state, cfg)
     breakdown = _build_modifier_breakdown(
         state,
         content,
         cfg,
         stat=stat,
+        skill=skill,
         tags=tags,
         kind=kind,
         include_doom_flag_bonus=include_doom_flag_bonus,
@@ -889,12 +1222,13 @@ def _perform_stat_test(
     resolution["total"] = total
     resolution["success"] = success
     resolution["breakdown"] = breakdown
+    resolution["dc_breakdown"] = dc_breakdown
 
     apply_passive_effects(
         state,
         content,
         "after_check",
-        ctx={"kind": trigger_kind, "stat": stat, "tags": tags, "success": success},
+        ctx={"kind": trigger_kind, "stat": stat, "skill": skill, "tags": tags, "success": success},
         resolution=resolution,
     )
     debug_event(
@@ -905,6 +1239,7 @@ def _perform_stat_test(
             "kind": kind,
             "label": label,
             "stat": stat,
+            "skill": skill,
             "dc": int(dc),
             "roll": int(roll),
             "modifier": int(modifier),
@@ -945,17 +1280,26 @@ def perform_save(state: dict[str, Any], content: dict[str, Any], save_cfg: dict[
 def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg: dict[str, Any]) -> ResolutionPayload:
     """Execute a player-vs-opponent contested roll."""
     stat = str(contest_cfg.get("stat", "might"))
+    skill = str(contest_cfg.get("skill", "")).strip() or None
     tags = [str(tag) for tag in contest_cfg.get("tags", []) if isinstance(tag, str)]
     if "contest" not in tags:
         tags.append("contest")
     label = str(contest_cfg.get("label", "对抗"))
-    resolution = build_resolution(kind="contest", label=label, stat=stat, tags=tags)
+    resolution = build_resolution(
+        kind="contest",
+        label=label,
+        stat=stat,
+        stat_label=_stat_label(content, stat),
+        skill=skill,
+        skill_label=_skill_label(content, skill),
+        tags=tags,
+    )
 
     apply_passive_effects(
         state,
         content,
         "before_check",
-        ctx={"kind": "contest", "stat": stat, "tags": tags},
+        ctx={"kind": "contest", "stat": stat, "skill": skill, "tags": tags},
         resolution=resolution,
     )
 
@@ -964,6 +1308,7 @@ def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg:
         content,
         contest_cfg,
         stat=stat,
+        skill=skill,
         tags=tags,
         kind="contest",
         include_doom_flag_bonus=True,
@@ -1031,7 +1376,7 @@ def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg:
         state,
         content,
         "after_check",
-        ctx={"kind": "contest", "stat": stat, "tags": tags, "success": success},
+        ctx={"kind": "contest", "stat": stat, "skill": skill, "tags": tags, "success": success},
         resolution=resolution,
     )
     debug_event(
@@ -1041,6 +1386,7 @@ def perform_contest(state: dict[str, Any], content: dict[str, Any], contest_cfg:
         payload={
             "label": label,
             "stat": stat,
+            "skill": skill,
             "player_total": int(total),
             "opponent_total": int(opponent_total),
             "margin": int(margin),
@@ -1133,7 +1479,8 @@ def _collect_player_resistance_rules(state: dict[str, Any], content: dict[str, A
         )
 
     statuses = content.get("statuses", {})
-    for status_id in state["player"].get("statuses", []):
+    for status_entry in _status_entries(state):
+        status_id = str(status_entry["id"])
         status = statuses.get(status_id)
         if not isinstance(status, dict):
             continue
@@ -1227,7 +1574,8 @@ def _collect_player_vulnerability_rules(state: dict[str, Any], content: dict[str
         )
 
     statuses = content.get("statuses", {})
-    for status_id in state["player"].get("statuses", []):
+    for status_entry in _status_entries(state):
+        status_id = str(status_entry["id"])
         status = statuses.get(status_id)
         if not isinstance(status, dict):
             continue
@@ -1325,7 +1673,7 @@ def _apply_damage_to_target(
         return before - after, str(enemy.get("name", "敌方目标"))
 
     delta = adjust_resource(state, content, resource, -amount)
-    add_resource_effect(resolution, resource, delta, source)
+    add_resource_effect(resolution, resource, delta, source, label=_resource_label(content, resource))
     return abs(int(delta)), "你"
 
 
@@ -1367,7 +1715,7 @@ def _apply_healing_to_target(
         return max(0, after_hp - before_hp), enemy_name
 
     delta = adjust_resource(state, content, resource, amount)
-    add_resource_effect(resolution, resource, delta, source)
+    add_resource_effect(resolution, resource, delta, source, label=_resource_label(content, resource))
     return max(0, int(delta)), "你"
 
 
@@ -1546,6 +1894,7 @@ def _perform_damage_like(
         resistance_flat=flat_total,
         resistance_percent=percent_total,
         source=str(damage_cfg.get("source", "伤害效果")),
+        label=_resource_label(content, resource),
     )
     debug_event(
         state,
@@ -1662,6 +2011,7 @@ def perform_healing(state: dict[str, Any], content: dict[str, Any], healing_cfg:
         resistance_flat=0,
         resistance_percent=0,
         source=str(healing_cfg.get("source", "治疗效果")),
+        label=_resource_label(content, resource),
     )
     debug_event(
         state,
@@ -1734,6 +2084,7 @@ def perform_drain(state: dict[str, Any], content: dict[str, Any], drain_cfg: dic
             resistance_flat=0,
             resistance_percent=0,
             source=str(drain_cfg.get("recover_source", "吸取回复")),
+            label=_resource_label(content, recover_resource),
         )
         damage_resolution.setdefault("breakdown", []).append(
             {"value": recovered, "source": f"吸取回复({recover_target_label})"}
@@ -1768,6 +2119,7 @@ def advance_turn(state: dict[str, Any], content: dict[str, Any], resolution: Res
         ctx={"kind": "turn_end"},
         resolution=resolution,
     )
+    _tick_status_durations(state, content, resolution=resolution)
     debug_event(
         state,
         event="turn.advanced",
@@ -1858,13 +2210,16 @@ def statuses_view(state: dict[str, Any], content: dict[str, Any]) -> list[dict[s
     statuses = content.get("statuses", {})
     result: list[dict[str, Any]] = []
 
-    for status_id in state["player"].get("statuses", []):
+    for status_entry in _status_entries(state):
+        status_id = str(status_entry["id"])
         status = statuses.get(status_id, {})
+        duration_turns = status_entry.get("duration_turns")
         result.append(
             {
                 "id": status_id,
                 "name": str(status.get("name", status_id)),
                 "description": str(status.get("description", "")),
+                "duration_turns": int(duration_turns) if isinstance(duration_turns, int) else None,
             }
         )
 

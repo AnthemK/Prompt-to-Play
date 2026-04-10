@@ -79,11 +79,11 @@ This sequence usually gives enough context to start useful work without reading 
   - use this when the question is:
     - "what repository-wide rules should this change follow?"
 - `STAGE_DELIVERY.md`
-  - current-stage acceptance snapshot
+  - current version acceptance snapshot
   - validation commands
   - Demo coverage and release boundary
   - use this when the question is:
-    - "what proves the current stage is done?"
+    - "what proves the current stable version is done?"
 
 ### Story author docs
 
@@ -124,7 +124,7 @@ This sequence usually gives enough context to start useful work without reading 
 3. one existing playable pack
 4. `demo` story for mechanics coverage
 
-### I am validating whether the current stage is releasable
+### I am validating whether the current version is releasable
 
 1. `STAGE_DELIVERY.md`
 2. run the listed acceptance commands

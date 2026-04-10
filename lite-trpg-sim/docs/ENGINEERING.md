@@ -121,6 +121,17 @@ Avoid these mistakes:
 - mutating `view` as if it were authoritative state
 - naming story content as if it were engine-owned system data
 
+## State Modeling Rule
+
+When choosing between `flags`, `statuses`, and encounter fields:
+
+- use `progress.flags` for persistent story facts
+- use `player.statuses` for temporary player conditions
+- use encounter runtime fields for pressure-scene-local state
+
+Do not use flags as a generic substitute for every short-lived condition.
+If a condition mainly exists to affect the next few rolls or the current encounter, prefer a status-first model.
+
 ## Change Workflow
 
 Recommended order for non-trivial system changes:
@@ -143,6 +154,7 @@ Before calling a change ready for review, verify:
 4. story DSL complexity did not grow without clear value
 5. comments and docs match implementation
 6. important bugs can still be traced through `debug_trace`
+7. passive lifecycle changes can be explained from trigger to state change
 
 ## Tooling Check
 

@@ -106,6 +106,7 @@ class StoryRepository:
         world = data.get("world")
         stat_meta = data.get("stat_meta")
         professions = data.get("professions")
+        skill_meta = data.get("skill_meta", {})
         items = data.get("items")
         statuses = data.get("statuses")
         endings = data.get("endings")
@@ -118,6 +119,8 @@ class StoryRepository:
             raise ContentError(f"story[{story_id}] missing stat_meta")
         if not isinstance(professions, list):
             raise ContentError(f"story[{story_id}] missing professions")
+        if not isinstance(skill_meta, dict):
+            raise ContentError(f"story[{story_id}] skill_meta must be object")
         if not isinstance(items, dict):
             raise ContentError(f"story[{story_id}] missing items")
         if not isinstance(statuses, dict):
@@ -145,6 +148,7 @@ class StoryRepository:
         world.setdefault("corruption_penalties", [])
         world.setdefault("debug_trace_enabled", True)
         world.setdefault("debug_trace_limit", 400)
+        world["ui"] = self._normalize_world_ui(world, story_id)
 
         start_node = world["start_node"]
         if start_node not in nodes:
@@ -181,6 +185,7 @@ class StoryRepository:
             profession.setdefault("summary", "")
             profession.setdefault("max_hp", 10)
             profession.setdefault("stats", {})
+            profession.setdefault("skills", {})
             profession.setdefault("starting_items", [])
             profession.setdefault("perks", [])
             profession.setdefault("check_bonus", [])
@@ -195,12 +200,54 @@ class StoryRepository:
             "capabilities": capabilities,
             "world": world,
             "stat_meta": stat_meta,
+            "skill_meta": skill_meta,
             "professions": normalized_professions,
             "items": items,
             "statuses": statuses,
             "endings": endings,
             "nodes": nodes,
             "encounters": encounters,
+        }
+
+    def _normalize_world_ui(self, world: dict[str, Any], story_id: str) -> dict[str, Any]:
+        """Normalize optional story-facing UI metadata for the generic frontend."""
+        raw_ui = world.get("ui", {})
+        if raw_ui is None:
+            raw_ui = {}
+        if not isinstance(raw_ui, dict):
+            raise ContentError(f"story[{story_id}] world.ui must be object")
+
+        raw_labels = raw_ui.get("resource_labels", {})
+        if raw_labels is None:
+            raw_labels = {}
+        if not isinstance(raw_labels, dict):
+            raise ContentError(f"story[{story_id}] world.ui.resource_labels must be object")
+
+        normalized_labels: dict[str, str] = {}
+        for key in ("hp", "shield", "corruption", "shillings", "doom"):
+            value = raw_labels.get(key)
+            if isinstance(value, str) and value.strip():
+                normalized_labels[key] = value.strip()
+
+        raw_details = raw_ui.get("setup_details", [])
+        if raw_details is None:
+            raw_details = []
+        if not isinstance(raw_details, list):
+            raise ContentError(f"story[{story_id}] world.ui.setup_details must be list")
+
+        normalized_details: list[dict[str, str]] = []
+        for index, entry in enumerate(raw_details):
+            if not isinstance(entry, dict):
+                raise ContentError(f"story[{story_id}] world.ui.setup_details[{index}] must be object")
+            label = str(entry.get("label", "")).strip()
+            value = str(entry.get("value", "")).strip()
+            if label and value:
+                normalized_details.append({"label": label, "value": value})
+
+        return {
+            "resource_labels": normalized_labels,
+            "setup_summary": str(raw_ui.get("setup_summary", "")).strip(),
+            "setup_details": normalized_details,
         }
 
     def _normalize_story_interface_version(self, data: dict[str, Any], story_id: str) -> str:

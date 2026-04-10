@@ -84,6 +84,19 @@ def make_content() -> dict:
                 ],
                 "actions": [
                     {
+                        "id": "encounter_break_line",
+                        "label": "击溃阵线",
+                        "kind": "damage",
+                        "damage": {
+                            "target": "enemy",
+                            "resource": "hp",
+                            "amount": 6,
+                            "damage_type": "physical",
+                            "label": "击溃阵线",
+                            "source": "测试：击溃阵线",
+                        },
+                    },
+                    {
                         "id": "encounter_hold",
                         "label": "稳住阵线",
                         "kind": "contest",
@@ -133,6 +146,20 @@ def make_content() -> dict:
                             },
                         ],
                     },
+                ],
+                "exit_strategies": [
+                    {
+                        "id": "finish_defeat",
+                        "mode": "defeat",
+                        "label": "彻底击溃伏击者",
+                        "effects": [
+                            {
+                                "op": "finish",
+                                "ending": "default_end",
+                                "summary": "你击溃了伏击者。",
+                            }
+                        ],
+                    }
                 ],
             }
         },
@@ -218,10 +245,102 @@ class EncounterFlowTests(unittest.TestCase):
 
         # on_failure damage 2 + contest failure_cost hp 1
         self.assertEqual(state["player"]["hp"], 7)
+
+    def test_enemy_zero_hp_unlocks_defeat_exit_and_stops_enemy_turn(self) -> None:
+        """Encounter should announce defeat unlock and stop enemy behavior once enemy HP hits zero."""
+        content = make_content()
+        state = make_state()
+        director = StoryDirector(content)
+
+        director.apply_action(state, "start_encounter")
+        director.apply_action(state, "encounter_break_line")
+
+        self.assertEqual(state["encounter"]["enemy"]["hp"], 0)
+        self.assertEqual(state["encounter"]["last_enemy_behavior"], None)
+        self.assertEqual(state["last_outcome"]["summary"], "敌方阵线已经崩溃。")
+        self.assertIn("击溃收尾窗口", state["last_outcome"]["detail"])
+
+        scene = director.scene_view(state)
+        action_ids = [action["id"] for action in scene["actions"]]
+        self.assertIn("encounter_exit_finish_defeat", action_ids)
+        self.assertIn("敌方阵线已经崩溃。", state["log"])
         resolution = state.get("last_outcome", {}).get("resolution", {})
-        self.assertEqual(resolution.get("kind"), "contest")
+        self.assertEqual(resolution.get("kind"), "damage")
         effects = resolution.get("effects", [])
-        self.assertTrue(any(effect.get("kind") == "resource" and int(effect.get("delta", 0)) == -1 for effect in effects))
+        self.assertTrue(any(effect.get("kind") == "encounter" and effect.get("mode") == "exit_unlock" for effect in effects))
+
+    def test_requires_status_gates_encounter_action_visibility(self) -> None:
+        """Status-gated encounter actions should appear only after the status is gained."""
+        content = make_content()
+        content["statuses"] = {
+            "battle_focus": {
+                "id": "battle_focus",
+                "name": "战斗专注",
+                "description": "你稳住了呼吸，准备抓住下一次机会。"
+            }
+        }
+        ambush = content["encounters"]["dock_ambush"]
+        ambush["actions"] = copy.deepcopy(ambush["actions"]) + [
+            {
+                "id": "encounter_focus",
+                "label": "稳住呼吸",
+                "kind": "story",
+                "effects": [
+                    {"op": "add_status", "status": "battle_focus", "source": "动作：稳住呼吸"},
+                    {"op": "outcome", "summary": "你稳住了节奏。"},
+                ],
+            },
+            {
+                "id": "encounter_focus_strike",
+                "label": "借专注逼近",
+                "kind": "story",
+                "requires": {"status": "battle_focus", "op": "==", "value": True},
+                "effects": [
+                    {"op": "adjust_objective", "amount": 1, "source": "状态：战斗专注"},
+                    {"op": "outcome", "summary": "你借着专注逼近了一步。"},
+                ],
+            },
+        ]
+
+        state = make_state()
+        director = StoryDirector(content)
+        director.apply_action(state, "start_encounter")
+
+        scene_before = director.scene_view(state)
+        before_map = {action["id"]: action for action in scene_before["actions"]}
+        self.assertIn("encounter_focus", before_map)
+        self.assertIn("encounter_focus_strike", before_map)
+        self.assertFalse(before_map["encounter_focus_strike"]["available"])
+
+        director.apply_action(state, "encounter_focus")
+
+        scene_after = director.scene_view(state)
+        after_map = {action["id"]: action for action in scene_after["actions"]}
+        self.assertIn("encounter_focus_strike", after_map)
+        self.assertTrue(after_map["encounter_focus_strike"]["available"])
+
+    def test_encounter_exit_requirement_ctx_is_reused_on_execution(self) -> None:
+        """Synthetic exit actions should use the same requirement context in view and execution."""
+        content = make_content()
+        content["encounters"]["dock_ambush"]["exit_strategies"] = [
+            {
+                "id": "ctx_escape",
+                "mode": "escape",
+                "label": "顺势撤离",
+                "requires": {"ctx": "mode", "op": "==", "value": "escape"},
+            }
+        ]
+        state = make_state()
+        director = StoryDirector(content)
+        director.apply_action(state, "start_encounter")
+
+        scene = director.scene_view(state)
+        action_map = {action["id"]: action for action in scene["actions"]}
+        self.assertIn("encounter_exit_ctx_escape", action_map)
+        self.assertTrue(action_map["encounter_exit_ctx_escape"]["available"])
+
+        director.apply_action(state, "encounter_exit_ctx_escape")
+        self.assertIsNone(state["encounter"])
 
     def test_encounter_action_economy_and_enemy_behavior(self) -> None:
         """Encounter should support continue-actions and per-turn enemy behavior templates."""

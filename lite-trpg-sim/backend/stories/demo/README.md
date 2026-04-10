@@ -45,6 +45,7 @@ Core gameplay feel:
 
 - a clear mission hook
 - differentiated professions
+- differentiated profession skill profiles
 - one explicit cheat profession for rapid validation
 - meaningful item use
 - one exploration/infiltration beat
@@ -65,6 +66,10 @@ Core system coverage:
    - `before_check`
    - `after_check`
    - `turn_end`
+   - finite-duration status expiry after turn-end processing
+   - status-aware check/save modifiers such as `extra_bonus_if_statuses`
+   - status-aware DC changes such as `dc_adjust_if_statuses`
+   - status-gated action availability through `requires.status`
 10. environment changes and environment-driven modifiers
 11. encounter framework:
    - phases
@@ -74,6 +79,7 @@ Core system coverage:
    - exit strategies
 12. save/load round-trip inside an active encounter
 13. debug trace availability
+14. optional skill-aware checks through the shared story contract
 
 ## Current Automatic Acceptance Routes
 
@@ -99,30 +105,62 @@ Current routes:
    - verifies save/load round-trip plus the delay ending
 4. `defeat`
    - verifies the true victory route through enemy defeat
+   - also verifies that enemy HP reaching `0` immediately unlocks and announces the defeat finish window
+   - once this route unlocks, the softer `negotiate` and `delay` finishes are no longer shown in Demo
 5. `prepared_entry`
    - verifies the Demo's `before_check` + `after_check` passive lifecycle
-6. `mechanics_mix`
+6. `skill_trials`
+   - verifies the explicit pre-mission skill-test node and all four Demo skills
+7. `mechanics_mix`
    - touches utility use, save, healing, contest, drain, damage, environment changes, and turn-end pressure
-7. `fatal_death`
+8. `guarded_window`
+   - verifies status-gated action visibility and DC adjustments while a timed status is active
+9. `fatal_death`
    - verifies explicit HP-zero fatal handling
-8. `fatal_corrupt`
+10. `fatal_corrupt`
    - verifies explicit corruption-limit fatal handling
+
+Note:
+
+- profession-differentiation showcase routes still use the normal professions
+- some mechanics-heavy regression routes may use the Demo cheat role to reduce random test flakiness
 
 ## Story Structure
 
 The current Demo structure is intentionally small:
 
 1. mission briefing on the ridge
-2. one choice of entry style
-3. one main encounter space
-4. four successful exits:
+2. one optional pre-mission skill-test segment
+3. one choice of entry style
+4. one main encounter space
+5. four successful exits:
    - defeat
    - negotiate
    - delay
    - escape
-5. two failure exits:
+6. two failure exits:
    - death
    - corruption
+
+Exit-window note:
+
+- `negotiate` and `delay` are meant to represent softer finishes while the guard
+  still holds the field in some form
+- once enemy HP falls to `0`, Demo now only exposes the hard `defeat` finish
+  plus the always-available `escape` fallback
+- acceptance routes were updated to keep the guard alive on the `delay` path so
+  the route matches this fiction and no longer depends on contradictory state
+
+Skill-test note:
+
+- Demo now contains one short pre-mission node dedicated to skill coverage
+- it explicitly demonstrates:
+  - `洞察 + 警觉`
+  - `敏捷 + 潜行`
+  - `意志 + 坚忍`
+  - `力量 + 压制`
+- each test grants a small but real gameplay benefit, so the segment is both
+  playable and useful for regression testing
 
 ## Demo-Only Cheat Role
 

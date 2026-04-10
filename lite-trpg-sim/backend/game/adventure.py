@@ -15,6 +15,7 @@ from .rules import (
     apply_state_effect,
     advance_turn,
     debug_event,
+    has_status,
     log_event,
     perform_check,
     perform_contest,
@@ -335,6 +336,12 @@ class StoryDirector:
         encounter = self._active_encounter(state)
         if encounter is None:
             return
+        enemy = encounter.get("enemy")
+        if isinstance(enemy, dict) and int(enemy.get("hp", 1)) <= 0:
+            # Defeated enemies no longer take encounter turns. The encounter
+            # stays active until the player chooses one of the unlocked exits.
+            encounter["last_enemy_behavior"] = None
+            return
         pool = self._encounter_behavior_pool(state, template)
         if not pool:
             encounter["last_enemy_behavior"] = None
@@ -543,8 +550,67 @@ class StoryDirector:
         encounter_runtime.setdefault("intent", str((encounter_runtime.get("enemy") or {}).get("intent", "")))
         encounter_runtime.setdefault("last_enemy_behavior", None)
         encounter_runtime.setdefault("enemy_behavior_cooldowns", {})
+        encounter_runtime.setdefault("announced_exit_modes", [])
         self._ensure_encounter_economy(encounter_runtime, encounter_template)
         self._sync_encounter_phase(state, source="遭遇同步")
+
+    def _encounter_exit_unlock_text(self, mode: str, encounter_title: str) -> tuple[str, str]:
+        """Return one player-facing message for a newly unlocked exit window."""
+        if mode == "defeat":
+            return ("敌方阵线已经崩溃。", f"{encounter_title}已经出现击溃收尾窗口，你现在可以直接结束这场遭遇。")
+        if mode == "delay":
+            return ("你已经拿稳局势。", f"{encounter_title}已经满足拖延收尾条件，现在可以选择稳妥收束。")
+        if mode == "negotiate":
+            return ("你已经逼出了让步空间。", f"{encounter_title}已经出现交涉收尾窗口，现在可以迫使对方让路。")
+        return ("遭遇出口已解锁。", f"{encounter_title}已经出现新的收尾窗口。")
+
+    def _sync_encounter_exit_unlocks(
+        self,
+        state: dict[str, Any],
+        *,
+        resolution: ResolutionPayload | None = None,
+        source: str = "遭遇里程碑",
+    ) -> None:
+        """Announce newly available encounter-exit windows exactly once."""
+        encounter_runtime, encounter_template = self._encounter_runtime_and_template(state)
+        if encounter_runtime is None:
+            return
+
+        raw_announced = encounter_runtime.get("announced_exit_modes")
+        announced = {str(mode) for mode in raw_announced} if isinstance(raw_announced, list) else set()
+        configured = encounter_template.get("exit_strategies", [])
+        if not isinstance(configured, list):
+            return
+
+        title = str(encounter_runtime.get("title", "遭遇"))
+        for entry in configured:
+            if not isinstance(entry, dict):
+                continue
+            mode = normalize_encounter_exit_mode(str(entry.get("mode", "")))
+            if mode in {"", "escape"} or mode in announced:
+                continue
+
+            requirement = entry.get("requires")
+            if isinstance(requirement, dict):
+                available = self._check_requirement(state, requirement, {"kind": "encounter_exit", "mode": mode})
+            else:
+                available = self._default_exit_requirement(state, mode)
+            if not available:
+                continue
+
+            announced.add(mode)
+            summary, detail = self._encounter_exit_unlock_text(mode, title)
+            self._set_outcome(state, summary, detail, resolution=resolution)
+            log_event(state, summary)
+            add_encounter_effect(
+                resolution,
+                mode="exit_unlock",
+                title=title,
+                label=summary,
+                source=source,
+            )
+
+        encounter_runtime["announced_exit_modes"] = sorted(announced)
 
     def _set_outcome(
         self,
@@ -680,6 +746,11 @@ class StoryDirector:
             item_id = str(requirement.get("item", ""))
             qty = int(state.get("player", {}).get("inventory", {}).get(item_id, 0))
             return self._compare(qty, op, int(right or 0))
+
+        if "status" in requirement:
+            status_id = str(requirement.get("status", "")).strip()
+            present = has_status(state, status_id) if status_id else False
+            return self._compare(present, op, right if right is not None else True)
 
         return False
 
@@ -1181,6 +1252,7 @@ class StoryDirector:
                 },
             )
 
+        self._sync_encounter_exit_unlocks(state, resolution=resolution, source="遭遇回合")
         self._run_enemy_behavior(state, template=encounter_template, resolution=resolution)
         self._sync_encounter_phase(state, resolution=resolution, source="遭遇回合")
 
@@ -1308,6 +1380,7 @@ class StoryDirector:
                 "kind": "story",
                 "system_action": "encounter_exit",
                 "_exit_strategy": entry,
+                "_requirement_ctx": {"kind": "encounter_exit", "mode": mode},
                 "cost": entry.get("cost"),
                 "turn_flow": str(entry.get("turn_flow", "end")),
             }
@@ -1429,6 +1502,15 @@ class StoryDirector:
                     "label": str(action.get("label", "")),
                     "hint": str(action.get("hint", "")),
                     "kind": str(action.get("kind", "story")),
+                    # Mirror action availability into the view so the frontend
+                    # can explain blocked actions before the player clicks.
+                    "available": not isinstance(action.get("requires"), dict)
+                    or self._check_requirement(state, action.get("requires"), action.get("_requirement_ctx")),
+                    "unavailable_detail": (
+                        str(action.get("on_unavailable", {}).get("detail", "你还不满足执行该行动的条件。"))
+                        if isinstance(action.get("on_unavailable"), dict)
+                        else "你还不满足执行该行动的条件。"
+                    ),
                     "cost": action.get("_cost") if isinstance(action.get("_cost"), dict) else None,
                     "turn_flow": str(action.get("_turn_flow", "")) if action.get("_encounter_action") else "",
                 }
@@ -1490,7 +1572,8 @@ class StoryDirector:
             return
 
         requirement = chosen.get("requires")
-        if isinstance(requirement, dict) and not self._check_requirement(state, requirement):
+        requirement_ctx = chosen.get("_requirement_ctx")
+        if isinstance(requirement, dict) and not self._check_requirement(state, requirement, requirement_ctx):
             unavailable = chosen.get("on_unavailable")
             if isinstance(unavailable, dict):
                 self._set_outcome(
@@ -1734,6 +1817,11 @@ class StoryDirector:
                 should_advance_turn = True
 
         if not state.get("game_over"):
+            self._sync_encounter_exit_unlocks(
+                state,
+                resolution=action_resolution,
+                source=str(chosen.get("label", "玩家行动")),
+            )
             if should_advance_turn:
                 advance_turn(state, self.content, resolution=action_resolution)
                 self._encounter_turn_rules(state, resolution=action_resolution)

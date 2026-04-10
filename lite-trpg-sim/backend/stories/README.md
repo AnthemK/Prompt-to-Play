@@ -25,6 +25,7 @@ If you want the shortest path to a playable pack, do this:
    - `id`
    - `world`
    - `stat_meta`
+   - `skill_meta` if the story needs a small skill layer
    - `professions`
    - `items`
    - `statuses`
@@ -102,6 +103,7 @@ Start with these top-level fields:
 - `id`
 - `world`
 - `stat_meta`
+- `skill_meta` if you want skill-aware checks
 - `professions`
 - `items`
 - `statuses`
@@ -148,6 +150,8 @@ python3 backend/tools/story_cli.py validate --story-id your_story_id
 Use `world` for:
 
 - story title and intro
+- story-facing setup summary/detail metadata
+- story-specific visible resource labels
 - chapter title
 - starting node
 - default money
@@ -161,11 +165,53 @@ Use `world` for:
 Keep the attribute set short and readable.  
 This is a lite simulator, so a small stable stat list is usually stronger than many narrow stats.
 
+### `skill_meta`
+
+Use `skill_meta` only when the story benefits from a small shared skill vocabulary.
+
+Good use:
+
+- `潜行`
+- `警觉`
+- `坚忍`
+- `压制`
+
+Avoid:
+
+- long MMO-style skill lists
+- overlapping micro-skills that players cannot read at a glance
+
+### `world.ui`
+
+Use `world.ui` to customize the generic frontend without pushing story logic into the frontend.
+
+Good use:
+
+- `setup_summary`
+  - one short paragraph that explains what kind of run this story offers
+- `setup_details`
+  - small chips such as duration, tone, or route style
+- `resource_labels`
+  - rename generic resources so they read naturally in the current setting
+
+Examples:
+
+- `shillings -> 摩拉`
+- `doom -> 潮汐压力`
+- `hp -> 伤势`
+
+Avoid:
+
+- hiding actual rules behind flavor text
+- using `world.ui` for branching logic
+- packing large lore dumps into the setup overlay
+
 ### `professions`
 
 Use professions to create playstyle differences through:
 
 - starting stats
+- starting skills
 - starting items
 - a few meaningful bonuses
 - a short identity summary
@@ -232,6 +278,27 @@ Choose these action types by fiction:
 - `damage` / `healing` / `drain`
   - resource impact is itself meaningful
 
+If a check is about a specific competence, prefer:
+
+- `attribute + optional skill`
+
+Example:
+
+- `洞察 + 警觉`
+
+If the fiction says "this is easier or harder only while a status is active", prefer:
+
+- `extra_bonus_if_statuses`
+- `dc_adjust_if_statuses`
+
+This is usually cleaner than giving the status a broad `check_bonus` that leaks into unrelated rolls.
+
+If you raise or lower DC conditionally, add a short `source` string when possible.
+
+That text will surface in explain/debug output, which makes balancing and bug reports much easier to read.
+- `敏捷 + 潜行`
+- `意志 + 坚忍`
+
 ## `trigger_effects`
 
 Prefer `trigger_effects` for new stories.
@@ -241,6 +308,7 @@ Use it for:
 - profession passives
 - item passives
 - status effects
+- finite-duration status loops, when a state should naturally expire after a few turns
 
 Current trigger timings stay intentionally small:
 
@@ -249,6 +317,15 @@ Current trigger timings stay intentionally small:
 - `turn_end`
 
 This is deliberate. It keeps the system understandable for both authors and players.
+
+Validation now treats this as a closed vocabulary, so avoid inventing new trigger names in story data unless the engine has first been extended to support them.
+
+For lightweight timed states, you can now choose either:
+
+- `statuses.*.default_duration_turns`
+  - good when a status normally lasts a fixed number of turns
+- `add_status.duration_turns`
+  - good when the same status can last different lengths in different story contexts
 
 ## First Encounter Rule
 
@@ -281,6 +358,26 @@ If runtime behavior feels mysterious, validate first.
 - writing a scene as plain nodes when it really wants encounter structure
 - expecting frontend changes for one story-specific gimmick
 - pushing setting-specific logic into the engine
+
+## Flags vs Statuses
+
+Use `flags` for:
+
+- persistent discoveries
+- long-term relationship facts
+- route knowledge that should survive many scenes
+
+Use `statuses` for:
+
+- temporary tactical states
+- short-lived mental or bodily conditions
+- "this next check is easier/harder" style effects
+- conditions that should expire, be consumed, or be removed explicitly
+
+Rule of thumb:
+
+- if the player should still meaningfully "have" it many scenes later, it is probably a flag
+- if it mainly affects the current pressure situation or a small number of rolls, it is probably a status
 
 ## Playable Checklist
 

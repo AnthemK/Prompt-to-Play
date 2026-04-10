@@ -28,6 +28,14 @@ class EngineDebugTests(unittest.TestCase):
             self.assertIn("capabilities", story)
             self.assertIsInstance(story.get("capabilities"), dict)
             self.assertEqual(story.get("story_interface_version"), "1.1")
+            self.assertIn("setup_summary", story)
+            self.assertIn("setup_details", story)
+            self.assertIsInstance(story.get("setup_details"), list)
+
+        self.assertIn("world", meta)
+        self.assertIsInstance(meta.get("world"), dict)
+        self.assertIn("ui", meta.get("world", {}))
+        self.assertIsInstance(meta.get("world", {}).get("ui"), dict)
 
     def test_engine_debug_trace_api_surface(self) -> None:
         """Engine should expose recent structured debug entries per session."""

@@ -74,6 +74,15 @@ EFFECT_OPS: Final[frozenset[str]] = frozenset(
 # Effect ops that reuse the impact resolution pipeline.
 IMPACT_EFFECT_OPS: Final[frozenset[str]] = frozenset({"damage", "healing", "drain"})
 
+# Passive trigger timings intentionally stay small so authors can reason about
+# lifecycle order without learning a large event matrix.
+PASSIVE_TRIGGER_KINDS: Final[tuple[str, ...]] = (
+    "before_check",
+    "after_check",
+    "turn_end",
+)
+PASSIVE_TRIGGER_SET: Final[frozenset[str]] = frozenset(PASSIVE_TRIGGER_KINDS)
+
 # Encounter exit strategy modes.
 ENCOUNTER_EXIT_MODES: Final[frozenset[str]] = frozenset({"defeat", "escape", "negotiate", "delay"})
 DEFAULT_ENCOUNTER_EXIT_MODE: Final[str] = "escape"
@@ -93,6 +102,11 @@ def required_action_config_key(kind: str) -> str | None:
 def effect_op_supported(op: str) -> bool:
     """Return whether one effect op belongs to the canonical contract."""
     return str(op).strip() in EFFECT_OPS
+
+
+def passive_trigger_supported(trigger: str) -> bool:
+    """Return whether one passive trigger belongs to the canonical contract."""
+    return str(trigger).strip() in PASSIVE_TRIGGER_SET
 
 
 def normalize_encounter_exit_mode(raw_mode: str) -> str:
