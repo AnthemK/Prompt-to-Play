@@ -12,10 +12,12 @@
 
 - `CREATIVE_PLAYBOOK.md`
   - 架构设计、项目管理、代码实现、文本/图片/音频创作经验
+  - 也包括长期有效的 release closure / Demo 设计经验
 - `LITE_TRPG_SIM_DOC_GOVERNANCE.md`
   - 面向多读者项目的文档边界治理经验
 - `STAGE_UPDATES.md`
   - 按“阶段”记录新增经验（不是每天流水账）
+  - 最近一轮补充了 `V2.0` 发布收尾、Demo 语义校准和显式技能测试经验
 
 ## 维护规则（建议统一遵守）
 

@@ -39,3 +39,21 @@ coverage.xml
 *.log
 *.tmp
 *.temp
+
+# Experimental writing content
+# Reserved cross-project keyword: experimental-writing
+**/experimental-writing/
+**/experimental-writing/**
+**/*-experimental-writing/
+**/*-experimental-writing/**
+**/08-experimental-writing/
+**/08-experimental-writing/**
+
+# Cache content
+# Reserved cross-project keyword: cache
+**/cache/
+**/cache/**
+**/*-cache/
+**/*-cache/**
+**/09-cache/
+**/09-cache/**

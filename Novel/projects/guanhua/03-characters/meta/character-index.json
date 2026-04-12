@@ -1,0 +1,256 @@
+{
+  "characters": [
+    {
+      "id": "lu-shouyi",
+      "name": "陆守一",
+      "tier": "protagonist",
+      "gender": "male",
+      "factions": ["太一门", "外门"],
+      "file_mode": "single",
+      "canonical_file": "03-characters/02-protagonist/protagonist-profile.md",
+      "canonical_anchor": null,
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/chapter-outline.md",
+        "04-plot/volume-01/chapter-001-010-detail-outline.md"
+      ]
+    },
+    {
+      "id": "zhou-jibai",
+      "name": "周既白",
+      "tier": "major",
+      "gender": "male",
+      "factions": ["太一门", "外门", "承道院外门传习口"],
+      "file_mode": "single",
+      "canonical_file": "03-characters/03-major-characters/zhou-jibai.md",
+      "canonical_anchor": null,
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "front"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    },
+    {
+      "id": "gu-qingxu",
+      "name": "顾清栩",
+      "tier": "major",
+      "gender": "female",
+      "factions": ["太一门", "内门", "承道峰"],
+      "file_mode": "single",
+      "canonical_file": "03-characters/03-major-characters/gu-qingxu.md",
+      "canonical_anchor": null,
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "front"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    },
+    {
+      "id": "song-ping",
+      "name": "宋平",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "外门"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 宋平",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/chapter-outline.md",
+        "04-plot/volume-01/chapter-001-010-detail-outline.md"
+      ]
+    },
+    {
+      "id": "xu-ying",
+      "name": "许应",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "外门", "小世家旁支"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 许应",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/chapter-outline.md",
+        "04-plot/volume-01/chapter-001-010-detail-outline.md"
+      ]
+    },
+    {
+      "id": "zhao-liuheng",
+      "name": "赵六衡",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "外门"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 赵六衡",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/chapter-outline.md",
+        "04-plot/volume-01/chapter-001-010-detail-outline.md"
+      ]
+    },
+    {
+      "id": "ma-huichuan",
+      "name": "马会川",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "外门值事"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 马会川",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/chapter-outline.md",
+        "04-plot/volume-01/chapter-001-010-detail-outline.md"
+      ]
+    },
+    {
+      "id": "han-chongdu",
+      "name": "韩崇度",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "外门教习"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 韩崇度",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/chapter-outline.md",
+        "04-plot/volume-01/chapter-001-010-detail-outline.md"
+      ]
+    },
+    {
+      "id": "pei-zhaochuan",
+      "name": "裴照川",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "外门", "小世家旁支"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 裴照川",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "front-mid"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    },
+    {
+      "id": "liang-qiuheng",
+      "name": "梁秋衡",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "外门"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 梁秋衡",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "front-mid"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    },
+    {
+      "id": "yan-lufang",
+      "name": "严履方",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["太一门", "守正堂"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 严履方",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "mid"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    },
+    {
+      "id": "meng-huaizhen",
+      "name": "孟怀真",
+      "tier": "supporting",
+      "gender": "male",
+      "factions": ["青桑学宫"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 孟怀真",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "first-descent"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    },
+    {
+      "id": "lin-wanzhao",
+      "name": "林晚照",
+      "tier": "supporting",
+      "gender": "female",
+      "factions": ["太一门", "外门"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 林晚照",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    },
+    {
+      "id": "du-heng",
+      "name": "杜蘅",
+      "tier": "supporting",
+      "gender": "female",
+      "factions": ["太一门", "外门书录"],
+      "file_mode": "shared",
+      "canonical_file": "03-characters/04-casts/volume-01-supporting-cast.md",
+      "canonical_anchor": "### 杜蘅",
+      "first_appearance": {
+        "volume": "volume-01",
+        "stage": "opening"
+      },
+      "plot_refs": [
+        "04-plot/volume-01/character-beats.md",
+        "04-plot/volume-01/chapter-outline.md"
+      ]
+    }
+  ]
+}
