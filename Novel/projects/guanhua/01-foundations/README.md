@@ -1,4 +1,4 @@
-# 01 Foundation
+# 01 Foundations
 
 这个目录处理本文的本体立项问题。
 
