@@ -105,3 +105,69 @@
 因此，本目录允许在下一级目录中保留适度接口，用于后续补充具体修途差异、功法演化、偏门百艺与特殊法宝体系。
 
 但所有后续补充，都应服从本目录已经确定的分层与边界，不应在下层目录中反向改写本层结构。
+
+
+## 完整目录结构 暂定
+
+请直接看源码
+03-cultivation-and-arts/
+├── README.md
+├── 01-paths-and-realms/
+│   ├── README.md
+│   ├── principles-of-cultivation.md
+│   ├── six-realms-of-immortality.md
+│   ├── orthodox-cultivation.md
+│   ├── body-tempering.md
+│   ├── soul-refinement.md
+│   ├── dual-and-triple-cultivation.md
+│   ├── breakthroughs-and-deviations.md
+│   └── resources-and-bottlenecks.md
+├── 02-cultivation-methods/
+│   ├── README.md
+│   ├── method-system.md
+│   ├── method-structure.md
+│   ├── orthodox-methods/
+│   │   ├── README.md
+│   │   ├── orthodox-methods.md
+│   │   └── 中和经.md
+│   ├── body-methods/
+│   │   ├── README.md
+│   │   └── body-methods.md
+│   ├── soul-methods/
+│   │   ├── README.md
+│   │   └── soul-methods.md
+│   └── heterodox-and-forbidden-methods/
+│       ├── README.md
+│       └── heterodox-and-forbidden-methods.md
+├── 03-mystic-arts/
+│   ├── README.md
+│   ├── art-system.md
+│   ├── orthodox-arts/
+│   │   ├── README.md
+│   │   ├── orthodox-arts.md
+│   │   └── 玉宸九霄雷令.md
+│   ├── body-arts/
+│   │   ├── README.md
+│   │   ├── body-arts.md
+│   │   └── 裂景拳.md
+│   ├── soul-arts/
+│   │   └── README.md
+│   └── heterodox-and-forbidden-arts/
+│       ├── README.md
+│       └── heterodox-and-forbidden-arts.md
+├── 04-esoteric-crafts/
+│   ├── README.md
+│   ├── craft-system.md
+│   ├── formations.md
+│   ├── artifact-forging.md
+│   ├── alchemy.md
+│   ├── medicine-and-nurture.md
+│   └── spirit-beast-arts.md
+└── 05-treasures-and-artifacts/
+    ├── README.md
+    ├── artifact-system.md
+    ├── natal-treasures.md
+    ├── ordinary-artifacts.md
+    ├── strategic-treasures.md
+    ├── grades-and-compatibility.md
+    └── representative-artifacts.md
