@@ -14,7 +14,7 @@
 
 - `docs/`
 - `00-reference/`
-- `01-foundation/`
+- `01-foundations/`
 - `02-setting/`
 - `03-characters/`
 - `04-plot/`
@@ -117,7 +117,7 @@
 
 这里不负责小说本体的题材承诺、主题问题与审美原则。
 
-### `01-foundation/`
+### `01-foundations/`
 
 放小说本体层的立项资料。
 
@@ -138,7 +138,7 @@
 
 补充：
 
-- `01-foundation/` 负责小说架构与本体定位
+- `01-foundations/` 负责小说架构与本体定位
 - `docs/` 负责协作规则与执行规则
 
 ### `02-setting/`
@@ -155,11 +155,19 @@
 
 当前建议分层：
 
-- `01-foundations/`
-  - 世界底层规则
-- `02-world-order/`
-  - 天下结构与跨势力秩序
-- `03-taiyi/`
+- `01-constitution/`
+  - 世界核心准则与规则账本
+- `02-cosmos-and-principles/`
+  - 天地、性命、因果、界域与天劫等宇宙原则
+- `03-cultivation-and-arts/`
+  - 修炼路径、功法、术法、百艺与宝物体系
+- `04-world-layout-and-history/`
+  - 世界空间结构、历史阶段与时代演变
+- `05-factions-and-polities/`
+  - 天下秩序、势力并存逻辑与治理关系
+- `06-reference/`
+  - 设定内部术语、命名样本与辅助参照
+- `taiyi/`
   - 主宗门专章
 
 ### `03-characters/`
@@ -202,7 +210,7 @@
 
 使用规则：
 
-- 只建议用于 `01-foundation/`、`02-setting/`、`03-characters/`、`04-plot/`
+- 只建议用于 `01-foundations/`、`02-setting/`、`03-characters/`、`04-plot/`
 - 进入 `05-drafts/` 前应尽量替换为正式名称
 - 正文草稿阶段不建议继续保留大量占位符，否则语言会失真
 

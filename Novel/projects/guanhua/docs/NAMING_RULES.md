@@ -96,9 +96,9 @@ JSON 文件应显式表达其索引或元数据性质。
 
 例如：
 
-- `01-foundation/`
+- `01-foundations/`
 - `03-characters/`
-- `04-casts/`
+- `04-plot/`
 
 若目录承担临时运行职能，也应在名字上直接表达，例如：
 

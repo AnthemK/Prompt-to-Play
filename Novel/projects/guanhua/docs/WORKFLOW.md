@@ -71,7 +71,7 @@
 
 位置：
 
-- `01-foundation/`
+- `01-foundations/`
 
 目标：
 
@@ -106,11 +106,12 @@
 
 最低产物：
 
-- `02-setting/01-foundations/world-core.md`
-- `02-setting/01-foundations/cultivation-system.md`
-- `02-setting/02-world-order/factions-and-orders.md`
-- `02-setting/01-foundations/history-and-timeline.md`
-- `02-setting/01-foundations/rule-ledger.md`
+- `02-setting/01-constitution/world-core.md`
+- `02-setting/01-constitution/rule-ledger.md`
+- `02-setting/02-cosmos-and-principles/README.md`
+- `02-setting/03-cultivation-and-arts/README.md`
+- `02-setting/04-world-layout-and-history/history-and-timeline.md`
+- `02-setting/05-factions-and-polities/README.md`
 
 出口标准：
 
@@ -218,7 +219,7 @@
 
 - 整理简介、对外文案、稳定版本和发布材料
 
-## 本项目特别强调的两条纪律
+## 本项目特别强调的几条纪律
 
 ### 1. 设定必须可追责
 
@@ -240,6 +241,72 @@
 - 关键关系压力
 - 变化节点
 - 阶段性代价
+
+### 3. 重大方向问题须先确认用户
+
+若某项判断会直接影响本文的整体基调、主题重心、核心审美、世界根基或主线方向，
+则不能把“合理猜测”直接当成既定事实继续推进。
+
+这类问题应先明确：
+
+- 当前是否已得到用户确认
+- 现有表述是稳定结论，还是暂定方案
+- 若只是暂定，后续是否仍允许提出替代意见
+
+不能因为局部推进顺手，
+就绕过用户确认去替整本书定调。
+
+## 回退与恢复纪律
+
+### 1. 回退默认优先使用 git
+
+凡是“回退”“撤销上一步”“恢复之前版本”这类请求，  
+若目标改动可由 git 精确表达，应优先使用 git 方式完成，  
+而不是优先手工重写文件。
+
+### 2. 回退前必须先检查边界
+
+执行回退前，必须先检查：
+
+- `git status`
+- 目标文件 diff
+
+其目的不是走流程，  
+而是确认回退边界，避免误伤无关改动。
+
+### 3. 必须遵循最小作用原则
+
+回退时应优先按以下顺序选择方法：
+
+1. 只回退指定文件中的指定改动
+2. 只回退指定文件到某个明确版本
+3. 只回退明确指定的某次提交
+
+除非用户明确要求，  
+禁止使用 `git reset --hard`、全局 `git checkout -- .`、全局 `git restore` 等会影响无关改动的破坏性方式。
+
+### 4. 用户改动与助手改动必须区别处理
+
+若待回退内容是助手自己刚写入、且通过 git 可精确识别的改动，  
+可静默执行最小范围回退。
+
+若回退将涉及用户手动修改的内容，  
+必须先通过 `git diff`、文件 diff 或其他可核查方式明确告知风险，  
+并获得用户明确授权后才能继续。
+
+### 5. git 无法精确表达时，再退回精确 patch
+
+若 git 不能精确表达回退边界，  
+或 git 回退会误伤无关改动，  
+则应退回到最小范围的精确 patch 方式，  
+而不是为了“必须用 git”而扩大回退范围。
+
+### 6. 回退后要做最小必要校验
+
+回退完成后，应进行最小必要校验，确认：
+
+- 目标改动确已撤销
+- 未波及无关文件
 
 ## 人物文档补充纪律
 
