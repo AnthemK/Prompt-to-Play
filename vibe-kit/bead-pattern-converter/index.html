@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bead Pattern Converter</title>
+    <link rel="stylesheet" href="./styles.css?v=20260505-9" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Vibe Kit</p>
+          <h1>Bead Pattern Converter</h1>
+          <p class="intro">
+            Turn a source image into a bead-art pattern with palette-matched
+            color codes, a build grid, and a materials summary.
+          </p>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel controls-panel">
+          <h2>Controls</h2>
+          <form id="controls-form" class="controls-form">
+            <label class="field">
+              <span>Source image</span>
+              <input id="image-input" type="file" accept="image/*" />
+            </label>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>Width</span>
+                <input id="width-input" type="number" min="8" max="128" value="48" />
+              </label>
+              <label class="field">
+                <span>Height</span>
+                <input id="height-input" type="number" min="8" max="128" value="48" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Palette</span>
+              <select id="palette-select"></select>
+            </label>
+
+            <div class="palette-card">
+              <div class="palette-card-head">
+                <h3 id="palette-name">No palette selected</h3>
+                <p id="palette-meta"></p>
+              </div>
+              <div class="palette-recommendation-row">
+                <span id="palette-badge" class="palette-badge"></span>
+                <p id="palette-best-for" class="palette-best-for"></p>
+              </div>
+              <p id="palette-description" class="palette-description"></p>
+              <div class="palette-guidance">
+                <p class="palette-guidance-label">Tradeoff</p>
+                <p id="palette-tradeoff" class="palette-tradeoff"></p>
+              </div>
+              <ul id="palette-notes" class="palette-notes"></ul>
+            </div>
+
+            <div class="optimization-card">
+              <div class="palette-card-head">
+                <h3>Pattern Cleanup</h3>
+                <p id="optimization-summary">Full palette · no cleanup</p>
+              </div>
+
+              <label class="field">
+                <span>Optimization preset</span>
+                <select id="optimization-preset-select"></select>
+              </label>
+
+              <label class="field">
+                <span>Max colors</span>
+                <input
+                  id="max-colors-input"
+                  type="number"
+                  min="0"
+                  max="64"
+                  value="0"
+                />
+                <small id="max-colors-note" class="field-note">Use `0` to keep the full selected palette.</small>
+              </label>
+
+              <label class="field">
+                <span>Cleanup passes</span>
+                <input
+                  id="cleanup-passes-input"
+                  type="number"
+                  min="0"
+                  max="4"
+                  value="1"
+                />
+                <small class="field-note">
+                  Smooth isolated pixels while keeping the main silhouette intact.
+                </small>
+              </label>
+            </div>
+
+            <label class="field checkbox-field">
+              <input id="show-codes-input" type="checkbox" checked />
+              <span>Show color codes on the build grid</span>
+            </label>
+
+            <label class="field checkbox-field">
+              <input id="remove-background-input" type="checkbox" />
+              <span>Remove outer background color</span>
+            </label>
+
+            <label class="field checkbox-field">
+              <input id="show-cut-reference-input" type="checkbox" />
+              <span>Show cut reference on source preview</span>
+            </label>
+
+            <button id="generate-button" type="submit" class="primary-button">
+              Generate pattern
+            </button>
+          </form>
+
+          <div class="status-block">
+            <h3>Status</h3>
+            <p id="status-message">Choose an image to begin.</p>
+          </div>
+
+          <div class="status-block">
+            <h3>Export</h3>
+            <label class="field export-preset-field">
+              <span>Sheet preset</span>
+              <select id="export-preset-select">
+                <option value="build-sheet">Build sheet</option>
+                <option value="share-sheet">Share sheet</option>
+                <option value="materials-sheet">Materials sheet</option>
+              </select>
+            </label>
+            <div class="export-actions">
+              <button id="export-preview-button" type="button" class="secondary-button" disabled>
+                Export preview PNG
+              </button>
+              <button id="export-grid-button" type="button" class="secondary-button" disabled>
+                Export pure grid PNG
+              </button>
+              <button id="export-sheet-button" type="button" class="secondary-button" disabled>
+                Export sheet PNG
+              </button>
+              <button id="export-csv-button" type="button" class="secondary-button" disabled>
+                Export materials CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="notes-block">
+            <h3>V1 Notes</h3>
+            <ul>
+              <li>Default target size is 48 x 48.</li>
+              <li>The first version fits the whole image into the target grid.</li>
+              <li>Every cell maps to the nearest bead color in the selected palette.</li>
+              <li>Optional cleanup can reduce noisy single-pixel color fragments.</li>
+              <li>Optional background removal only clears edge-connected outer background.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="panel preview-panel">
+          <div class="section-heading">
+            <h2>Source & Preview</h2>
+            <p id="meta-summary">No pattern generated yet.</p>
+          </div>
+
+          <div class="comparison-banner">
+            <p id="comparison-summary">No optimization changes to compare yet.</p>
+          </div>
+
+          <div class="canvas-grid">
+            <figure class="canvas-card">
+              <figcaption>Source image</figcaption>
+              <canvas id="source-canvas" width="480" height="480"></canvas>
+            </figure>
+            <figure class="canvas-card">
+              <figcaption>Raw palette match</figcaption>
+              <canvas id="raw-preview-canvas" width="480" height="480"></canvas>
+            </figure>
+            <figure class="canvas-card">
+              <figcaption>Optimized bead preview</figcaption>
+              <canvas id="preview-canvas" width="480" height="480"></canvas>
+            </figure>
+          </div>
+        </section>
+
+        <section class="panel output-panel">
+          <div class="section-heading">
+            <h2>Build Grid</h2>
+            <p>Each cell shows the mapped bead code.</p>
+          </div>
+
+          <div class="grid-canvas-wrap">
+            <canvas id="grid-canvas" width="960" height="960"></canvas>
+          </div>
+        </section>
+
+        <section class="panel materials-panel">
+          <div class="section-heading">
+            <h2>Materials Summary</h2>
+            <p id="materials-summary">No materials counted yet.</p>
+          </div>
+
+          <div class="materials-table-wrap">
+            <table class="materials-table">
+              <thead>
+                <tr>
+                  <th>Swatch</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody id="materials-body">
+                <tr>
+                  <td colspan="4" class="placeholder-cell">
+                    Generate a pattern to see the material list.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel diagnostics-panel">
+          <div class="section-heading">
+            <h2>Matching Diagnostics</h2>
+            <p>Quick insight into palette usage and background handling.</p>
+          </div>
+          <div id="diagnostics-panel" class="diagnostics-content">
+            <p class="diagnostic-placeholder">
+              Generate a pattern to inspect palette usage, background removal, and optimization impact.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/main.js?v=20260505-9"></script>
+  </body>
+</html>
