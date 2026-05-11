@@ -240,7 +240,7 @@
 这份文档直接挂接：
 
 - `taiyi-downmountain-mission-model.md`
-- `../../02-world-order/factions-and-orders.md`
-- `../../02-world-order/power-structures.md`
+- `../../05-factions-and-polities/01-order-framework/authority-and-jurisdiction.md`
+- `../../05-factions-and-polities/01-order-framework/dependency-and-resource-relations.md`
 
 它是卷一下山部分的“地方承载面”，不替代具体事件链。

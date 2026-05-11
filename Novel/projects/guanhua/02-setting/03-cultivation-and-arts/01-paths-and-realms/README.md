@@ -65,6 +65,7 @@
 ### `soul-refinement.md`
 **炼魂一道**
 
+`TODO` 待定稿。当前已明确其主轴与基本边界，但高阶展开、谱系与若干关键细节仍需继续收束。  
 定义以神魂承载为核心的修途。  
 回答炼魂为何成立、修的是什么、强在哪里、险在哪里。
 
@@ -94,7 +95,7 @@
 2. `six-realms-of-immortality.md`
 3. `orthodox-cultivation.md`
 4. `body-tempering.md`
-5. `soul-refinement.md`
+5. `soul-refinement.md`（`TODO` 待定稿，阅读时以已明确主轴为准）
 6. `dual-and-triple-cultivation.md`
 7. `breakthroughs-and-deviations.md`
 8. `resources-and-bottlenecks.md`

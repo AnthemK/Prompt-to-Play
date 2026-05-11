@@ -20,17 +20,17 @@
 
 《观化》是 `Novel` 工作区下的第一本正式小说项目。
 
-当前阶段已经完成卷一骨架搭建，并已进入正文前段试写与复核。
+当前阶段已经完成项目骨架搭建，并已暂停卷一正文推进。
 
 当前最重要的三件事是：
 
-1. 继续收束卷一高频写作接口
-2. 继续校准人物回填、群像分布与正文文气
-3. 在不破坏边界的前提下推进卷一细纲和正文
+1. 按 `02-setting/` 现有结构继续完成基础设定收束
+2. 让世界规则、修炼体系、技术体系、历史结构与天下秩序进入稳定状态
+3. 在基础设定稳住后，再回看太一门与后续剧情接口是否仍然成立
 
 ## 当前推荐流程
 
-相比“基础设定 -> 大纲 -> 正文”的粗线流程，这个项目采用更细的七阶段路径：
+相比“基础设定 -> 大纲 -> 正文”的粗线流程，这个项目采用更细的八阶段路径：
 
 1. `00-reference/`
    - 先整理外部参考、研究问题与可借鉴材料
@@ -55,6 +55,16 @@
 - 角色弧光不能等正文时再临时补
 - 大纲必须建立在“规则可运行、人物可推动”的前提上
 
+## 当前阶段说明
+
+当前唯一主目标是重构基础设定。
+
+在基础设定达到稳态之前：
+
+- 不进入正文推进
+- 不继续扩写卷一大纲、细纲或草稿
+- 不让卷一写作需求反向牵引基础设定
+
 ## 当前文档边界补充
 
 ### 正式层与运行层
@@ -63,7 +73,7 @@
 
 - 正式层
   - `docs/`
-  - `01-foundation/` 到 `07-release/`
+  - `00-reference/` 到 `07-release/`
 - 运行层
   - `08-experimental-writing/`
   - `09-cache/`
@@ -125,13 +135,13 @@
 - 质量标准：
   - `docs/QUALITY_BARS.md`
 - 小说本体文风原则：
-  - `01-foundation/novel-style-principles.md`
+  - `01-foundations/novel-style-principles.md`
 - 写作执行规则：
   - `docs/WRITING_EXECUTION_RULES.md`
 - 外部参考与研究：
   - `00-reference/README.md`
 - 立项与题材承诺：
-  - `01-foundation/README.md`
+  - `01-foundations/README.md`
 - 世界设定：
   - `02-setting/README.md`
 - 角色系统：
@@ -171,13 +181,17 @@ guanhua/
   TODO.md
   docs/
   00-reference/
-  01-foundation/
+  01-foundations/
   02-setting/
     README.md
     assets/
-    01-foundations/
-    02-world-order/
-    03-taiyi/
+    01-constitution/
+    02-cosmos-and-principles/
+    03-cultivation-and-arts/
+    04-world-layout-and-history/
+    05-factions-and-polities/
+    06-reference/
+    taiyi/
       01-overview/
       02-organization/
       03-curriculum-and-operations/
@@ -189,4 +203,6 @@ guanhua/
   05-drafts/
   06-revision/
   07-release/
+  08-experimental-writing/
+  09-cache/
 ```

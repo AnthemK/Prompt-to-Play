@@ -1,99 +1,42 @@
-# 02 Setting
+# 02-setting
 
-这个目录处理《观化》的世界规则。
+这个目录处理《观化》的正式设定层。
 
-这里不是写“漂亮设定”的地方，而是写：
+这一层回答“世界如何运转”，不负责人物正文与剧情细纲。
 
-- 世界如何运转
-- 修行为什么成立
-- 代价和边界是什么
-- 势力和历史如何塑造剧情
+## 一级目录索引
 
-如果某条设定不能进入冲突、选择或后果，就先不要扩写。
+- `01-constitution/`
+  - 宪法层，处理世界底层公理与统一约束
+- `02-cosmos-and-principles/`
+  - 宇宙本体层，处理天地、灵机、界域、因果、生死、飞升等根本问题
+- `03-cultivation-and-arts/`
+  - 修行技术层，处理修途、功法、术法、百艺与宝物
+- `04-world-layout-and-history/`
+  - 世界格局与历史层，处理时代、时间线与世界展开骨架
+- `05-factions-and-polities/`
+  - 势力与政体层，处理宗门之外的现实秩序载体
+- `taiyi/`
+  - 太一门专章，处理卷一最常用的宗门近景设定
+- `06-reference/`
+  - 设定参考层，处理术语表、命名样本与设定辅助索引
+- `assets/`
+  - 共用图像与示意资源规则
 
-## 这个目录解决什么问题
-
-如果你是新协作者，这一层主要回答：
-
-- 世界到底如何运转
-- 修行体系为什么成立
-- 稀缺、代价、秩序如何互相咬合
-- 太一门在天下中站在哪里
-
-## 当前分层
-
-### `01-foundations/`
-
-放世界底层规则。
-
-适合放：
-
-- 世界骨架
-- 修炼体系
-- 功法法宝总规则
-- 命名样本
-- 历史时间线
-- 规则账本
-
-### `02-world-order/`
-
-放太一门之外、但会压到主线的天下结构。
-
-适合放：
-
-- 势力类型
-- 天下秩序
-- 种族与文明关系
-
-### `03-taiyi/`
-
-放太一门专章。
-
-内部再拆四类：
-
-- `01-overview/`
-  - 宗门总览、名称比较
-- `02-organization/`
-  - 峰脉、殿阁、组织边界、派系与运行结构
-- `03-curriculum-and-operations/`
-  - 外门生态、课程、日常制度、周期事件
-- `04-lineages/`
-  - 太一门法脉、招法谱系与法门偏好
-
-### `assets/`
-
-放设定集共用的图像与示意资源规则。
-
-注意：
-
-- 图像素材不直接塞进设定正文目录
-- 图像只做辅助理解，不替代文字设定
-- 每份图像应能回溯到对应设定文档
-
-## 给协作者的阅读方法
-
-不要一次读完整个设定层。
-
-更合理的顺序是：
+## 建议阅读顺序
 
 1. 先读本目录 README
-2. 按问题去对应子目录
-3. 进入子目录后再读其 `README.md`
-4. 最后才打开具体设定文件
+2. `01-constitution/README.md`
+3. `02-cosmos-and-principles/README.md`
+4. 按任务进入 `03-cultivation-and-arts/`、`04-world-layout-and-history/`、`05-factions-and-polities/` 或 `taiyi/`
 
 ## 下一层入口
 
-如果你要继续深入，请按问题进入下一层：
-
-1. `01-foundations/`
-   - 世界底层规则、修炼体系、法宝与命名
-   - 进入后先读 `01-foundations/README.md`
-2. `02-world-order/`
-   - 天下结构、势力类型、种族与文明
-   - 进入后先读 `02-world-order/README.md`
-3. `03-taiyi/`
-   - 太一门专章，卷一最常用的设定入口
-   - 进入后先读 `03-taiyi/README.md`
-4. `assets/`
-   - 设定辅助图像与示意资源
-   - 进入后先读 `assets/README.md`
+- `01-constitution/README.md`
+- `02-cosmos-and-principles/README.md`
+- `03-cultivation-and-arts/README.md`
+- `04-world-layout-and-history/README.md`
+- `05-factions-and-polities/README.md`
+- `taiyi/README.md`
+- `06-reference/README.md`
+- `assets/README.md`

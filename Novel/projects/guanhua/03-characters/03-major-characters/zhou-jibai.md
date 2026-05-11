@@ -232,9 +232,9 @@
 
 这个人物设定直接挂接：
 
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-staff-structure.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-competition.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-downmountain-mission-model.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-staff-structure.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-competition.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-downmountain-mission-model.md`
 
 具体登场桥段、第一次正式冲突与第一次传法，不写在这里。
 

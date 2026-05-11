@@ -22,12 +22,12 @@
   - 从原始网页整理出的完整参考稿
 - `卧牛真人 - 《修真四万年》（校对版全本+番外） (2018) - libgen.li.epub`
   - 原文文本材料
-- `guanhua-reference-notes.md`
+- `research-notes.md`
   - 从《观化》项目角度提炼出的可用结论
 
 ## 建议阅读顺序
 
-1. 先读 `guanhua-reference-notes.md`
+1. 先读 `research-notes.md`
 2. 需要核对设定细节时，再读 `修真四万年（卧牛真人创作的科幻类网络小说）_百度百科.md`
 3. 需要核对叙事展开方式或原作语境时，再看 EPUB 原文
 
@@ -37,7 +37,7 @@
 
 如果其中某条结论已经足够稳定，应回写到：
 
-- `01-foundation/`
+- `01-foundations/`
 - `02-setting/`
 - `03-characters/`
 - `04-plot/`

@@ -34,13 +34,13 @@
 
 ### 1. 宗门生活与时间节奏
 
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-year-and-rhythm.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/outer-disciples-ecology.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-scene-materials.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-year-and-rhythm.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/outer-disciples-ecology.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-scene-materials.md`
 
 ### 2. 修炼推进路径
 
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-progression-path.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-progression-path.md`
 - `../../03-characters/02-protagonist/protagonist-profile.md`
 - `../../03-characters/03-major-characters/zhou-jibai.md`
 
@@ -52,13 +52,13 @@
 
 ### 4. 下山承载面
 
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-downmountain-mission-model.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-affiliated-node-qingsang.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-downmountain-mission-model.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-affiliated-node-qingsang.md`
 
 ### 5. 大比格局
 
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-competition.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-competition-landscape.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-competition.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-competition-landscape.md`
 
 ## 三、当前剧情骨架文档入口
 

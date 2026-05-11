@@ -22,12 +22,12 @@
   - 从原始网页整理出的完整参考稿
 - `大道朝天 {代找 +V_ duyuyaji}{114536504} libgen.li.txt`
   - 原文文本材料
-- `guanhua-reference-notes.md`
+- `research-notes.md`
   - 从《观化》项目角度提炼出的可用结论
 
 ## 建议阅读顺序
 
-1. 先读 `guanhua-reference-notes.md`
+1. 先读 `research-notes.md`
 2. 需要核对宗门结构、人物群像与条目整理时，再读 `大道朝天（猫腻创作的东方玄幻类网络小说）_百度百科.md`
 3. 需要核对原作文气、节奏和冷叙事写法时，再看 TXT 原文
 
@@ -37,7 +37,7 @@
 
 如果其中某条结论已经足够稳定，应回写到：
 
-- `01-foundation/`
+- `01-foundations/`
 - `02-setting/`
 - `03-characters/`
 - `04-plot/`

@@ -273,8 +273,8 @@
 - `../01-indexes/relationship-map.md`
 - `../03-major-characters/zhou-jibai.md`
 - `../03-major-characters/gu-qingxu.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-affiliated-node-qingsang.md`
-- `../../02-setting/03-taiyi/03-curriculum-and-operations/taiyi-outer-competition-landscape.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-affiliated-node-qingsang.md`
+- `../../02-setting/taiyi/03-curriculum-and-operations/taiyi-outer-competition-landscape.md`
 
 ## 七、卷一骨架已稳定的人物位移
 

@@ -1,4 +1,4 @@
-# Treasure Codex Assets
+# assets
 
 这个子目录用于存放 `treasure-codex/` 中各个宝物条目的**配套资产**。
 

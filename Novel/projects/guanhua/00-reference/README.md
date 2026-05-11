@@ -1,4 +1,4 @@
-# 00 Reference
+# 00-reference
 
 这个目录放《观化》的外部参考与研究笔记。
 
@@ -40,7 +40,7 @@
 
 这里不直接替代：
 
-- `01-foundation/`
+- `01-foundations/`
 - `02-setting/`
 - `03-characters/`
 - `04-plot/`

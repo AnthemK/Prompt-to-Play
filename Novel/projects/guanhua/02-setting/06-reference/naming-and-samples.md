@@ -453,7 +453,7 @@
 
 太一门专属招法体系已另立文档，位置见：
 
-- `../03-taiyi/04-lineages/taiyi-arts-lineage.md`
+- `../taiyi/04-lineages/taiyi-arts-lineage.md`
 
 但还应再补一条：
 
