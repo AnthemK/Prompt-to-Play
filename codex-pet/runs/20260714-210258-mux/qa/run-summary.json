@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "spriteVersionNumber": 2,
+  "run_dir": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux",
+  "spritesheet": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/final/spritesheet-extended.webp",
+  "validation": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/final/validation-extended.json",
+  "chroma_despill": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/chroma-despill-extended.json",
+  "contact_sheet": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/contact-sheet-extended.png",
+  "direction_sheet": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/look-directions.png",
+  "direction_semantics": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/direction-semantics.json",
+  "blind_direction_validation": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/direction-blind-validation.json",
+  "blind_review_resolution": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/blind-review-resolution.json",
+  "continuity": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/look-continuity.json",
+  "review": "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/review.json",
+  "package": "/Users/liwenzhong/.codex/pets/mux"
+}

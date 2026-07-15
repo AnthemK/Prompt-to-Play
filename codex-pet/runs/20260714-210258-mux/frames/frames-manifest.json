@@ -1,0 +1,125 @@
+{
+  "ok": true,
+  "chroma_key": {
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "threshold": 96.0
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/idle/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/idle/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/idle/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/idle/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/idle/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/idle/05.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "running-right",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/05.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/06.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-right/07.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "running-left",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/05.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/06.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running-left/07.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "waving",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waving/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waving/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waving/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waving/03.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "jumping",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/jumping/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/jumping/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/jumping/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/jumping/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/jumping/04.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "failed",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/05.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/06.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/failed/07.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "waiting",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waiting/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waiting/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waiting/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waiting/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waiting/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/waiting/05.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "running",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/running/05.png"
+      ],
+      "method": "components"
+    },
+    {
+      "state": "review",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/review/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/review/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/review/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/review/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/review/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/frames/review/05.png"
+      ],
+      "method": "components"
+    }
+  ]
+}

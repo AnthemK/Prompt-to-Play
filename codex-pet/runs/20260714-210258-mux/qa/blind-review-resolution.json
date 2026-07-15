@@ -1,0 +1,6 @@
+{
+  "used": false,
+  "decision": null,
+  "severity": null,
+  "notes": "No override was required. Blind validation passed hard gates and only review-level warnings remain."
+}

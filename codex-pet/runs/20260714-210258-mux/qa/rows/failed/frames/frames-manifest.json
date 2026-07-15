@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "chroma_key": {
+    "hex": "#FF00FF",
+    "rgb": [
+      255,
+      0,
+      255
+    ],
+    "threshold": 96.0
+  },
+  "rows": [
+    {
+      "state": "failed",
+      "frames": [
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/00.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/01.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/02.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/03.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/04.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/05.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/06.png",
+        "/Users/liwenzhong/Documents/Pet/runs/20260714-210258-mux/qa/rows/failed/frames/failed/07.png"
+      ],
+      "method": "components"
+    }
+  ]
+}
