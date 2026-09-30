@@ -21,25 +21,25 @@
 - 当前阶段：
   - 已终止卷一正文推进
   - 当前唯一主目标是重构基础设定
-  - 当前工作主线是按 `02-setting/` 的现有结构自上而下完成收束
+  - 当前工作主线是按 `02-设定/` 的现有结构自上而下完成收束
 - 当前进度：
-  - `02-setting/01-constitution/` 已完成第一轮重构
-  - `02-setting/02-cosmos-and-principles/` 已完成第一轮重构
-  - `02-setting/03-cultivation-and-arts/` 正在继续收束
-  - `02-setting/03-cultivation-and-arts/05-treasures-and-artifacts/treasure-codex/` 已建立条目与资产分离结构
+  - `02-设定/01-世界宪则/` 已完成第一轮重构
+  - `02-设定/02-天地法理/` 已完成第一轮重构
+  - `02-设定/03-修行与技艺/` 正在继续收束
+  - `02-设定/03-修行与技艺/05-宝物/宝物图录/` 已建立条目与资产分离结构
 - 正文状态：
   - 当前不进入正文推进
   - 当前不继续扩写卷一大纲、细纲或草稿
 
 ## 当前主线
 
-1. 完成 `02-setting/03-cultivation-and-arts/`
+1. 完成 `02-设定/03-修行与技艺/`
    - 让修炼体系、功法体系、术法体系、百艺体系与宝物体系进入稳定状态
-2. 完成 `02-setting/04-world-layout-and-history/`
+2. 完成 `02-设定/04-天下格局与历史/`
    - 补足世界历史、时代层次、当代秘密与空间结构
-3. 完成 `02-setting/05-factions-and-polities/`
+3. 完成 `02-设定/05-势力与政体/`
    - 建立天下秩序、多主体并存逻辑与资源 / 治理 / 合作 / 竞争结构
-4. 最后回看 `02-setting/taiyi/`
+4. 最后回看 `02-设定/太一门/`
    - 用新的基础设定统一复核太一门设定
 
 ## 已稳定的内容方向
@@ -174,19 +174,19 @@
 - `docs/NAMING_RULES.md`
 - `docs/QUALITY_BARS.md`
 - `00-reference/README.md`
-- `01-foundations/README.md`
-- `01-foundations/novel-style-principles.md`
+- `01-立项/README.md`
+- `01-立项/文风原则.md`
 - `docs/WRITING_EXECUTION_RULES.md`
-- `02-setting/README.md`
-- `02-setting/01-constitution/world-core.md`
-- `02-setting/02-cosmos-and-principles/README.md`
-- `02-setting/03-cultivation-and-arts/README.md`
-- `02-setting/04-world-layout-and-history/history-and-timeline.md`
-- `02-setting/05-factions-and-polities/README.md`
+- `02-设定/README.md`
+- `02-设定/01-世界宪则/世界核心规则.md`
+- `02-设定/02-天地法理/README.md`
+- `02-设定/03-修行与技艺/README.md`
+- `02-设定/04-天下格局与历史/历史与时间线.md`
+- `02-设定/05-势力与政体/README.md`
 
 ## 当前风险
 
 - 如果过早重新进入正文或卷一推进，基础设定会再次被剧情牵着走，导致返工
-- 如果 `02-setting/` 主干结构不能先稳定，后续人物、大纲、正文都无法长期引用
+- 如果 `02-设定/` 主干结构不能先稳定，后续人物、大纲、正文都无法长期引用
 - 如果世界历史、当代秘密与天下秩序迟迟不落地，“真实的修仙世界”会继续停留在局部近景
 - 如果法宝、功法、术法、组织秩序之间的接口不稳，后续战力、资源、政治与因果会持续失衡

@@ -222,8 +222,8 @@ cache 中所有“来源”字段，必须使用：
 
 例如：
 
-- `03-characters/02-protagonist/protagonist-profile.md`
-- `04-plot/volume-01/chapter-outline.md`
+- `03-人物/02-主角/陆守一.md`
+- `04-剧情/第一卷/章纲.md`
 
 明确禁止：
 

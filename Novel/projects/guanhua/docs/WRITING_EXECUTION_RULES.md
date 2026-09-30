@@ -12,7 +12,7 @@
 
 它不承担作品本体的思想说明；小说的文风原则与思想取向请读：
 
-`01-foundations/novel-style-principles.md`
+`01-立项/文风原则.md`
 
 ## 语言执行规则
 

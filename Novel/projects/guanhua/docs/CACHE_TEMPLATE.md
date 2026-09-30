@@ -136,7 +136,7 @@
 > 陆守一当前是十四岁的太一门外门弟子，练气三层，天赋方向为“内秀于心”。
 
 来源：
-`03-characters/02-protagonist/protagonist-profile.md`
+`03-人物/02-主角/陆守一.md`
 
 ## 推荐阅读顺序
 
@@ -174,11 +174,11 @@
 示例：
 
 - 若主角开篇心理重心发生稳定调整，回写：
-  - `03-characters/02-protagonist/protagonist-profile.md`
+  - `03-人物/02-主角/陆守一.md`
 - 若第一章场景顺序发生稳定调整，回写：
-  - `04-plot/volume-01/chapter-001-010-detail-outline.md`
+  - `04-剧情/第一卷/第001至010章细纲.md`
 - 若正式正文措辞被采纳，回写：
-  - `05-drafts/volume-01/chapter-001.md`
+  - `05-正文/第一卷/第001章.md`
 
 ## 失效条件
 
@@ -186,8 +186,8 @@
 
 示例：
 
-- 若 `03-characters/02-protagonist/protagonist-profile.md` 发生主角开篇定位调整，则本 cache 失效
-- 若 `04-plot/volume-01/chapter-001-010-detail-outline.md` 发生场景顺序调整，则本 cache 失效
+- 若 `03-人物/02-主角/陆守一.md` 发生主角开篇定位调整，则本 cache 失效
+- 若 `04-剧情/第一卷/第001至010章细纲.md` 发生场景顺序调整，则本 cache 失效
 - 若开篇文风要求发生修订，则本 cache 失效
 
 ## 当前状态
