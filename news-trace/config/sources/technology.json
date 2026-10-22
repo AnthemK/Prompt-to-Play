@@ -1,0 +1,7 @@
+{
+  "feeds": [
+    {"id":"wired-ai","publisher":"WIRED","region":"US","language":"en","category":"technology","kind":"rss","url":"https://www.wired.com/feed/tag/ai/latest/rss","evidence":"https://www.wired.com/about/rss-feeds/"},
+    {"id":"mittr-all","publisher":"MIT Technology Review","region":"US","language":"en","category":"technology","kind":"rss","url":"https://www.technologyreview.com/feed/","evidence":"https://www.technologyreview.com/feed/"},
+    {"id":"newscientist-home","publisher":"New Scientist","region":"UK","language":"en","category":"technology","kind":"rss","url":"https://www.newscientist.com/feed/home/","evidence":"https://www.newscientist.com/feed/home/"}
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "feeds": [
+    {"id":"nature-current","publisher":"Nature","region":"UK","language":"en","category":"science","kind":"rdf","url":"https://www.nature.com/nature.rss","evidence":"https://www.nature.com/nature.rss"},
+    {"id":"sciam-articles","publisher":"Scientific American","region":"US","language":"en","category":"science","kind":"article_sitemap","url":"https://www.scientificamerican.com/platform/syndication/sitemaps/articles/","evidence":"https://www.scientificamerican.com/robots.txt"}
+  ]
+}

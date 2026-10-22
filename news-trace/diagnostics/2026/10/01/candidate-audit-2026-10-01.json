@@ -1,0 +1,55 @@
+{
+  "checked_at": "2026-10-01T04:08:58.194294+00:00",
+  "sources": [
+    {
+      "id": "xinhua-old-en-world",
+      "url": "https://www.xinhuanet.com/english/rss/worldrss.xml",
+      "http_status": 200,
+      "entries": 20,
+      "latest_date": "2018-01-24"
+    },
+    {
+      "id": "xinhua-old-en-china",
+      "url": "https://www.xinhuanet.com/english/rss/chinarss.xml",
+      "http_status": 200,
+      "entries": 20,
+      "latest_date": "2017-05-07"
+    },
+    {
+      "id": "xinhua-old-zh-world",
+      "url": "https://www.xinhuanet.com/world/news_world.xml",
+      "http_status": 200,
+      "entries": 300,
+      "latest_date": "2022-12-14"
+    },
+    {
+      "id": "xinhua-old-zh-politics",
+      "url": "https://www.xinhuanet.com/politics/news_politics.xml",
+      "http_status": 200,
+      "entries": 300,
+      "latest_date": "2022-12-14"
+    },
+    {
+      "id": "people-old-politics",
+      "url": "https://www.people.com.cn/rss/politics.xml",
+      "http_status": 200,
+      "entries": 100,
+      "latest_date": "2025-06-05"
+    },
+    {
+      "id": "chinadaily-old-world",
+      "url": "https://www.chinadaily.com.cn/rss/world_rss.xml",
+      "http_status": 404,
+      "entries": 0,
+      "latest_date": null
+    },
+    {
+      "id": "chinadaily-old-china",
+      "url": "https://www.chinadaily.com.cn/rss/china_rss.xml",
+      "http_status": 404,
+      "entries": 0,
+      "latest_date": null
+    }
+  ],
+  "completed_at": "2026-10-01T04:09:00.299899+00:00"
+}

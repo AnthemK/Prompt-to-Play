@@ -1,0 +1,8 @@
+{
+  "feeds": [
+    {"id":"nyt-world","publisher":"The New York Times","region":"US","language":"en","category":"general","kind":"rss","url":"https://rss.nytimes.com/services/xml/rss/nyt/World.xml","evidence":"https://rss.nytimes.com/services/xml/rss/nyt/World.xml"},
+    {"id":"wapo-world","publisher":"The Washington Post","region":"US","language":"en","category":"general","kind":"rss","emit_items":false,"url":"https://feeds.washingtonpost.com/rss/world","evidence":"https://www.washingtonpost.com/information/2026/05/21/washington-post-rss-feeds/"},
+    {"id":"atlantic-all","publisher":"The Atlantic","region":"US","language":"en","category":"general","kind":"rss","url":"https://www.theatlantic.com/feed/all/","evidence":"https://www.theatlantic.com/feed/all/"},
+    {"id":"newyorker-news","publisher":"The New Yorker","region":"US","language":"en","category":"general","kind":"rss","url":"https://www.newyorker.com/feed/news/rss","evidence":"https://www.newyorker.com/about/feeds"}
+  ]
+}

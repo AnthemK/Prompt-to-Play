@@ -1,0 +1,155 @@
+{
+  "stories": [
+    {
+      "story_id": "france-school-protests",
+      "status": "active",
+      "last_meaningful_update": "2026-10-02T12:57:00Z",
+      "last_briefed": "2026-10-02",
+      "watch_level": "Medium",
+      "unresolved_claims": [
+        "scale_after_weekend",
+        "negotiation_outcome"
+      ]
+    },
+    {
+      "story_id": "eu-us-diesel-dispute",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T12:23:37Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "High",
+      "unresolved_claims": [
+        "implementation_schedule",
+        "price_effect"
+      ]
+    },
+    {
+      "story_id": "russia-ukraine-war",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T11:59:06Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "High",
+      "unresolved_claims": [
+        "bridge_damage",
+        "transport_effects"
+      ]
+    },
+    {
+      "story_id": "ethiopia-northern-conflict",
+      "status": "active",
+      "last_meaningful_update": "2026-10-02T05:42:07Z",
+      "last_briefed": "2026-10-02",
+      "watch_level": "High",
+      "unresolved_claims": [
+        "regional_escalation",
+        "mediation"
+      ]
+    },
+    {
+      "story_id": "congo-ebola-2026",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T11:01:09Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "High",
+      "unresolved_claims": [
+        "trial_safety_and_efficacy",
+        "updated_who_toll"
+      ]
+    },
+    {
+      "story_id": "egypt-press-freedom",
+      "status": "active",
+      "last_meaningful_update": "2026-10-01T16:22:30Z",
+      "last_briefed": "2026-10-02",
+      "watch_level": "Medium",
+      "unresolved_claims": [
+        "legal_status",
+        "access_to_lawyers"
+      ]
+    },
+    {
+      "story_id": "ai-lab-governance",
+      "status": "active",
+      "last_meaningful_update": "2026-10-02T09:30:06Z",
+      "last_briefed": "2026-10-02",
+      "watch_level": "Medium",
+      "unresolved_claims": [
+        "independent_confirmation_of_employee_actions"
+      ]
+    },
+    {
+      "story_id": "inter-korean-military-tensions",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T12:41:52Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "High",
+      "unresolved_claims": [
+        "missile_capabilities",
+        "mine_origin",
+        "seoul_response"
+      ]
+    },
+    {
+      "story_id": "brazil-2026-presidential-election",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T07:00:35Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "High",
+      "unresolved_claims": [
+        "election_result",
+        "turnout"
+      ]
+    },
+    {
+      "story_id": "flydubai-fz1073-attack",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T10:27:52Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "High",
+      "unresolved_claims": [
+        "prosecution_evidence",
+        "aviation_vetting_review"
+      ]
+    },
+    {
+      "story_id": "latvia-2026-election",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T10:19:19Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "Medium",
+      "unresolved_claims": [
+        "election_result",
+        "coalition"
+      ]
+    },
+    {
+      "story_id": "spain-housing-crisis",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T11:35:48Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "Medium",
+      "unresolved_claims": [
+        "protest_outcome",
+        "replacement_legislation"
+      ]
+    },
+    {
+      "story_id": "g20-industrial-trade-policy",
+      "status": "active",
+      "last_meaningful_update": "2026-10-03T11:17:43Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "Medium",
+      "unresolved_claims": [
+        "official_communique",
+        "source_independence"
+      ]
+    },
+    {
+      "story_id": "china-5g-infrastructure",
+      "status": "resolved",
+      "last_meaningful_update": "2026-10-03T08:01:27Z",
+      "last_briefed": "2026-10-03",
+      "watch_level": "Medium",
+      "unresolved_claims": []
+    }
+  ]
+}

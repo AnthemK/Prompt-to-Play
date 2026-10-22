@@ -1,0 +1,111 @@
+{
+  "checked_at": "2026-10-01T03:34:02.121248+00:00",
+  "note": "Technical signals only; no paywall bypass or full-text completeness claim",
+  "articles": [
+    {
+      "source_id": "bloomberg-latest",
+      "url": "https://www.bloomberg.com/news/articles/2026-09-30/veto-de-lula-a-apuestas-golpea-al-futbol-brasileno",
+      "http_status": 403,
+      "markers": []
+    },
+    {
+      "source_id": "wsj-news",
+      "url": "https://www.wsj.com/sports/soccer/manchester-city-verdict-relegation-5af047f9",
+      "http_status": 401,
+      "markers": []
+    },
+    {
+      "source_id": "ft-home",
+      "url": "https://www.ft.com/content/7ed6ed48-79e4-46c2-968f-f2a69d263d35?syn-25a6b1a6=1",
+      "http_status": 403,
+      "markers": []
+    },
+    {
+      "source_id": "economist-week",
+      "url": "https://www.economist.com/the-world-this-week/2026/09/24/cartoon-the-evolution-of-modern-warfare",
+      "http_status": 403,
+      "markers": []
+    },
+    {
+      "source_id": "hbr-latest",
+      "url": "https://hbr.org/2026/09/how-leaders-talk-about-ai-predicts-adoption",
+      "http_status": 200,
+      "markers": [
+        "piano_or_tinypass",
+        "paywall_word",
+        "jsonld_article_body",
+        "jsonld_access_free_false"
+      ],
+      "html_title_present": true
+    },
+    {
+      "source_id": "nyt-world",
+      "url": "https://www.nytimes.com/2026/09/30/world/middleeast/iraq-us-forces.html",
+      "http_status": 403,
+      "markers": []
+    },
+    {
+      "source_id": "atlantic-all",
+      "url": "https://www.theatlantic.com/photography/2026/09/scenes-2026-asian-games/688831/?utm_source=feed",
+      "http_status": 403,
+      "markers": []
+    },
+    {
+      "source_id": "newyorker-news",
+      "url": "https://www.newyorker.com/magazine/2026/10/05/pawel-pawlikowski-profile",
+      "http_status": 200,
+      "markers": [
+        "paywall_word",
+        "jsonld_article_body"
+      ],
+      "html_title_present": true
+    },
+    {
+      "source_id": "nature-current",
+      "url": "https://www.nature.com/articles/d41586-026-03124-w",
+      "http_status": 200,
+      "markers": [],
+      "html_title_present": true
+    },
+    {
+      "source_id": "sciam-articles",
+      "url": "https://www.scientificamerican.com/article/trumps-surgeon-general-nominee-nicole-saphier-clears-key-senate-committee/",
+      "http_status": 200,
+      "markers": [
+        "paywall_word",
+        "jsonld_access_free_false"
+      ],
+      "html_title_present": true
+    },
+    {
+      "source_id": "wired-ai",
+      "url": "https://www.wired.com/story/openai-sued-over-the-hugging-face-hack/",
+      "http_status": 200,
+      "markers": [
+        "paywall_word"
+      ],
+      "html_title_present": true
+    },
+    {
+      "source_id": "mittr-all",
+      "url": "https://www.technologyreview.com/2026/09/30/1145350/the-download-openai-chief-research-officer-hacking-response/",
+      "http_status": 200,
+      "markers": [
+        "piano_or_tinypass",
+        "paywall_word"
+      ],
+      "html_title_present": true
+    },
+    {
+      "source_id": "newscientist-home",
+      "url": "https://www.newscientist.com/article/2591436-slashing-sugar-intake-before-antibiotics-may-save-your-microbiome/?utm_campaign=RSS|NSNS&utm_content=home&utm_medium=RSS&utm_source=NSNS",
+      "http_status": 200,
+      "markers": [
+        "piano_or_tinypass",
+        "paywall_word",
+        "jsonld_article_body"
+      ],
+      "html_title_present": true
+    }
+  ]
+}

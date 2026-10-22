@@ -1,0 +1,10 @@
+{
+  "feeds": [
+    {"id":"bbc-world","publisher":"BBC News","region":"UK","language":"en","category":"general","kind":"bbc_rss","url":"https://feeds.bbci.co.uk/news/world/rss.xml","evidence":"https://support.bbc.co.uk/platform/feeds/NewsFeeds.htm"},
+    {"id":"bbc-headlines","publisher":"BBC News","region":"UK","language":"en","category":"general","kind":"bbc_rss","url":"https://feeds.bbci.co.uk/news/rss.xml","evidence":"https://support.bbc.co.uk/platform/feeds/NewsFeeds.htm"},
+    {"id":"xinhua-en-latest","publisher":"Xinhua News Agency","region":"China","language":"en","category":"general","kind":"xinhua_en","url":"https://english.news.cn/list/latestnews.htm","evidence":"https://english.news.cn/list/latestnews.htm"},
+    {"id":"xinhua-zh-latest","publisher":"新华社","region":"China","language":"zh","category":"chinese","kind":"xinhua_zh","url":"https://www.news.cn/","evidence":"https://www.news.cn/linktous.htm"},
+    {"id":"chinanews-latest","publisher":"中国新闻网","region":"China","language":"zh","category":"chinese","kind":"rss","url":"https://www.chinanews.com.cn/rss/scroll-news.xml","evidence":"https://www.chinanews.com.cn/rss/"},
+    {"id":"chinanews-world","publisher":"中国新闻网","region":"China","language":"zh","category":"chinese","kind":"rss","url":"https://www.chinanews.com.cn/rss/world.xml","evidence":"https://www.chinanews.com.cn/rss/"}
+  ]
+}

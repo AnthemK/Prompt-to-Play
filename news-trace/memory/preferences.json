@@ -1,0 +1,12 @@
+{
+  "stable": {
+    "format": {"target_distinct_events": 10, "international_reporting_language": "English", "chinese_reporting_language": "Chinese"},
+    "editorial": {"broad_political_perspectives": true, "allow_multiple_events_per_outlet": true, "compare_observed_framing_only": true},
+    "core_sources": ["Xinhua News Agency", "BBC News", "The Guardian", "The Wall Street Journal", "National Review", "MIT Technology Review"]
+  },
+  "learned": [],
+  "negative": ["Al Jazeera English"],
+  "candidate_interests": [],
+  "discovery_targets": ["underrepresented_regions", "conservative_reporting", "specialist_technology_reporting"],
+  "last_audit": "2026-10-03"
+}

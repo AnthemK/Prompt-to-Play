@@ -1,0 +1,10 @@
+{
+  "feeds": [
+    {"id":"france24-en","publisher":"France 24 English","region":"France","language":"en","category":"regional","kind":"rss","url":"https://www.france24.com/en/rss","evidence":"https://www.france24.com/en/rss"},
+    {"id":"dw-en","publisher":"Deutsche Welle English","region":"Germany","language":"en","category":"regional","kind":"rdf","url":"https://rss.dw.com/rdf/rss-en-all","evidence":"https://rss.dw.com/rdf/rss-en-all"},
+    {"id":"cbc-world","publisher":"CBC News","region":"Canada","language":"en","category":"regional","kind":"rss","url":"https://www.cbc.ca/cmlink/rss-world","evidence":"https://www.cbc.ca/cmlink/rss-world"},
+    {"id":"hindu-world","publisher":"The Hindu","region":"India","language":"en","category":"regional","kind":"rss","url":"https://www.thehindu.com/news/international/feeder/default.rss","evidence":"https://www.thehindu.com/news/international/feeder/default.rss"},
+    {"id":"japantimes-all","publisher":"The Japan Times","region":"Japan","language":"en","category":"regional","kind":"rss","url":"https://www.japantimes.co.jp/feed/","evidence":"https://www.japantimes.co.jp/feed/"},
+    {"id":"politico-eu","publisher":"POLITICO Europe","region":"Europe","language":"en","category":"regional","kind":"rss","url":"https://www.politico.eu/feed/","evidence":"https://www.politico.eu/feed/"}
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 2,
+  "checked_at": "2026-10-01T04:14:43.307406+00:00",
+  "completed_at": "2026-10-01T04:14:45.115321+00:00",
+  "python_version": "3.9.6",
+  "config_sha256": "8526ce3045c927d70af90423c50636becd1d34ee92dacbb4be921962af606c13",
+  "code_sha256": {
+    "collect.py": "915071e83f29c9654b5856cea749e10afc344dd874ec85eff5c0b8a03d2d0843",
+    "article_probe.py": "d838dbf9ca0ce2489efb490e7e8876f4820bdf850a290199707511d1de7d26d6"
+  },
+  "run_args": {
+    "limit": 3,
+    "max_age_hours": 72,
+    "source_ids": [
+      "politico-eu"
+    ]
+  },
+  "sources": [
+    {
+      "id": "politico-eu",
+      "publisher": "POLITICO Europe",
+      "kind": "rss",
+      "url": "https://www.politico.eu/feed/",
+      "status": "ok",
+      "items": 3,
+      "latest_at": "2026-10-01T04:08:20+00:00",
+      "latest_updated_at": "2026-10-01T04:08:20+00:00"
+    }
+  ],
+  "items": [
+    {
+      "source_id": "politico-eu",
+      "publisher": "POLITICO Europe",
+      "region": "Europe",
+      "language": "en",
+      "category": "regional",
+      "evidence": "https://www.politico.eu/feed/",
+      "id": "https://www.politico.eu/?post_type=podcast&p=9088652",
+      "title": "Grüne und SPD: Die Linke-Gewissensfrage in Berlin",
+      "url": "https://www.politico.eu/podcast/berlin-playbook-podcast/grune-und-spd-die-linke-gewissensfrage-in-berlin/?utm_source=RSS_Feed&utm_medium=RSS&utm_campaign=RSS_Syndication",
+      "published_at": "2026-10-01T04:08:20+00:00",
+      "feed_summary": "Ein vermeintliches Sondierungsgespräch wird zum Vorgespräch: Wenn sich SPD und Grüne in Berlin heute mit der Linken treffen, geht es nicht ums künftige gemeinsame Regieren, sondern um rote Linien. Antisemitismus-Vorwürfe und mögliche Clan-Nähe belasten das Verhältnis schwer. Ob unter diesen Vorzeichen überhaupt ein Bündnis möglich ist oder die Parteien in Richtung einer Kenia-Koalition abbiegen, entscheidet […]"
+    },
+    {
+      "source_id": "politico-eu",
+      "publisher": "POLITICO Europe",
+      "region": "Europe",
+      "language": "en",
+      "category": "regional",
+      "evidence": "https://www.politico.eu/feed/",
+      "id": "https://www.politico.eu/?post_type=podcast&p=9086444",
+      "title": "The €865 billion brainstorming session",
+      "url": "https://www.politico.eu/podcast/brussels-playbook-podcast/the-e865-billion-brainstorming-session/?utm_source=RSS_Feed&utm_medium=RSS&utm_campaign=RSS_Syndication",
+      "published_at": "2026-10-01T04:05:00+00:00",
+      "feed_summary": "Ukraine’s prime minister is warning of a $20 billion defense funding gap as Russia intensifies its attacks and Kyiv struggles to protect its skies and keep the country running. Zoya Sheftalovich and Sarah Wheaton look at just how much pressure Ukraine is under — from its military finances to farmers struggling to get their grain […]"
+    },
+    {
+      "source_id": "politico-eu",
+      "publisher": "POLITICO Europe",
+      "region": "Europe",
+      "language": "en",
+      "category": "regional",
+      "evidence": "https://www.politico.eu/feed/",
+      "id": "https://www.politico.eu/?post_type=pro&p=9089843",
+      "title": "Trump says diesel export ban is still on the table",
+      "url": "https://www.politico.eu/article/donald-trump-diesel-export-ban-on-table/?utm_source=RSS_Feed&utm_medium=RSS&utm_campaign=RSS_Syndication",
+      "published_at": "2026-10-01T04:00:00+00:00",
+      "feed_summary": "Energy Secretary Chris Wright said the administration, as well as European governments, would soon announce measures aimed at bringing down diesel prices."
+    }
+  ]
+}

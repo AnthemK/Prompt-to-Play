@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "issue_date": "2026-10-03",
+  "input_snapshot": "editions/2026/10/03/evidence/input.json",
+  "prior_issue_cutoff": "2026-10-02T14:05:00+00:00",
+  "issue_cutoff": "2026-10-03T13:11:18.238275+00:00",
+  "run_findings": [
+    {"severity":"P1","finding":"34 source endpoints reached the 15-item retrieval limit; the issue discloses that discovery coverage may be incomplete."},
+    {"severity":"P1","finding":"The G20 trade event relies on reports that may share a wire source; it is presented as reported disagreement rather than independent confirmation."},
+    {"severity":"P1","finding":"The China 5G figure is a single-source report of an official ministry figure and is labeled accordingly."}
+  ],
+  "access_findings": {
+    "checked_at": "2026-10-03T13:29:32.226241+00:00",
+    "method": "BPC-derived access triage",
+    "upstream_commit": "77a32379b39ddfb56cd646d5563755bc768287fc",
+    "samples": [
+      {"source_id":"national-review-all","access_level":"public_page_restricted_or_uncertain","evidence_used":"feed_summary"},
+      {"source_id":"mittr-all","access_level":"public_page_restricted_or_uncertain","evidence_used":"feed_summary"},
+      {"source_id":"wsj-news","access_level":"authorization_or_request_blocked","evidence_used":"title_only"}
+    ]
+  },
+  "candidates": [
+    {"event_id":"g7-reserve-release-2026-10-02","tier":"S","attention":"High","confidence":"High","evidence_levels":["verified_full_article","feed_summary"],"independent_source_count":3,"decision":"selected","reason":"The prior proposal became a coordinated 100-million-barrel G7 decision with a defined four-month period.","sources":["BBC News","NPR","CBC"]},
+    {"event_id":"dprk-irbm-test-2026-10-03","tier":"A","attention":"High","confidence":"High","evidence_levels":["verified_full_article","feed_summary"],"independent_source_count":3,"decision":"selected","reason":"A new missile test added military escalation to the inter-Korean mine dispute.","sources":["Xinhua","The Guardian","Sky News","SCMP"]},
+    {"event_id":"kyiv-northern-bridge-strike-2026-10-03","tier":"A","attention":"High","confidence":"High","evidence_levels":["verified_full_article","feed_summary"],"independent_source_count":4,"decision":"selected","reason":"A second major Kyiv bridge was hit, materially extending the infrastructure campaign reported yesterday.","sources":["BBC News","France 24","Politico Europe","The New York Times"]},
+    {"event_id":"brazil-election-2026-10-04","tier":"A","attention":"High","confidence":"High","evidence_levels":["verified_full_article","feed_summary"],"independent_source_count":3,"decision":"selected","reason":"A close presidential election is imminent and has regional political significance.","sources":["NPR","The Guardian","Euronews"]},
+    {"event_id":"flydubai-uae-terror-finding-2026-10-03","tier":"A","attention":"High","confidence":"High","evidence_levels":["verified_full_article","feed_summary","title_only"],"independent_source_count":4,"decision":"selected","reason":"The UAE prosecutor supplied a new official classification and weapon detail after earlier uncertainty about motive.","sources":["BBC News","France 24","DW","The Wall Street Journal"]},
+    {"event_id":"latvia-parliament-election-2026-10-03","tier":"B","attention":"Medium","confidence":"High","evidence_levels":["feed_summary"],"independent_source_count":3,"decision":"selected","reason":"The election tests coalition stability in a NATO border state amid security and cost-of-living concerns.","sources":["DW","Euronews","Politico Europe"]},
+    {"event_id":"spain-housing-protests-2026-10-03","tier":"B","attention":"Medium","confidence":"High","evidence_levels":["verified_full_article","feed_summary"],"independent_source_count":3,"decision":"selected","reason":"More than 50 protests followed parliament's rejection of emergency housing measures.","sources":["BBC News","ABC News","The Hindu"]},
+    {"event_id":"congo-ebola-post-exposure-trial-2026-10-03","tier":"B","attention":"High","confidence":"High","evidence_levels":["feed_summary"],"independent_source_count":2,"decision":"selected","reason":"A 250-participant post-exposure drug trial is a meaningful new response development; efficacy remains unknown.","sources":["ABC News","Africanews"]},
+    {"event_id":"g20-trade-consensus-failure-2026-10-03","tier":"B","attention":"Medium","confidence":"Medium","evidence_levels":["feed_summary","title_only"],"independent_source_count":1,"decision":"selected","reason":"The failed consensus concerns excess capacity and forced-labour supply chains, but the reports may share a wire dependency.","sources":["The Japan Times","Lianhe Zaobao"]},
+    {"event_id":"china-5g-base-stations-2026-08","tier":"B","attention":"Medium","confidence":"High","evidence_levels":["verified_full_article"],"independent_source_count":1,"decision":"selected","reason":"The official infrastructure figure is concrete, current and relevant to China's technology deployment; it is explicitly attributed.","sources":["Xinhua"]},
+    {"event_id":"saudi-yemen-ground-campaign-report-2026-10-03","tier":"A","attention":"High","confidence":"Low","evidence_levels":["feed_summary","title_only"],"independent_source_count":1,"decision":"rejected","reason":"Potentially consequential troop and campaign claims lacked sufficient independent confirmation before cutoff.","sources":["SCMP","Lianhe Zaobao"]},
+    {"event_id":"gaza-strike-2026-10-03","tier":"B","attention":"High","confidence":"Medium","evidence_levels":["feed_summary"],"independent_source_count":1,"decision":"rejected","reason":"The reported strike was serious but had only one usable report in the capped snapshot and did not outrank better-verified candidates.","sources":["CBC"]}
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": 3,
+  "checked_at": "2026-10-02T14:47:44.996989+00:00",
+  "completed_at": "2026-10-02T14:47:45.993228+00:00",
+  "python_version": "3.9.6",
+  "config_sha256": "916767e84f6dcaad982a6f64547b725b1845f21f37ab9f6a76f4837dc7674b80",
+  "code_sha256": {
+    "collect.py": "faebc0fbdbd904644e51efba684d52bc54a10d7c4b145d89252061fa1ea25ef2",
+    "article_probe.py": "d838dbf9ca0ce2489efb490e7e8876f4820bdf850a290199707511d1de7d26d6"
+  },
+  "run_args": {
+    "limit": 3,
+    "max_age_hours": 36,
+    "source_ids": [
+      "voa-europe"
+    ]
+  },
+  "sources": [
+    {
+      "id": "voa-europe",
+      "publisher": "VOA",
+      "kind": "rss",
+      "url": "https://www.voanews.com/api/zyritl-vomx-tpettmq",
+      "status": "stale",
+      "items": 0,
+      "source_fresh_items": 0,
+      "latest_at": "2025-03-15T08:49:23+00:00",
+      "latest_updated_at": "2025-03-15T08:49:23+00:00"
+    }
+  ],
+  "items": []
+}

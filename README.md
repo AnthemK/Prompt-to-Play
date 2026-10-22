@@ -48,6 +48,8 @@ Some projects may be highly polished prototypes, while others may be rough exper
 
 Each game should live in its own subdirectory with its own local documentation when needed.
 
+An adjacent news-briefing experiment lives in [`news-trace/`](news-trace/README.md). It tracks a source-linked, expandable world-news brief and has its own workflow notes.
+
 Cross-project agent collaboration notes should live in:
 
 - `Skills/` (shared playbooks, stage updates, and reusable practices)

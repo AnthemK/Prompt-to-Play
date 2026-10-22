@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "manual_probe_only",
+  "note": "Official or publisher-domain feeds. Manual metadata probe only; scheduled ingestion and content reuse require terms review.",
+  "feeds": [
+    {"id": "pbs-headlines", "publisher": "PBS News", "region": "US", "language": "en", "url": "https://www.pbs.org/newshour/feeds/rss/headlines", "evidence": "https://www.pbs.org/newshour/about/pbs-news-rss-feeds"},
+    {"id": "sky-world", "publisher": "Sky News", "region": "UK", "language": "en", "url": "https://feeds.skynews.com/feeds/rss/world.xml", "evidence": "https://news.sky.com/info/rss"},
+    {"id": "euronews-world", "publisher": "Euronews", "region": "Europe", "language": "en", "url": "https://www.euronews.com/rss?format=mrss&level=theme&name=news", "evidence": "https://www.euronews.com/widgets"},
+    {"id": "voa-africa", "publisher": "VOA", "region": "Africa", "language": "en", "url": "https://www.voanews.com/api/z-botl-vomx-tpertmq", "evidence": "https://www.voanews.com/rssfeeds"},
+    {"id": "voa-middle-east", "publisher": "VOA", "region": "Middle East", "language": "en", "url": "https://www.voanews.com/api/zrbopl-vomx-tpeovm_", "evidence": "https://www.voanews.com/rssfeeds"},
+    {"id": "voa-europe", "publisher": "VOA", "region": "Europe", "language": "en", "url": "https://www.voanews.com/api/zyritl-vomx-tpettmq", "evidence": "https://www.voanews.com/rssfeeds"},
+    {"id": "propublica-main", "publisher": "ProPublica", "region": "US", "language": "en", "url": "https://www.propublica.org/feeds/propublica/main", "evidence": "https://www.propublica.org/feeds/propublica/main"},
+    {"id": "npr-world", "publisher": "NPR", "region": "US", "language": "en", "url": "https://feeds.npr.org/1004/rss.xml", "evidence": "https://feeds.npr.org/1004/rss.xml"},
+    {"id": "abc-us-international", "publisher": "ABC News (US)", "region": "US", "language": "en", "url": "https://feeds.abcnews.com/abcnews/internationalheadlines", "evidence": "https://abcnews.go.com/Site/page?id=3520115"},
+    {"id": "africanews-english", "publisher": "Africanews", "region": "Africa", "language": "en", "url": "https://africanews.com/feed/rss", "evidence": "https://www.africanews.com/page/widgets/"},
+    {"id": "cna-asia", "publisher": "CNA (Singapore)", "region": "Asia", "language": "en", "url": "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=6511", "evidence": "https://www.channelnewsasia.com/rss"},
+    {"id": "guardian-world", "publisher": "The Guardian", "region": "UK", "language": "en", "url": "https://www.theguardian.com/world/rss", "evidence": "https://www.theguardian.com/help/feeds"}
+  ]
+}

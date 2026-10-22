@@ -1,0 +1,7 @@
+{
+  "feeds": [
+    {"id":"lemonde-world","publisher":"Le Monde in English","region":"France","language":"en","category":"regional","kind":"rss","emit_items":false,"url":"https://www.lemonde.fr/en/international/rss_full.xml","evidence":"https://www.lemonde.fr/en/about-us/article/2026/03/27/le-monde-rss-feeds_6751860_115.html"},
+    {"id":"spiegel-international","publisher":"Der Spiegel International","region":"Germany","language":"en","category":"regional","kind":"rss","freshness_hours":240,"url":"https://www.spiegel.de/international/index.rss","evidence":"https://www.spiegel.de/international/index.rss"},
+    {"id":"repubblica-home","publisher":"La Repubblica","region":"Italy","language":"it","category":"regional","kind":"rss","url":"https://www.repubblica.it/rss/homepage/rss2.0.xml","evidence":"https://www.repubblica.it/static/servizi/rss/index.html"}
+  ]
+}

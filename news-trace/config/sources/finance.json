@@ -1,0 +1,9 @@
+{
+  "feeds": [
+    {"id":"bloomberg-latest","publisher":"Bloomberg","region":"US","language":"en","category":"finance","kind":"news_sitemap","url":"https://www.bloomberg.com/sitemaps/news/latest.xml","evidence":"https://www.bloomberg.com/robots.txt"},
+    {"id":"wsj-news","publisher":"The Wall Street Journal","region":"US","language":"en","category":"finance","kind":"news_sitemap","url":"https://www.wsj.com/wsjsitemaps/wsj_google_news.xml","evidence":"https://www.wsj.com/robots.txt"},
+    {"id":"ft-home","publisher":"Financial Times","region":"UK","language":"en","category":"finance","kind":"rss","url":"https://www.ft.com/rss/home","evidence":"https://www.ft.com/rss/home"},
+    {"id":"economist-week","publisher":"The Economist","region":"UK","language":"en","category":"finance","kind":"rss","freshness_hours":240,"url":"https://www.economist.com/the-world-this-week/rss.xml","evidence":"https://www.economist.com/the-world-this-week/rss.xml"},
+    {"id":"hbr-latest","publisher":"Harvard Business Review","region":"US","language":"en","category":"finance","kind":"hbr_latest","url":"https://hbr.org/the-latest","evidence":"https://hbr.org/the-latest"}
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "feeds": [
+    {"id":"national-review-all","publisher":"National Review","region":"US","language":"en","category":"opinion_analysis","kind":"rss","url":"https://www.nationalreview.com/feed/","evidence":"https://www.nationalreview.com/"}
+  ]
+}

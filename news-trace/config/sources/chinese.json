@@ -1,0 +1,9 @@
+{
+  "feeds": [
+    {"id":"infzm-home","publisher":"南方周末","region":"China","language":"zh","category":"chinese","kind":"infzm_home","url":"https://www.infzm.com/","evidence":"https://www.infzm.com/"},
+    {"id":"cw-content","publisher":"天下杂志","region":"Taiwan","language":"zh","category":"chinese","kind":"rss","freshness_hours":240,"user_agent":"Mozilla/5.0 (compatible; NewsTrace/0.1; metadata research)","url":"https://www.cw.com.tw/RSS/cw_content.xml","evidence":"https://www.cw.com.tw/RSS/cw_content.xml"},
+    {"id":"cw-bing-news","publisher":"天下杂志","region":"Taiwan","language":"zh","category":"chinese","kind":"bing_rss","url":"https://www.bing.com/news/search?q=site%3Acw.com.tw%2Farticle%2F&format=RSS","evidence":"https://www.bing.com/news/search?q=site%3Acw.com.tw%2Farticle%2F&format=RSS"},
+    {"id":"scmp-news","publisher":"South China Morning Post（南华早报）","region":"Hong Kong","language":"en","category":"chinese","kind":"rss","url":"https://www.scmp.com/rss/91/feed","evidence":"https://www.scmp.com/rss"},
+    {"id":"zaobao-news","publisher":"Lianhe Zaobao","region":"Singapore","language":"zh","category":"chinese","kind":"news_sitemap","url":"https://www.zaobao.com.sg/googlenews.xml","evidence":"https://www.zaobao.com.sg/sitemap.xml"}
+  ]
+}
