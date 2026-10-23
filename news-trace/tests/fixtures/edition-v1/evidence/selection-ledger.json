@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "issue_date": "2026-10-03",
+  "input_snapshot": "evidence/input.json",
+  "coverage_review": [
+    {
+      "area": "science",
+      "status": "covered",
+      "note": "Synthetic test only."
+    }
+  ],
+  "candidates": [
+    {
+      "event_id": "event-one",
+      "decision": "selected",
+      "reason": "Synthetic test.",
+      "cluster_key": "lab-method-20261003",
+      "story_id": "example-lab",
+      "information_gain": "First publication in synthetic scenario.",
+      "global_significance": "B",
+      "briefing_priority": "B",
+      "attention": "Medium",
+      "confidence": "High"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 5,
+  "snapshot_as_of": "2026-10-03T10:00:00+00:00",
+  "completed_at": "2026-10-03T10:00:00+00:00",
+  "run_args": {
+    "max_age_hours": 36,
+    "limit": 15
+  },
+  "sources": [],
+  "items": [
+    {
+      "id": "1",
+      "source_id": "source-1",
+      "publisher": "Synthetic publisher 1",
+      "url": "https://example.com/source-1",
+      "published_at": "2026-10-03T10:00:00+00:00"
+    },
+    {
+      "id": "2",
+      "source_id": "source-2",
+      "publisher": "Synthetic publisher 2",
+      "url": "https://example.com/source-2",
+      "published_at": "2026-10-03T10:00:00+00:00"
+    }
+  ],
+  "summary": {
+    "candidate_items": 2
+  }
+}

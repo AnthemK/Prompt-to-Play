@@ -15,3 +15,5 @@
 全量发现示例：`python3 -B scripts/collect.py --limit 15 --max-age-hours 36 --output editions/YYYY/MM/DD/evidence/input.json`，随后运行 `python3 -B scripts/validate_snapshot.py editions/YYYY/MM/DD/evidence/input.json`。采集结果只是候选清单，不是正文核验。
 
 本流程类型：**规则文件**。每期输入、台账、必要复测与交付材料同目录保存，结构见[简报索引](../../editions/README.md)。试跑输出放 `tmp/`；结束后按[文件规则](../maintenance/file-lifecycle.md)清理。邮件发送遵循[邮件交付流程](email-delivery.md)。
+
+新一期的建档、逐条证据、复核与交付命令已集中到[完整执行框架](edition-pipeline.md)；本页保留编辑顺序。

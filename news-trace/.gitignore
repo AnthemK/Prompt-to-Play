@@ -1,5 +1,38 @@
-/tmp/
-.DS_Store
+# Temporary work (at any depth)
+tmp/
+temp/
+cache/
+.cache/
+*.tmp
+*.temp
+*.log
+
+# Local environments and generated output
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+node_modules/
+dist/
+build/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# OS and editor files
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# memory/, evidence, diagnostics and delivered ZIP files stay uploadable.

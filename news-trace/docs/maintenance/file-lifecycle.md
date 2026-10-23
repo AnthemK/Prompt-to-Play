@@ -6,9 +6,11 @@
 | --- | --- | --- |
 | **临时文件** | `tmp/` | 试跑、缓存、待核对中间结果；运行结束清理，不提交 Git，不被正式文档引用 |
 | **长期记忆** | `memory/` | 事件、故事、偏好、反馈与 TODO；按证据更新，不随运行清理 |
-| **规则文件** | `AGENTS.md`、`docs/standards/`、`docs/workflows/`、`docs/maintenance/`、`skills/`、`.gitignore` | 修改需说明目的；用户原始标准另存版本后才能修订 |
+| **短期记忆** | `memory/working-state.md` | 当前进展与交接入口；允许上传，完成后更新，不作为临时文件删除 |
+| **规则文件** | `AGENTS.md`、`docs/standards/`、`docs/contracts/`、`docs/workflows/`、`docs/maintenance/`、`skills/`、`.gitignore` | 修改需说明目的；用户原始标准另存版本后才能修订 |
 | **配置与程序** | `config/`、`scripts/`、`tests/` | 长期维护；路径调整须检查，代码调整须运行相关测试 |
 | **正式成果与证据** | `editions/`、`diagnostics/` | 已引用或交付的版本长期保留；复测另存，保留首轮失败记录 |
+| **专题状态与成果** | `topics/<topic-id>/` | 首页与研究任务可更新；已交付版本及发送字节长期保留，更正另存版本。旧材料通过索引连接，不补造审核记录 |
 | **参考文档与导航** | `docs/research/`、`docs/design/`、各级 `README.md` | 研究注明时间，导航保持简短；原始设计稿内容保持原样 |
 
 所有位置都相对项目根目录 `news-trace/`。文件类别由位置和本表确定；说明文档可增加 `类型：…`，JSON 不额外插入破坏结构的注释。新类型或例外先登记在本表。

@@ -1,0 +1,28 @@
+{
+  "reviewed_by": "Codex",
+  "review_date": "2026-10-23",
+  "decision": "reviewed_with_disclosed_limitations",
+  "checks": [
+    "claim support and attribution",
+    "event versus article dates",
+    "English paraphrases",
+    "source dependencies",
+    "numerical scope",
+    "future milestones not outcomes",
+    "counterargument labelled opinion",
+    "attachment equality and SHA256",
+    "ZIP integrity and portable links"
+  ],
+  "files": {
+    "report.md": "c28b24719bfec6decbfbe85cb117cb7ebf862e68cd3ff95a6e296787d5118be4",
+    "reading-guide.md": "70a673b47a5c984b1b5049aa1eafabe6ab39277ae897e06940a0170818158fe7",
+    "evidence.md": "a4e4f0f05f0fa5d613f6882bcf5e5b44a51b47427027fe0c0c316a90cea9c415",
+    "sources.json": "550f235c5abf6f1bbdb81e9b3a09016d9180c0596ea0f4ed8095fce5433fdd2f"
+  },
+  "limitations": [
+    "primary court documents not obtained",
+    "prior AP bodies used after failed reopen",
+    "delivery outcomes incomplete",
+    "nonrepresentative interviews"
+  ]
+}

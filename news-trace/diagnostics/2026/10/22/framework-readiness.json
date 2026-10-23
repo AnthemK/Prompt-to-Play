@@ -1,0 +1,64 @@
+{
+  "checked_on": "2026-10-22",
+  "scope": "Offline framework readiness, not independent fact verification",
+  "editions": [
+    {
+      "edition": "editions/2026/10/01",
+      "ready": false,
+      "findings": [
+        {
+          "severity": "P0",
+          "code": "missing.edition.json",
+          "message": "Missing edition.json; legacy material needs a real evidence review"
+        },
+        {
+          "severity": "P0",
+          "code": "missing.evidence/selection-ledger.json",
+          "message": "Missing evidence/selection-ledger.json; legacy material needs a real evidence review"
+        },
+        {
+          "severity": "P0",
+          "code": "missing.evidence/claims.json",
+          "message": "Missing evidence/claims.json; legacy material needs a real evidence review"
+        }
+      ]
+    },
+    {
+      "edition": "editions/2026/10/02",
+      "ready": false,
+      "findings": [
+        {
+          "severity": "P0",
+          "code": "missing.edition.json",
+          "message": "Missing edition.json; legacy material needs a real evidence review"
+        },
+        {
+          "severity": "P0",
+          "code": "missing.evidence/selection-ledger.json",
+          "message": "Missing evidence/selection-ledger.json; legacy material needs a real evidence review"
+        },
+        {
+          "severity": "P0",
+          "code": "missing.evidence/claims.json",
+          "message": "Missing evidence/claims.json; legacy material needs a real evidence review"
+        }
+      ]
+    },
+    {
+      "edition": "editions/2026/10/03",
+      "ready": false,
+      "findings": [
+        {
+          "severity": "P0",
+          "code": "missing.edition.json",
+          "message": "Missing edition.json; legacy material needs a real evidence review"
+        },
+        {
+          "severity": "P0",
+          "code": "missing.evidence/claims.json",
+          "message": "Missing evidence/claims.json; legacy material needs a real evidence review"
+        }
+      ]
+    }
+  ]
+}

@@ -31,7 +31,8 @@ def check() -> tuple[int, list[str]]:
     for ledger in ROOT.glob("editions/*/*/*/evidence/selection-ledger.json"):
         data = json.loads(ledger.read_text(encoding="utf-8"))
         target = data.get("input_snapshot")
-        if not target or not (ROOT / target).is_file():
+        base = ledger.parents[1] if data.get("schema_version") == 2 else ROOT
+        if not target or not (base / target).is_file():
             issues.append(f"{ledger.relative_to(ROOT)}: missing input_snapshot {target!r}")
 
     manifest = json.loads((ROOT / "docs/maintenance/migrations/2026-10-22-layout.json").read_text(encoding="utf-8"))

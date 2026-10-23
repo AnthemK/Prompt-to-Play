@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "issue_date": "2026-10-03",
+  "cutoff": "2026-10-03T10:00:00+00:00",
+  "overview": "合成测试：示例实验室发布方法。",
+  "overview_en": "SYNTHETIC TEST: an example lab publishes a method.",
+  "events": [
+    {
+      "id": "event-one",
+      "headline": "合成测试：实验方法发布",
+      "headline_en": "Synthetic test: a lab publishes a method",
+      "section": "Core Developments",
+      "topic": "science",
+      "region": "Global",
+      "claim_ids": [
+        "claim-one"
+      ],
+      "why_it_matters": "仅用于测试。",
+      "why_it_matters_en": "This is fictional test data, not a news report."
+    }
+  ]
+}

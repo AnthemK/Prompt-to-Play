@@ -1,0 +1,17 @@
+{
+  "product_type": "topic_tracker",
+  "topic_id": "france-school-protests",
+  "version": "2026-10-23-v1",
+  "cutoff": "2026-10-23T10:30:00Z",
+  "to": "anthemk@icloud.com",
+  "subject": "codeX Special Report | France: Timeline, Demands and Progress | 2026-10-23",
+  "status": "sent",
+  "files": {
+    "email.html": "cd2b741e629ea5ad89ffba078d31505dd6a6d36b5e64003dfc364a3c59d49f8a",
+    "full-report.md": "c28b24719bfec6decbfbe85cb117cb7ebf862e68cd3ff95a6e296787d5118be4",
+    "full-report.html": "8b5c5c54aaeb4986fa3d18775040ecdd06a54f4afbf58613d0e2391ec3559597",
+    "supporting-materials.zip": "893b8eeeb6b9962908f531995f322342c1f521237b6a7066faa35fd21b5a8282"
+  },
+  "message_id": "1a1686d0c1994007",
+  "thread_id": "1a1686d0c1994007"
+}

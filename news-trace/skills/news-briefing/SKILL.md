@@ -37,3 +37,5 @@ python3 -B scripts/validate_state.py
 Inspect the resulting `sources` and `items` fields before writing; the command is discovery, not verification. Follow live links and verify high-impact items individually. Keep the original standard untouched; create a separate versioned copy if proposing editorial changes.
 
 For authorized email delivery, read `../../docs/workflows/email-delivery.md`: the English briefing belongs in the email body, with the full edition and supporting materials attached. Archive delivery artifacts within that edition.
+
+New editions use the [structured edition pipeline](../../docs/workflows/edition-pipeline.md) and [v1 contracts](../../docs/contracts/edition-v1.md). Run `python3 -B scripts/edition.py check ISSUE --content-only`, complete actual editorial review, then run `check ISSUE` and `build ISSUE`. A missing legacy evidence record remains a gap; do not manufacture it to pass a gate. Review hashes detect input changes but do not prove factual correctness.

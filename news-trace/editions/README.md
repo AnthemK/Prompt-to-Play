@@ -11,12 +11,15 @@
 后续每期放在 `YYYY/MM/DD/`：
 
 ```text
+edition.json                  结构化编辑内容
 brief.md                      正式正文
 evidence/input.json           首轮输入快照
 evidence/selection-ledger.json 重要候选的取舍
+evidence/claims.json           逐条主张与原文定位
+evidence/review.json           绑定输入哈希的编辑复核
 evidence/rechecks/            必须保留的后续复测
 verification.md               有实质问题时才建立复核说明
 delivery/                     邮件正文、完整版附件、资料包与发送回执
 ```
 
-仅创建实际用到的文件和目录。旧期缺少的材料标明缺口，不补造历史记录；新期完成后在本索引增加一行。台账的 `input_snapshot` 使用相对 `news-trace/` 的路径。邮件附件中归档的原始文件名保留，不因工作目录迁移重做已发送压缩包。
+仅创建实际用到的文件和目录。旧期缺少的材料标明缺口，不补造历史记录；新期完成后在本索引增加一行。旧台账 v1 的 `input_snapshot` 相对 `news-trace/`；新台账 v2 相对本期目录，固定为 `evidence/input.json`。邮件附件中归档的原始文件名保留，不因工作目录迁移重做已发送压缩包。

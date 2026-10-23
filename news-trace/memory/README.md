@@ -1,9 +1,10 @@
-# 长期记忆
+# 工作记忆
 
-类型：**长期记忆**。[首页](../README.md)
+类型：**持久化工作记忆（允许上传）**。[首页](../README.md)。短期指有效期较短，不等于可删除的临时文件。
 
 | 文件 | 保存什么 |
 | --- | --- |
+| [working-state.md](working-state.md) | 短期交接状态；下一轮工作完成后更新或替换 |
 | [preferences.json](preferences.json) | 用户明确偏好、核心媒体和排除来源 |
 | [event_history.jsonl](event_history.jsonl) | 已报道事件，供下一期判断信息增量 |
 | [story_state.json](story_state.json) | 持续故事的状态、关注程度和待核实问题 |

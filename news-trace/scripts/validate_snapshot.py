@@ -24,6 +24,8 @@ def validate(report: dict) -> list[tuple[str, str]]:
     except (KeyError, TypeError, ValueError, OverflowError) as exc:
         findings.append(("P0", f"invalid snapshot timing metadata: {exc}"))
         return findings
+    if snapshot_at.tzinfo is None or completed_at.tzinfo is None or window.total_seconds() <= 0:
+        return [("P0", "snapshot timestamps need timezones and a positive window")]
     if completed_at < snapshot_at:
         findings.append(("P0", "completed_at precedes snapshot_as_of"))
 
@@ -37,6 +39,9 @@ def validate(report: dict) -> list[tuple[str, str]]:
             published = datetime.fromisoformat(item["published_at"])
         except (KeyError, TypeError, ValueError):
             findings.append(("P0", f"invalid publication time: {item.get('url', '<unknown>')}"))
+            continue
+        if published.tzinfo is None:
+            findings.append(("P0", f"publication timezone missing: {item.get('url', '<unknown>')}"))
             continue
         if not snapshot_at - window <= published <= snapshot_at:
             findings.append(("P0", f"item outside snapshot window: {item.get('url', '<unknown>')}"))

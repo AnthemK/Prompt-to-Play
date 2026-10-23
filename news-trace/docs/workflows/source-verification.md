@@ -69,4 +69,4 @@ Windows 可把 `python3` 换为 `py -3`。若只测某一媒体，保留对应�
 - 标题或新华社署名不能核对：`verify_authoritative.py` 失败；需人工检查页面改版或报道性质。
 - 旧 RSS 的停更/404 证据由 `audit_candidates.py` 复测，候选列表保存在 `candidate-endpoints.json`；它们不进入实时采集配置。
 
-类型：**规则文件**。上述命令输出到临时目录；正式引用的结果移到 `diagnostics/YYYY/MM/DD/`，并更新引用。候选入口实际配置位于 `config/candidate-endpoints.json`。校验器的历史窗口限制仍见[待办](../../memory/TODO.md)。
+类型：**规则文件**。上述命令输出到临时目录；正式引用的结果移到 `diagnostics/YYYY/MM/DD/`，并更新引用。候选入口实际配置位于 `config/candidate-endpoints.json`。校验器现按 `snapshot_as_of` 与 `run_args.max_age_hours` 校验，禁止无时区时间；缺少这些字段的旧报告会明确失败，不猜测窗口。

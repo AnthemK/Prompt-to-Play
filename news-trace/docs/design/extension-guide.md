@@ -6,6 +6,7 @@
 
 | 要扩展的能力 | 首先改哪里 | 如何验收 |
 | --- | --- | --- |
+| 专题追踪 | `topics/`；[专题流程](../workflows/topic-tracking.md) | 原文、竞争解释、深度阅读和版本增量可核对；当前人工验收 |
 | 新增媒体或栏目 | `config/sources/`；研究依据放 `docs/research/` | ID 唯一，日期可靠，试跑可重复，证据等级清楚 |
 | 新站点解析 | `scripts/collect.py`、`scripts/article_probe.py` 与 `tests/` | 使用合成样例做离线回归，再抽查原站 |
 | 断言级溯源 | 每期 `evidence/`，配套校验程序 | 每项主张对应原文位置、时间与证据等级 |

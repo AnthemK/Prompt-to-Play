@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "evidence": [
+    {
+      "id": "evidence-1",
+      "source_id": "source-1",
+      "publisher": "Synthetic publisher 1",
+      "url": "https://example.com/source-1",
+      "published_at": "2026-10-03T10:00:00+00:00",
+      "checked_at": "2026-10-03T10:00:00+00:00",
+      "checked_by": "Synthetic fixture",
+      "level": "primary_document",
+      "dependency_group": "chain-1",
+      "locator": "Synthetic paragraph 1",
+      "support": "Fictional fixture: an example method was published."
+    },
+    {
+      "id": "evidence-2",
+      "source_id": "source-2",
+      "publisher": "Synthetic publisher 2",
+      "url": "https://example.com/source-2",
+      "published_at": "2026-10-03T10:00:00+00:00",
+      "checked_at": "2026-10-03T10:00:00+00:00",
+      "checked_by": "Synthetic fixture",
+      "level": "primary_document",
+      "dependency_group": "chain-2",
+      "locator": "Synthetic paragraph 1",
+      "support": "Fictional fixture: an example method was published."
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim-one",
+      "event_id": "event-one",
+      "kind": "reporting",
+      "status": "verified",
+      "text": "合成测试：方法已发布。",
+      "text_en": "SYNTHETIC TEST: the method was published.",
+      "evidence_ids": [
+        "evidence-1",
+        "evidence-2"
+      ]
+    }
+  ]
+}

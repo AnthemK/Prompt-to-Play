@@ -6,12 +6,14 @@
 
 | 程序 | 用途 |
 | --- | --- |
+| [edition.py](edition.py) | 一期建档、证据／取舍检查、待填复核记录与交付包生成；详见[框架流程](../docs/workflows/edition-pipeline.md) |
+| [briefing/](briefing/) | 数据约定、验证、渲染模块；按职责独立扩展 |
 | [collect.py](collect.py) | 合并信源配置，采集并输出带时间和哈希的候选快照 |
 | [article_probe.py](article_probe.py) | 文章解析辅助模块，供采集器调用 |
 | [inspect_access.py](inspect_access.py) | 对明确指定的快照检查访问等级；`--report` 必填 |
 | [audit_candidates.py](audit_candidates.py) | 审计未纳入日常采集的候选入口 |
 | [validate_snapshot.py](validate_snapshot.py) | 检查快照时间、结构及 P0/P1/P2 问题 |
-| [verify_authoritative.py](verify_authoritative.py) | BBC／新华社文章核验；已知时间窗口限制见待办 |
+| [verify_authoritative.py](verify_authoritative.py) | BBC／新华社文章核验；使用快照的截止时间和回看窗口 |
 | [validate_state.py](validate_state.py) | 检查跨期记忆 |
 | [check_layout.py](check_layout.py) | 检查文档本地链接、台账输入路径及受保护原稿哈希 |
 | [paths.py](paths.py) | 统一定位项目、程序、配置和记忆目录 |

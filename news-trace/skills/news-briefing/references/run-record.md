@@ -1,9 +1,9 @@
 # Compact run record
 
-Keep four artifacts for each issue:
+Keep four artifact groups for each issue:
 
 1. **Input snapshot:** collector output with hashes, one `snapshot_as_of`, source health, contribution status, and limit warnings.
-2. **Selection ledger:** one row per serious event candidate with `event_id`, tier, confidence, evidence level, source independence, decision, and one-sentence reason. Do not retain routine discarded headlines.
+2. **Editorial evidence:** save structured `edition.json`, claim-level `evidence/claims.json` and hash-bound `evidence/review.json` according to the [contracts](../../../docs/contracts/edition-v1.md). The **selection ledger** has one row per serious event candidate with `event_id`, tier, confidence, evidence level, source independence, decision, and one-sentence reason. Do not retain routine discarded headlines.
 3. **Published brief:** about ten distinct events with original links and visible limitations or corrections.
 4. **Persistent state:** update only facts reported, story status, unresolved claims, attention, and information gain.
 
