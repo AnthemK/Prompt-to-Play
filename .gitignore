@@ -17,6 +17,7 @@ venv/
 # JavaScript build output
 node_modules/
 dist/
+/.pnpm-store/
 
 # Python cache / test output
 __pycache__/
@@ -57,3 +58,8 @@ coverage.xml
 **/*-cache/**
 **/09-cache/
 **/09-cache/**
+
+# Forum automation: defense in depth for private local data.
+/forum-task-runner/.data/
+/forum-task-runner/.private/
+/forum-task-runner/.test-output/
