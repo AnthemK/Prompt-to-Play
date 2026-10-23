@@ -1,0 +1,14 @@
+{
+  "id": "example-checkin",
+  "name": "示例：请替换网址与选择器",
+  "account": "example-account",
+  "origins": ["https://forum.example.com"],
+  "entry": "https://forum.example.com/checkin",
+  "login": "https://forum.example.com/login",
+  "authSelector": "[data-user-menu]",
+  "doneSelector": "[data-checkin-done]",
+  "challengeSelector": "[data-human-verification]",
+  "headed": false,
+  "schedule": {"enabled": false, "kind": "daily", "time": "09:00", "weekday": 1, "timezone": "Asia/Shanghai", "windowHours": 12},
+  "steps": [{"type": "click", "selector": "[data-checkin-button]", "skipIf": "[data-checkin-done]"}]
+}

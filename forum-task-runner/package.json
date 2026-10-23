@@ -1,0 +1,20 @@
+{
+  "name": "forum-task-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test --test-concurrency=1 test/*.test.js",
+    "demo": "node src/server.js --demo",
+    "browser:install": "node scripts/install-browser.js",
+    "autostart:mac": "node scripts/autostart-mac.js",
+    "autostart:remove": "node scripts/autostart-mac.js --remove"
+  },
+  "dependencies": {
+    "playwright": "1.64.1"
+  }
+}

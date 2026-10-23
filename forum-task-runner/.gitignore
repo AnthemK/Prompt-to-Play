@@ -1,0 +1,47 @@
+# PRIVATE: never commit runtime data, credentials, backups or real-account evidence.
+.data/
+.private/
+.test-output/
+backups/
+exports/
+profiles/
+browser-profile*/
+playwright-report/
+test-results/
+
+# Credentials and local settings (also applies inside site directories).
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.db
+*.db-*
+*.log
+*cookies*.json
+*storage-state*.json
+*storageState*.json
+*credentials*.json
+*secrets*.json
+*.local.json
+*.local.yaml
+*.local.yml
+
+# Browser traces and recordings can contain authenticated page contents.
+*.har
+*.zip
+*.tar
+*.gz
+*.webm
+*.mp4
+
+# Installed dependencies and browser runtimes.
+node_modules/
+.browsers/
+.pnpm-store/
+.DS_Store
+__pycache__/

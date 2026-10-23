@@ -1,0 +1,14 @@
+{
+  "id": "south-plus-daily",
+  "name": "South Plus · 每日任务（待验证）",
+  "account": "south-plus",
+  "origins": ["https://south-plus.net"],
+  "entry": "https://south-plus.net/plugin.php?H_name-tasks.html",
+  "login": "https://south-plus.net/plugin.php?H_name-tasks.html",
+  "authSelector": "a:text-is(\"退出\")",
+  "doneSelector": "[data-daily-result-not-yet-verified]",
+  "challengeSelector": "",
+  "headed": true,
+  "schedule": {"enabled": false, "kind": "daily", "time": "09:20", "weekday": 1, "timezone": "Asia/Shanghai", "windowHours": 14},
+  "steps": [{"type": "wait", "selector": "[data-daily-result-not-yet-verified]"}]
+}

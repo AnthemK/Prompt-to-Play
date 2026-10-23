@@ -1,0 +1,29 @@
+{
+  "id": "sjmc-checkin",
+  "name": "SJMC 用户中心 · 每日签到",
+  "account": "sjmc",
+  "origins": [
+    "https://skin.mc.sjtu.cn"
+  ],
+  "entry": "https://skin.mc.sjtu.cn/user",
+  "login": "https://skin.mc.sjtu.cn/auth/login",
+  "authSelector": "h1:has-text(\"仪表盘\")",
+  "doneSelector": "button:disabled:has-text(\"后可签到\")",
+  "challengeSelector": "",
+  "headed": true,
+  "schedule": {
+    "enabled": false,
+    "kind": "daily",
+    "time": "09:00",
+    "weekday": 1,
+    "timezone": "Asia/Shanghai",
+    "windowHours": 12
+  },
+  "steps": [
+    {
+      "type": "click",
+      "selector": "button:text-is(\"签到\")",
+      "skipIf": "button:disabled:has-text(\"后可签到\")"
+    }
+  ]
+}

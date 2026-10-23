@@ -1,0 +1,29 @@
+{
+  "id": "xsijishe-checkin",
+  "name": "xsijishe · 每日签到",
+  "account": "xsijishe",
+  "origins": [
+    "https://xsijishe.com"
+  ],
+  "entry": "https://xsijishe.com/k_misign-sign.html",
+  "login": "https://xsijishe.com/member.php?mod=logging&action=login",
+  "authSelector": "#JD_sign:not([href*=\"action=login\"]), :text(\"您的签到排名：\")",
+  "doneSelector": ":text(\"您的签到排名：\")",
+  "challengeSelector": "",
+  "headed": false,
+  "schedule": {
+    "enabled": false,
+    "kind": "daily",
+    "time": "09:10",
+    "weekday": 1,
+    "timezone": "Asia/Shanghai",
+    "windowHours": 14
+  },
+  "steps": [
+    {
+      "type": "click",
+      "selector": "#JD_sign[href*=\"operation=qiandao\"]",
+      "skipIf": ":text(\"您的签到排名：\")"
+    }
+  ]
+}

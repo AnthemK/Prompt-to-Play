@@ -1,0 +1,106 @@
+{
+  "research_date": "2026-10-20",
+  "timezone": "Asia/Shanghai",
+  "method": "Static source inspection only; no upstream code executed, no dependencies installed, no account or website task tested.",
+  "qd": {
+    "repository": "https://github.com/qd-today/qd",
+    "commit": "c3b6068561d063a0a0e4be224b039007bebe9e8b",
+    "commit_timestamp_utc": "2026-07-06T00:20:12Z",
+    "archive_sha256": "3dada772da5b029ba9d57d54db2a54a65d47aa4d412e03e4d6abe19b47ff031b",
+    "inspected_files": [
+      {
+        "path": "config.py",
+        "sha256": "efdc21b279a5af94d3a5658789d6d6a4db17f037395d36c7c4c2b3d2c4c07285"
+      },
+      {
+        "path": "worker.py",
+        "sha256": "8dc793e79c8d90fa854c3f58719af7006299581f9c586b4e5fd070c14e6704ca"
+      },
+      {
+        "path": "libs/fetcher.py",
+        "sha256": "4b182308d820929459d9ff26e61f359f7731d04786544be20cc9a125b2c931a6"
+      },
+      {
+        "path": "libs/cookie_utils.py",
+        "sha256": "dce2b16375d69a2b59681832b13f83458c3b1adf99028b63c9e9c58363f82719"
+      },
+      {
+        "path": "libs/funcs.py",
+        "sha256": "1c84cbf05e01105ccfe54726939da5409525f0e6d4b6bab9957717732b8db3ec"
+      },
+      {
+        "path": "libs/mcrypto.py",
+        "sha256": "677780f8311714387107cbe0220f1201a19b952c4ac20831c26a1a8f3eaf8f1c"
+      },
+      {
+        "path": "libs/safe_eval.py",
+        "sha256": "13b46ff0762b840faa53025c9d5c3498967534d435980976ca3049d3c63ad8ce"
+      },
+      {
+        "path": "db/task.py",
+        "sha256": "4906f17cc815b067f3535f421baea48d78744a3a8f04e617cdc58ddc832cf393"
+      },
+      {
+        "path": "db/user.py",
+        "sha256": "7c186372a3f21423c500585170c4f980d8154d19730e8b0e84eaf4b55afb64bd"
+      },
+      {
+        "path": "web/handlers/task.py",
+        "sha256": "cb7f513370ed615e5b6381694e72f347b2459b87310e58d05d289591e54d9fa3"
+      },
+      {
+        "path": "web/handlers/user.py",
+        "sha256": "d1f153115d4fb917a22f2339b1263b97f5f0d2a9634cc62c981ef7b390596230"
+      },
+      {
+        "path": "web/handlers/subscribe.py",
+        "sha256": "671a40c7233e17c14bf421b4f73be2a590dc20acd9458228749d47bd12301987"
+      },
+      {
+        "path": "web/tpl/base.html",
+        "sha256": "89b758f31cefc0e4bc160c3814f2a3e534705e2b87018b0e21eb3cd4dbc89d78"
+      },
+      {
+        "path": "Dockerfile.lite",
+        "sha256": "55084eae118f3960c20b17c9b4bf5753605aef695142d6238496b9f400b03828"
+      },
+      {
+        "path": "docker-compose.yml",
+        "sha256": "ab180b3db1641062411ba248889cb30460483e3e784318b6c596b7601e9d22bd"
+      }
+    ]
+  },
+  "playwright": {
+    "repository": "https://github.com/microsoft/playwright",
+    "release_tag": "v1.64.1",
+    "published_at_utc": "2026-10-14T11:51:33Z",
+    "release_url": "https://github.com/microsoft/playwright/releases/tag/v1.64.1",
+    "archive_sha256": "c66fb5cfe3e0625e70735e153f5c68f83d153da2bb0790873b0f85cd56bf68de",
+    "inspected_files": [
+      {
+        "path": "packages/playwright-core/package.json",
+        "sha256": "8aa1c9863fa8dea324e674254158cdc79440f4124ef2d84d38053013541cb7d6"
+      },
+      {
+        "path": "packages/playwright-core/src/server/fetch.ts",
+        "sha256": "d82a78f0db78d0e7b82647ff91eb6e1f7e5afbca9c47fd5e369bf4d834b2de85"
+      },
+      {
+        "path": "packages/playwright-core/src/server/browserContext.ts",
+        "sha256": "89e2673fdd0c4b53f4ac648d40d86acba646d71bf7d82183b343c2e891b440b5"
+      },
+      {
+        "path": "docs/src/auth.md",
+        "sha256": "9b47b108e1196300ef1b7d3a850e1f99fba250e384ec7a201b2b03d3a20cdbc9"
+      },
+      {
+        "path": "docs/src/api/class-browsercontext.md",
+        "sha256": "09cccad9943cae25b9e3db258fb01ba90f4c381c6972370aa9420ae907772e2e"
+      },
+      {
+        "path": "docs/src/api/class-tracing.md",
+        "sha256": "6c8b1833d589a04afbb4caeac2f7c38a12742e67178bb02091e5988da3898c2c"
+      }
+    ]
+  }
+}
